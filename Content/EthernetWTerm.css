@@ -1,0 +1,23 @@
+/*!
+Mainage CSS
+ */
+
+#TerminalTextArea {
+    background-color: #C0C0C0;
+    white-space: pre;
+    width: 640px;
+    height: 640px;
+}
+.ImgBox{
+    max-width:1024px;
+    max-height:768px;   
+    display:inline-flexbox;
+}
+#displayTable {
+    white-space: pre;
+    word-spacing: normal;
+    font-family: 'Courier New';
+    font-family: monospace;
+}
+
+
