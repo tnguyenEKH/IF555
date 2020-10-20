@@ -1,0 +1,94 @@
+P 675
+  1:  1,0,Hauptmenue, bitte waehlen :
+  2:  2,1,Anzeige
+  3:  2,0,Stoerungsverwaltung
+  4:  3,1,Stoerungsprotokoll
+  5:  3,1,akt. anstehende Stoerungen
+  6:  3,1,Stoerungsfreigabe
+  7:  3,1,Langzeitmeldeprotokoll
+  8:  3,1,Wiederkehrende Stoerungen
+  9:  2,0,Ein- Ausgaenge
+ 10:  3,1,Analogeingaenge
+ 11:  3,1,Analogausgaenge
+ 12:  3,1,PWM-Ausgaenge
+ 13:  3,1,Digitalausgaenge
+ 14:  3,1,Digitaleingaenge
+ 15:  2,0,Kessel
+ 16:  3,1,Kessel Leistungsregelung
+ 17:  3,1,Kessel Durchflussregelung
+ 18:  3,1,GeniBus Pumpen
+ 19:  3,1,Kesselparameter
+ 20:  3,1,Kesseltoleranz Hauptkreis
+ 21:  3,1,Kesselrangfolge
+ 22:  3,1,Pumpenvorlauf erlaubt?
+ 23:  2,0,BHKW
+ 24:  3,1,BHKW Bedienung (Kraftwerk)
+ 25:  3,1,BHKW Betriebsprot. (Merlin)
+ 26:  3,1,Timer BHKW Freigabe
+ 27:  3,1,BHKW Parameter
+ 28:  3,1,BHKW Rangfolge
+ 29:  3,1,Warn. bei Starts > (in 24h)
+ 30:  3,1,BHKW Betriebsart
+ 31:  3,1,BHKW CAN-Kommunikation
+ 32:  3,0,BHKW Systemeinstellungen
+ 33:  4,1,Obere BHKW-Toleranz Hauptkr.
+ 34:  4,1,Untere BHKW-Toleranz Hauptkr.
+ 35:  4,1,BHKW-Ausschaltverz. in MIN
+ 36:  4,1,BHKW1 Einschaltverz. in MIN
+ 37:  4,1,BHKW1 Einschalttemp. Differ.
+ 38:  4,1,Min TCMAX (WW ueberladen,...)
+ 39:  4,1,minimal beachteter Strombedarf
+ 40:  2,0,Heizkreise
+ 41:  3,1,Heizkurven
+ 42:  3,0,Absenkung
+ 43:  4,1,Heizkreise Wochenkalender
+ 44:  4,1,Heizkreise Jahreskalender
+ 45:  3,1,HK-Pumpenregelung
+ 46:  3,1,GeniBus Pumpen
+ 47:  3,1,HK-Vorlaufregelung
+ 48:  3,1,Heizkreisparameter
+ 49:  3,1,Tau AT-Schnitt (h)
+ 50:  3,1,AT-Schnitt (aktuell)
+ 51:  3,1,Estrichtrocknung
+ 52:  2,0,Allgemein
+ 53:  3,0,Zaehler
+ 54:  4,1,Impulszaehler
+ 55:  4,1,Monatszaehler
+ 56:  4,1,Jahreszaehler
+ 57:  4,1,Sonstige Zaehler
+ 58:  3,0,M-Bus
+ 59:  4,1,M-Bus Werte
+ 60:  4,1,M-Bus Busdaten
+ 61:  4,1,M-Bus Lesezyklus (s)
+ 62:  3,0,GeniBus Pumpen
+ 63:  4,1,GeniBus Pumpenkommunikation
+ 64:  4,1,GeniBus Pumpenskalierungsfakt.
+ 65:  4,1,GeniBus Busdaten
+ 66:  4,1,GeniBus Pumpenkennlinie
+ 67:  4,1,GeniBus manuelle Kommunikation
+ 68:  3,0,Ausloeseschwellen
+ 69:  4,1,Gassensor analog (V)
+ 70:  4,1,HZG-Druck-Warnschwellen (bar)
+ 71:  3,1,Ueberheizung Hauptkreis (K)
+ 72:  3,1,Hauptnutzungsdauer Heizung
+ 73:  2,0,Systembereich
+ 74:  3,0,Abgleichen
+ 75:  4,1,Analogeingaenge abgleichen
+ 76:  4,1,Analogausgaenge abgleichen
+ 77:  4,1,Zaehleingaenge abgleichen
+ 78:  4,1,Gasheizwert (Hu)
+ 79:  4,1,Uhrenabgleich
+ 80:  3,1,Uhrzeit / Datum
+ 81:  3,1,Zustand der EINGABETASTE
+ 82:  3,1,Resetinfo
+ 83:  3,1,Letzte Anrufer Fernbedienung
+ 84:  3,0,RTOS System
+ 85:  4,0,RTOS Systemmeldungen
+ 86:  5,1,Ausgabekanal Systemmeldungen
+ 87:  5,1,Systemmeldungen ausgeben
+ 88:  4,1,geplanter RESET
+ 89:  4,1,Einstellwerte neu initialis.
+ 90:  4,1,Verzoegerung Tastatur (ms)
+ 91:  4,1,Interv. Steigungsmessung (s)
+ 92:  3,1,Status Relais (Handschalter)
+ 93:  2,1,Schornsteinfegermenue

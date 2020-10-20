@@ -1,0 +1,36 @@
+* {
+  margin: 0;
+  padding: 0;/*10rem 10rem;*/
+}
+
+.top-bar {
+  background: #c0c0c0;
+  color: #0;
+  padding: 0.1rem;
+}
+
+.btn {
+  cursor: pointer;
+  padding: 1.5rem 1rem;
+}
+
+
+.page-info {
+  margin-left: 1rem;
+}
+
+.zoom-info {
+  margin-left: 1rem;
+}
+
+.error {
+  background: #ff8080;
+  color: #0;
+  padding: 1rem;
+}
+
+#canvas-container {
+    background: #c0c0c0;
+    text-align: center;
+    /*border: solid 3px;*/
+}
