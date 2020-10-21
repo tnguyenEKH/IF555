@@ -1593,18 +1593,21 @@ function log(s) {
 
 
 function ReloadData() {
+	var date = new Date();
 	var rawvisuData = readFromTextFile(visuDataFile);
 	createVisudata(rawvisuData);
 	if (rawvisuData != "") {
 		DrawVisu();
-		
-		document.querySelector('#updateStatus-info').textContent = 'Reload Data successfully at: ' + Date().toLocaleString();
-		console.log("Reload Data successfully at:" + Date().toLocaleString());
+		document.querySelector('#vupdateStatus-bar').style.color = 'black';
+		document.querySelector('#vupdateStatus-info').textContent = 'Letzte Datenaktualisierung: ' + date.toLocaleString("de-DE");
+		//console.log("Letzte Datenaktualisierung:" + Date().toLocaleString());
 	}
 	else
-		document.querySelector('#updateStatus-info').textContent = 'Reload Data failed!';
-		log("Reload: Keine Daten verfügbar");
-
+	{
+		document.querySelector('#vupdateStatus-bar').style.color = 'red';
+		if(document.querySelector('#vupdateStatus-info').textContent == " ") document.querySelector('#vupdateStatus-info').textContent = 'Datenaktualisierung fehlgeschlagen!';
+		//console.log("Datenaktualisierung fehlgeschlagen!");
+	}
 }
 
 function toggleBools() {
