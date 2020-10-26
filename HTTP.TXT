@@ -1,0 +1,69 @@
+;Variablendatei
+B=0020037C  ;Base of Variables
+#0000 ;Page Nummer
+V001 FLANTWORT1:F(14,4):3:0000000    ;Reserve
+V002 FLANTWORT2:F(14,4):3:0000004    ;Reserve
+V003 FL55ANTWORT:F(20,4):4:0000008   ;vermutlich koennen wir hiermit alle Tastatureingaben von Zahlen empfangen (Browsermenü Zahleneingabe)
+V004 F31ANTWORT1:F(14):2:00000010    ;Empfang Index für die komfortable Menübedienung (1-150 für Menüpunkte aus munue.txt)
+V005 F31ANTWORT2:F(14):2:00000014    ;Reserve
+V006 F31ANTWORT3:F(14):2:00000018    ;Reserve
+V007 CHANTWORT1:A(20):8:0000001C     ;Kommunikationsvariable für 1/4h-Datenabholung  (z.B.:  Q22019061848 = Daten vorhanden bis 18.06.2019 12:00)
+V008 CHANTWORT2:A(20):8:00000030     ;Reserve
+V009 CHANTWORT3:A(80):8:00000044     ;Empfang einer Text-Tastatureingabe vom Browser (Browsermenü Texteingabe)
+V010 FTAST:F(5):1:00000094           ;Tastaturcode von Browser an Pearl-Programm
+#0001 ;Page Nummer
+V011 BZEIL:A(8):6:00000096           ;BZEIL -> BIT(32) welche Zeilen haben sich geaendert... ZEILE1 -> BIT(1), ZEILE2 -> BIT(2)...
+V012 DISPSTATUS:A(8):6:0000009A      ;Displaystatus BIT(32)
+V013 XROT:F(5):1:0000009E            ;POS x ab der das Menue rot sein soll
+V014 YROT:F(5):1:000000A0            ;POS y ab der das Menue rot sein soll
+V015 ZROT:F(5):1:000000A2            ;Anzahl der roten Zeichen ab POS x,y
+#0002 ;Page Nummer
+V016 ZEILE1:A(46):8:000000BC         ;Textinhalt von Zeile1   (Offset+24 wegen Feldbescheibung in Pearl:   (DCL ZEIL(18)     CHAR(46)  GLOBAL;)   )
+V017 ZEILE2:A(46):8:000000EA         ;Textinhalt von Zeile2
+V018 ZEILE3:A(46):8:00000118         ;
+V019 ZEILE4:A(46):8:00000146         ;
+V020 ZEILE5:A(46):8:00000174         ;
+V021 ZEILE6:A(46):8:000001A2         ;
+V022 ZEILE7:A(46):8:000001D0         ;
+V023 ZEILE8:A(46):8:000001FE         ;
+V024 ZEILE9:A(46):8:0000022C         ;
+V025 ZEILE10:A(46):8:0000025A        ;
+V026 ZEILE11:A(46):8:00000288        ;
+V027 ZEILE12:A(46):8:000002B6        ;
+V028 ZEILE13:A(46):8:000002E4        ;
+V029 ZEILE14:A(46):8:00000312        ;
+V030 ZEILE15:A(46):8:00000340        ;
+V031 ZEILE16:A(46):8:0000036E        ;
+V032 ZEILE17:A(46):8:0000039C        ;
+V033 ZEILE18:A(46):8:000003CA        ;
+V034 DISPSTATUS2:A(8):6:000003F8     ;Displaystatus BIT(32)
+V035 XROT2:F(5):1:000003FC           ;POS x ab der das Menue rot sein soll
+V036 YROT2:F(5):1:000003FE           ;POS y ab der das Menue rot sein soll
+V037 ZROT2:F(5):1:00000400           ;Anzahl der roten Zeichen ab POS x,y
+#0003 ;Page Nummer
+V038 ZEIL8001:A(80):8:0000041C       ;Textinhalt von Zeile1   (Offset+64 wegen Feldbescheibung in Pearl:   (DCL ZEIL80(22)     CHAR(80)  GLOBAL;)   )
+V039 ZEIL8002:A(80):8:0000046C       ;
+V040 ZEIL8003:A(80):8:000004BC       ;
+V041 ZEIL8004:A(80):8:0000050C       ;
+V042 ZEIL8005:A(80):8:0000055C       ;
+V043 ZEIL8006:A(80):8:000005AC       ;
+V044 ZEIL8007:A(80):8:000005FC       ;
+V045 ZEIL8008:A(80):8:0000064C       ;
+V046 ZEIL8009:A(80):8:0000069C       ;
+V047 ZEIL8010:A(80):8:000006EC       ;
+V048 ZEIL8011:A(80):8:0000073C       ;
+V049 ZEIL8012:A(80):8:0000078C       ;
+V050 ZEIL8013:A(80):8:000007DC       ;
+V051 ZEIL8014:A(80):8:0000082C       ;
+V052 ZEIL8015:A(80):8:0000087C       ;
+V053 ZEIL8016:A(80):8:000008CC       ;
+V054 ZEIL8017:A(80):8:0000091C       ;
+V055 ZEIL8018:A(80):8:0000096C       ;
+V056 ZEIL8019:A(80):8:000009BC       ;
+V057 ZEIL8020:A(80):8:00000A0C       ;
+V058 ZEIL8021:A(80):8:00000A5C       ;
+V059 ZEIL8022:A(80):8:00000AAC       ;
+V060 DISPSTATUS3:A(8):6:00000BEC     ;Displaystatus BIT(32)
+V061 XROT3:F(5):1:00000BF0           ;POS x ab der das Menue rot sein soll
+V062 YROT3:F(5):1:00000BF2           ;POS y ab der das Menue rot sein soll
+V063 ZROT3:F(5):1:00000BF4           ;Anzahl der roten Zeichen ab POS x,y
