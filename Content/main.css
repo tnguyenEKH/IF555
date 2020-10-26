@@ -110,8 +110,6 @@ body {
     display: flex;
 }
 
-
-
 .hauptDisplay {
     width: 100%;
     padding: 1em 1.5em;
@@ -152,9 +150,6 @@ body {
 
 }
 
-#displayCanvas{
-	font-family: monospace, 'Courier New';
-}
 .btn:hover{
 	background-color: #4CAF50; /* Green */
 	color: white;

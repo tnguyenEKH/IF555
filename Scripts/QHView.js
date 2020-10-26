@@ -8,7 +8,7 @@
     var offsetX;
     var offsetY;
 
-    // Diagramm: Feste Werte für Positionierung
+    // Diagramm: Feste Werte fÃ¼r Positionierung
     var diagramLeft = 10;
     var diagramTop = 10;
     var diagramWidth = 650;
@@ -24,20 +24,20 @@
     var diagramZeitraum = "d";
     var diagramForceQH = false;
 
-    // Effektive Zeichenfläche für Daten. Von DrawGrid() initialisiert
+    // Effektive ZeichenflÃ¤che fÃ¼r Daten. Von DrawGrid() initialisiert
     var xd;
     var yd;
     var wd;
     var hd;
 
-    // Skalierungswerte. Werden beim Laden der Usersettings überschrieben
+    // Skalierungswerte. Werden beim Laden der Usersettings Ã¼berschrieben
     var YLMin = 0;
     var YLMax = 110;
     var YLStep = 10;
     var YRMax = 440;
     var YRStep = 40;
 	
-    // von getUserSettings() gefüllt:
+    // von getUserSettings() gefÃ¼llt:
 
     var loaded_Y_Links_Max;
     var loaded_Y_Links_Min;
@@ -48,7 +48,7 @@
     // Darstellungsdatum setzen
     //var diagramDatum = prevMonth(prevMonth(InitialDatum()));
     var diagramDatum = InitialDatum();
-    // Variablen für Kopf- und Spurdaten
+    // Variablen fÃ¼r Kopf- und Spurdaten
     var diagramHeader;
     var diagramData;
 
@@ -198,7 +198,7 @@ function getUserSettings() {
 
 }
 
-// Ist nach Änderungen aufzurufen
+// Ist nach Ã„nderungen aufzurufen
 function updateUserSettings() {
     UserSettings.qh_Skalierung.Y_Links_Min = YLMin;
     UserSettings.qh_Skalierung.Y_Links_Max = YLMax;
@@ -356,7 +356,7 @@ function exportCSV(Steuerung, dtFrom, dtTo) {
         data: "{Steuerung: '" + Steuerung + "', dtFrom:'" + dtFrom + "', dtTo:'" + dtTo + "'}",
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
+        async: false, // wichtig! sonst kein RÃ¼ckgabewert
         success: function (response) {
             var r = response.d;
             log("requestHeader ok");
@@ -399,9 +399,9 @@ function loadHeader(QHHeaderFile) {
 	var shdr = readFromTextFile(QHHeaderFile);
 	var header = [];
 	/*
-	3  : Platzhalter für Anzahl der Spuren
-	5  : Platzhalter für Einheit*
-	20 : Platzhalter fürBezeichnung
+	3  : Platzhalter fÃ¼r Anzahl der Spuren
+	5  : Platzhalter fÃ¼r Einheit*
+	20 : Platzhalter fÃ¼rBezeichnung
 	*/
 	var nDigits = 3;
 	var headerEinheintenLength = 5;
@@ -422,9 +422,9 @@ function loadDataTrackNumber(QHHeaderFile) {
 	var shdr = readFromTextFile(QHHeaderFile);
 	var header = [];
 	/*
-	3  : Platzhalter für Anzahl der Spuren
-	5  : Platzhalter für Einheit*
-	20 : Platzhalter fürBezeichnung
+	3  : Platzhalter fÃ¼r Anzahl der Spuren
+	5  : Platzhalter fÃ¼r Einheit*
+	20 : Platzhalter fÃ¼rBezeichnung
 	*/
 	var nDigits = 3;
 	var headerEinheintenLength = 5;
@@ -448,7 +448,7 @@ function requestUserSettings(St) {
         data: '{steuerung: "' + St + '"}',
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
+        async: false, // wichtig! sonst kein RÃ¼ckgabewert
         success: function (response) {
             var r = response.d;
             log("loadQH_UserSetting ok");
@@ -472,7 +472,7 @@ function saveUserSettings(UserSettingsObject) {
         data: UserSettingsObject,
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
+        async: false, // wichtig! sonst kein RÃ¼ckgabewert
         success: function (response) {
             //var r = response.d;
             log("loadQH_UserSetting ok");
@@ -540,7 +540,7 @@ function DatenHolen(Steuerung) {
         data: '{Steuerung: "' + Steuerung + '"}',
         contentType: "application/json; charset=utf-8",
         dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
+        async: false, // wichtig! sonst kein RÃ¼ckgabewert
         success: function (response) {
             var r = response.d;
             log("QHFillUpOnline ok");
@@ -594,7 +594,7 @@ function sortDescending(prop, Items) {
 function SettingsColorHandler(id) {
     inColorMenue = true;
     TrackInEdit = parseInt(id.substring(8));
-    $("#ModalMenuTitle").text("Farbe auswählen");
+    $("#ModalMenuTitle").text("Farbe auswÃ¤hlen");
     $("#ModalMenuContent").empty();
     $("#LabelConfirm").text("Entfernen");
     var cont = '<div style="float:left;">';
@@ -637,8 +637,8 @@ function getProjektName(prj) {
 /*
 Farbauswahl:
  
-Die ausgewwählten Spuren werden in einer sortierten Liste in den Usersettings verwaltet.
-Der Zufriff erfolgt über den dort mit abgelegten Spur-Index.
+Die ausgewwÃ¤hlten Spuren werden in einer sortierten Liste in den Usersettings verwaltet.
+Der Zufriff erfolgt Ã¼ber den dort mit abgelegten Spur-Index.
 
 */
 
@@ -727,16 +727,16 @@ function setScaleSelection(idx, bLeft) {
 
 
 function createSettingsItem(id, visible, color, text, left, avg, sum) {
-    var res = '<div style="float:left;">';
+    var res = '<div style="float:left; height:14px">';
     var cb1val = left ? "checked" : "";
     var cb2val = left ? "" : "checked";
 
     res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
     res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
-    res += '<div style="float: left;">';
+	res += '<div style="float: left; height:14px">';
     res += '<input id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
     res += '<input id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
-    res += '</div>';
+	res += '</div>';
     res += '</div></br>';
 
     return res;

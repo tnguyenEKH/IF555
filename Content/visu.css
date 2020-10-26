@@ -78,6 +78,22 @@ bdi
     left: -2000px;
     top: 100px;
 }
+
+#vupdateStatus-bar
+{
+	width: 1400px;
+    height: 2rem;
+	background-color: rgb(192, 192, 192);
+    border-radius: 250px;
+	box-shadow: 10px 10px 5px #888888;
+	
+	padding: 0.5rem;
+	color: black;
+    font-size: 1.5vh;
+    font-family: Arial;
+}
+
+
     /* The Modal (background) */
 .modalEK {
     display: none; /* Hidden by default */

@@ -26,9 +26,9 @@ var statTastzeich;        // 1: aktuelles Menue bietet die Moeglichkeit ueber Ei
 var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
 var allQHDataRecords  = [];
 
-var Displaycanvas = document.getElementById("testCanvas");    // Canvas global einrichten
-    Displaycanvas.style.display = "block";                   // Canvas global einrichten
-var ctx = Displaycanvas.getContext('2d');                    // Canvas global einrichten
+var canvas = document.getElementById("testCanvas");    // Canvas global einrichten
+    canvas.style.display = "block";                   // Canvas global einrichten
+var ctx = canvas.getContext('2d');                    // Canvas global einrichten
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 
 const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
@@ -51,7 +51,7 @@ $(document).ready(function () {
 
   
   /**********Visualization*/
-	///initVisu();
+	startVisu();
   
   
   /*********Data evaluation********/
@@ -239,7 +239,7 @@ function refreshTextAreaWithoutParameterLocal() {
     //  ctx.width = 800;
     //  ctx.height = 500;
       	ctx.fillStyle = "#E0E0E0";
-        ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
      //	ctx.clearRect(0, 0, canvas.width, canvas.height);
    
         ctx.fillStyle = "#000000";  
@@ -382,7 +382,7 @@ function refreshTextAreaWithoutParameterLocal() {
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
         if (stat1 == '1') {
         	ctx.fillStyle = "#D0D0D0";
-          ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+          ctx.fillRect(0, 0, canvas.width, canvas.height);            // damit wird der CANVAS-Inhalt geloescht
           zykzaehler=zyklus;
           xpos= 1;   
           ypos= 1;   
@@ -460,7 +460,7 @@ function refreshTextAreaWithoutParameterLocal() {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
           if (stat2 == '1'){
           	ctx.fillStyle = "#D0D0D0";
-            ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);          // damit wird der CANVAS-Inhalt geloescht
+            ctx.fillRect(0, 0, canvas.width, canvas.height);          // damit wird der CANVAS-Inhalt geloescht
             zykzaehler=zyklus;
             xpos= 1;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
             ypos=-5;    //  Positionsvariable auf dem CANVAS  y (Pixel)
@@ -524,7 +524,7 @@ function refreshTextAreaWithoutParameterLocal() {
               y = data['v062']+37;    /*Zeile, wo die Texte rot markiert werden muss*/
               z = data['v063'];   /*Anzahl der Zeichen, die rot markiert werden soll*/
             	ctx.fillStyle = "#D0D0D0";
-              ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+              ctx.fillRect(0, 0, canvas.width, canvas.height);            // damit wird der CANVAS-Inhalt geloescht
               zykzaehler=zyklus;
               xpos= 1;   
               ypos= 1;   
@@ -648,7 +648,7 @@ function refreshTextAreaWithParameter(data) {
     //  ctx.width = 800;
     //  ctx.height = 500;
       	ctx.fillStyle = "#E0E0E0";
-        ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
      //	ctx.clearRect(0, 0, canvas.width, canvas.height);
    
         ctx.fillStyle = "#000000";  
@@ -791,7 +791,7 @@ function refreshTextAreaWithParameter(data) {
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
         if (stat1 == '1') {
         	ctx.fillStyle = "#D0D0D0";
-          ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+          ctx.fillRect(0, 0, canvas.width, canvas.height);            // damit wird der CANVAS-Inhalt geloescht
           zykzaehler=zyklus;
           xpos= 1;   
           ypos= 1;   
@@ -869,7 +869,7 @@ function refreshTextAreaWithParameter(data) {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
           if (stat2 == '1'){
           	ctx.fillStyle = "#D0D0D0";
-            ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);          // damit wird der CANVAS-Inhalt geloescht
+            ctx.fillRect(0, 0, canvas.width, canvas.height);          // damit wird der CANVAS-Inhalt geloescht
             zykzaehler=zyklus;
             xpos= 1;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
             ypos=-5;    //  Positionsvariable auf dem CANVAS  y (Pixel)
@@ -933,7 +933,7 @@ function refreshTextAreaWithParameter(data) {
               y = data['v062']+37;    /*Zeile, wo die Texte rot markiert werden muss*/
               z = data['v063'];   /*Anzahl der Zeichen, die rot markiert werden soll*/
             	ctx.fillStyle = "#D0D0D0";
-              ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+              ctx.fillRect(0, 0, canvas.width, canvas.height);            // damit wird der CANVAS-Inhalt geloescht
               zykzaehler=zyklus;
               xpos= 1;   
               ypos= 1;   
@@ -1172,7 +1172,14 @@ function tabIdHanlder(evt, id)
     var neutabID = id + "Display";
     document.getElementById(neutabID).style.display = "block";
     evt.currentTarget.className += " active";
-
+	
+	//refresh fernbedienungtab, work around for canvas click event
+	if (id == "fernbedienung") {
+		var canvas = document.getElementById("testCanvas"); 
+		ctx.clearRect(0, 0, canvas.width, canvas.height);
+		refreshTextAreaWithoutParameterLocal();
+	}
+	
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn die entsprechenden Tab angeklickt wird
     if (id == "visualisierung") {
         startVisu();
@@ -1379,8 +1386,8 @@ $(document).keydown(function (event)
 
 // Mausposition bei Click auf das CANVAS ermitteln (x austeilen auf Zeichenbreite, y aufteieln auf Zeilenhoehe)
 // und als xy Position an die MPC uebermitteln (z.B:  x=20 y=10 -> uebermitteln 1000+y + 100*x -> 3010 )
-Displaycanvas.addEventListener("click", function (evt) {
-  var rect = Displaycanvas.getBoundingClientRect();
+canvas.addEventListener("click", function (evt) {
+  var rect = canvas.getBoundingClientRect();
   var x= evt.clientX - rect.left;
   var y= 8 + evt.clientY - rect.top;
   var xr = Math.round(x/16)   //   /16 Zeichenbreite
