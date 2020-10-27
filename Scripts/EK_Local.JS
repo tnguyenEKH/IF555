@@ -166,7 +166,6 @@ function sendData(url) {
     xhr.open("PUT", url, false);
     xhr.send();
     console.log(xhr.responseText);
-
 }
 
 
@@ -182,10 +181,8 @@ function b32(n) {
 
 
 function refreshTextAreaWithoutParameterLocal() {
-
   var jsonData;
-  
-    if (tastzaehler > 0) {                  // <<< 
+   if (tastzaehler > 0) {                  // <<< 
       tastzaehler=tastzaehler-1;
       if (tastzaehler < 1) {
         zykzaehler=0;
@@ -200,7 +197,6 @@ function refreshTextAreaWithoutParameterLocal() {
       } 
       jsonData = getData(dataUrl);
       data = JSON.parse(jsonData);
-      var table = document.getElementById('displayTable');
       var x = data['v035'] - 1; //spalte, wo die texte anfang "rot" sein soll
       var y = data['v036'] + 15;    //Zeile, wo die Texte rot markiert werden soll
       var z = data['v037'];   //Anzahl der Zeichen, die rot markiert werden soll
@@ -234,18 +230,8 @@ function refreshTextAreaWithoutParameterLocal() {
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
 
-        // Texttabelle verschwinden lassen, CANVAS darstellen
- //   	var table = document.getElementById("displayTable");
- //   	table.style.display = "none";
-    //	var canvas = document.getElementById("testCanvas");
-    //	canvas.style.display = "block";
-    //	var ctx = canvas.getContext('2d');
-    //  ctx.width = 800;
-    //  ctx.height = 500;
       	ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
-     //	ctx.clearRect(0, 0, canvas.width, canvas.height);
- 
         ctx.fillStyle = "#000000";  
         ctx.font = "20px Arial";
         xpos= 5;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
@@ -385,7 +371,7 @@ function refreshTextAreaWithoutParameterLocal() {
 
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
         if (stat1 == '1') {
-        	ctx.fillStyle = "#D0D0D0";
+          ctx.fillStyle = "#D0D0D0";
           ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
           zykzaehler=zyklus;
           xpos= 1;   
@@ -459,7 +445,7 @@ function refreshTextAreaWithoutParameterLocal() {
             toclipboard=false;
           }
         }
-    
+
         else {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
           if (stat2 == '1'){
@@ -592,8 +578,6 @@ function refreshTextAreaWithoutParameterLocal() {
 }
 
 
-
-
 function refreshTextAreaWithParameter(data) {
   data = JSON.parse(data);
     if (tastzaehler > 0) {                  // <<< 
@@ -609,7 +593,6 @@ function refreshTextAreaWithParameter(data) {
       if (tastzaehler < 2) {                             
         tastzaehler=0;
       } 
-      var table = document.getElementById('displayTable');
       var x = data['v035'] - 1; //spalte, wo die texte anfang "rot" sein soll
       var y = data['v036'] + 15;    //Zeile, wo die Texte rot markiert werden soll
       var z = data['v037'];   //Anzahl der Zeichen, die rot markiert werden soll
@@ -631,11 +614,6 @@ function refreshTextAreaWithParameter(data) {
       statTastzeich=str.charAt(31); // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
       stat14haktiv=str.charAt(29);  // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
   
-   // stat4 = '0';
-   // stat3 = '1';
-   // data['v033'] = str ;    /* Testausgabe  */
-   // data['v059'] = str ;    /* Testausgabe  */
-
       //status 4:  Wochenkalender in CANVAS anzeigen    600 * 350                             
       // zykzaehler=zyklus; 
       if (stat4 == '1') {
@@ -643,17 +621,8 @@ function refreshTextAreaWithParameter(data) {
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
 
-        // Texttabelle verschwinden lassen, CANVAS darstellen
- //   	var table = document.getElementById("displayTable");
- //   	table.style.display = "none";
-    //	var canvas = document.getElementById("testCanvas");
-    //	canvas.style.display = "block";
-    //	var ctx = canvas.getContext('2d');
-    //  ctx.width = 800;
-    //  ctx.height = 500;
       	ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
-     //	ctx.clearRect(0, 0, canvas.width, canvas.height);
    
         ctx.fillStyle = "#000000";  
         ctx.font = "20px Arial";
@@ -857,8 +826,6 @@ function refreshTextAreaWithParameter(data) {
               textToReplace = data[variableName]
               texttoclip=texttoclip.concat(textToReplace,String.fromCharCode(13, 10));
             }
-         // navigator.clipboard.write(texttoclip)
-         // event.clipboardData.setData(texttoclip)
             const el = document.createElement('textarea');
             el.value = texttoclip;
             document.body.appendChild(el);
@@ -996,7 +963,7 @@ function refreshTextAreaWithParameter(data) {
 
           }
         }
-      } // if stst=4
+      } 
   }  
 }
 
@@ -1190,10 +1157,10 @@ function tabIdHanlder(evt, id)
     */
   if(id != "fernbedienung") 
   {
-    //hideElemementById("benachrichtigung");
+    hideElemementById("benachrichtigung");
   }
   else{
-    //showElemementById("benachrichtigung");
+    showElemementById("benachrichtigung");
   }
 
   if (id == "bedienungsAnleitung") {
