@@ -7,7 +7,8 @@
   background: #c0c0c0;
   color: #0;
   padding: 0.1rem;
-  align-content: center;
+  display: flex;
+  justify-content: center;
 }
 
 .btn {
