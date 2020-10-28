@@ -1,11 +1,12 @@
 /********************* URL SETTINGS *********************/
 var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
 var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
+var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=sel&V064';
 var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
 var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
 var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
 var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
-var Projektname = 'Karrenstraße 1-3 Braunschweig';
+var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
 
 
@@ -66,6 +67,7 @@ $(document).ready(function () {
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
 	var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 	var visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
+	var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
 	einmalholen=7;         // <<<
@@ -1188,6 +1190,16 @@ function showElemementById(id)
    selectedElement.style.display = "block";
   
 }
+
+/********Update status**************/
+function updateBenachrichtigung (){
+	var displayElement = document.getElementById('benachrichtigungText');
+	var jsonData = getData(benachrichtigungsUrl);
+	var data =  JSON.parse(jsonData);
+	var message = 'Heizzentrale ' + Projektname + '.	Fernbedienung aktiv durch: ' + '<span style="color:red">' + data['V064'].trim() + '</span>';
+	displayElement.innerHTML = message;
+}
+
 
 
 /*****************Hanler für Menulink Click******************/
