@@ -28,10 +28,13 @@ var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" 
 var allQHDataRecords  = [];
 
 
-var Displaycanvas = document.getElementById("testCanvas");    // Canvas global einrichten
+var Displaycanvas = document.getElementById("DisplayCanvas");    // Canvas global einrichten
     Displaycanvas.style.display = "block";                   // Canvas global einrichten
-var ctx = Displaycanvas.getContext('2d');                    // Canvas global einrichten
-
+	var ctx = Displaycanvas.getContext('2d');                    // Canvas global einrichten
+	var parent = document.getElementById('fernbedienungDisplay');
+	//var parent = document.getElementsByClassName('hauptDisplay')[0];
+	DisplayCanvas.width = parent.offsetWidth;
+	DisplayCanvas.height = parent.offsetHeight;
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 
 const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
@@ -42,7 +45,7 @@ const slp_pdf = new PDF_file('../SD_DATA/SLP.pdf', 'slp');
 
 $(document).ready(function () {
 	/*Menubuilder*/
-	menuBuilder();	
+	//menuBuilder();	
 	QHDataFile = "http://172.16.0.101/Data/" + projektnummer.substr(1) + ".bin";
 	
 	
