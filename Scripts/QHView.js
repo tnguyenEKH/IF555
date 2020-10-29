@@ -466,25 +466,7 @@ function requestUserSettings(St) {
 
 function saveUserSettings(UserSettingsObject) {
     var res = "failed";
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/saveQH_UserSettings",
-        data: UserSettingsObject,
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            //var r = response.d;
-            log("loadQH_UserSetting ok");
-            res = "ok";
-        },
-        complete: function (xhr, status) {
-            log("loadQH_UserSetting complete");
-        },
-        error: function (msg) {
-            log("loadQH_UserSetting fail: " + msg);
-        }
-    });
+	res = writeToTextFile(UserSettingsObject)
     return res;
 }
 

@@ -167,6 +167,7 @@ function writeToTextFile(data) {
   //xhr.overrideMimeType('text/plain; charset=utf-8')
   xhr.open("POST", uploadSkriptUrl, true);
   xhr.send(formData);
+  return xhr.responseText;
 }
 
 
