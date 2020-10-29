@@ -1,6 +1,5 @@
 	var QHHeaderFile = "./DATA/vierttx.txt";
-	var QHSettingFile = "/Userdata/QHSetting.txt"
-	var QHSettingTestFile = "/Userdata/QHSettingTest.txt"
+	var QHSettingFile = "http://172.16.0.101/Data/QHSetting.txt"
     var Steuerung = "";
     var canvas;
     var qctx;
@@ -79,7 +78,7 @@ function startQH() {
         diagramData = loadData();
 		
 		//writeToTextFile(QHSettingTestFile)
-        getUserSettings();
+        UserSettings = getUserSettings();
 
         //var sQHInfo = getQH_Info_St(Steuerung);
         //QHInfo = $.parseJSON(sQHInfo);
@@ -178,7 +177,7 @@ function getUserSettings() {
     try
     {
 		var Settings = $.parseJSON(readFromTextFile(QHSettingFile));
-		UserSettings = Settings.UserSettings;
+		UserSettings = Settings.UserSettingsObject.UserSettings;
     }
     
     catch
