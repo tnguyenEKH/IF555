@@ -2,6 +2,7 @@
 var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
 var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
 var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=sel&V064';
+var uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
 var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
 var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
 var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
@@ -44,8 +45,8 @@ const slp_pdf = new PDF_file('../SD_DATA/SLP.pdf', 'slp');
 
 
 $(document).ready(function () {
-	/*Menubuilder*/
-	//menuBuilder();	
+	/*Projektnummer*/
+	projektnummer = readFromTextFile(QHHeaderFile).substr(0,5);
 	QHDataFile = "http://172.16.0.101/Data/" + projektnummer.substr(1) + ".bin";
 	
 	
@@ -63,7 +64,7 @@ $(document).ready(function () {
   /*********Data evaluation********/
 
 	readQHFromFile(QHDataFile);
-	numberOfDataTrack = loadDataTrackNumber(QHHeaderFile) + 10;
+	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
 
   
   /***********Operating******************/
@@ -79,6 +80,9 @@ $(document).ready(function () {
 	callReader(bedien_pdf);
 	callReader(slp_pdf);
 });
+
+
+
 
 
 /************Get all JSON from dataURL*************************************/
@@ -156,13 +160,13 @@ function readFromTextFile(fileName) {
 
 } 
 
-
-function writeToTextFile(fileName) {
+function writeToTextFile(data) {
+  var formData = new FormData();
+  formData.append("formData", data);
   var xhr = new XMLHttpRequest();
-  xhr.overrideMimeType('text/plain; charset=utf-8')
-  xhr.open("POST", fileName, false);
-  xhr.send();
-  return xhr.response;
+  //xhr.overrideMimeType('text/plain; charset=utf-8')
+  xhr.open("POST", uploadSkriptUrl, true);
+  xhr.send(formData);
 }
 
 
