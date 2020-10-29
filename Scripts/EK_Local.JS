@@ -70,7 +70,7 @@ $(document).ready(function () {
   /***********Operating******************/
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
 	var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-	var visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
+	//var visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
 	var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
