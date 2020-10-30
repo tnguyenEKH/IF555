@@ -177,12 +177,12 @@ function getUserSettings() {
     try
     {
 		var Settings = $.parseJSON(readFromTextFile(QHSettingFile));
-		UserSettings = Settings.UserSettings;
+		UserSettings = Settings.UserSettingsObject.UserSettings;
     }
     
     catch
     {
-		var qh_Spuren = [];
+/* 		//var qh_Spuren = [];
 		var settings = {};
 		var default_colors = {0:"#00FF00", 1:"#FFA500", 2:"#FF00FF", 3:"#FF0000", 4:"#000000"};
 		settings.qh_Skalierung = {"Y_Links_Max" :100,  "Y_Links_Schrittweite": 10 , "Y_Rechts_Max": 400, "Y_Rechts_Schrittweite":40};
@@ -191,7 +191,7 @@ function getUserSettings() {
 			settings.qh_Spuren[i].bSkala_Links = true;
 			settings.qh_Spuren[i].index = i; 
 			settings.qh_Spuren[i].color = settings.default_colors[i];
-		}	
+		}	 */		
     }
 	return UserSettings;
 
@@ -463,9 +463,9 @@ function requestUserSettings(St) {
     return res;
 }
 
-function saveUserSettings(UserSettings) {
+function saveUserSettings(UserSettingsObject) {
     var res = "failed";
-	res = writeToTextFile(UserSettings)
+	res = writeToTextFile(UserSettingsObject)
     return res;
 }
 
@@ -513,6 +513,39 @@ function requestData(DataRequestObject) {
 }
 
 
+function DatenHolen(Steuerung) {
+    var res;
+    $.ajax({
+        type: "POST",
+        url: "WebServiceEK.asmx/QHFillUpOnline",
+        data: '{Steuerung: "' + Steuerung + '"}',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        async: false, // wichtig! sonst kein Rückgabewert
+        success: function (response) {
+            var r = response.d;
+            log("QHFillUpOnline ok");
+            res = r;
+
+        },
+        complete: function (xhr, status) {
+            log("QHFillUpOnline complete");
+        },
+        error: function (msg) {
+            log("QHFillUpOnline fail: " + msg);
+        }
+
+    });
+    if (res == 1) {
+
+        MeldungAndCloseModal("Aktualisierung erfolgreich");
+    }
+    if (res == 0) {
+
+        MeldungAndCloseModal("Aktualisierung fehlgeschlagen");
+    }
+}
+
 function toColor(r, g, b) {
     a = 255;
     return "rgba(" + [r, g, b, a].join(",") + ")";
@@ -538,6 +571,7 @@ function sortDescending(prop, Items) {
     }
 }
 
+
 function SettingsColorHandler(id) {
     inColorMenue = true;
     TrackInEdit = parseInt(id.substring(8));
@@ -555,6 +589,30 @@ function SettingsColorHandler(id) {
     $("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 
+}
+
+function getProjektName(prj) {
+    var res;
+    $.ajax({
+        type: "POST",
+        url: "WebServiceEK.asmx/getPrjName",
+        data: '{PrjNummer: ' + "'" + prj + "'" + '}',
+        contentType: "application/json; charset=utf-8",
+        dataType: "json",
+        async: false,
+        success: function (response) {
+            res = response.d;
+            log("getname ok");
+
+        },
+        complete: function (xhr, status) {
+            log("getname complete");
+        },
+        error: function (msg) {
+            log("getname fail: " + msg);
+        }
+    });
+    return res;
 }
 
 /*
@@ -646,6 +704,7 @@ function setScaleSelection(idx, bLeft) {
     }
 
 }
+
 
 
 function createSettingsItem(id, visible, color, text, left, avg, sum) {
@@ -1117,7 +1176,7 @@ function saveTrackSelection() {
     obj.Steuerung = Steuerung;
     var sobj = JSON.stringify({ 'UserSettingsObject': obj });
 
-    var res = saveUserSettings(UserSettings);
+    var res = saveUserSettings(sobj);
 
     var rr = res;
 
