@@ -38,6 +38,8 @@ body {
     border: 1px solid #ccc;
     border-radius: .5em;
     background-color: #f1f1f1;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
 }
 
 #benachrichtigungText{
@@ -61,7 +63,6 @@ body {
     overflow: hidden;
     border: 1px solid #ccc;
     background-color: #f1f1f1;
-    margin: 0.5em;
     border-radius: .5em;
 	height: 8vh;
 	font-family: sans-serif;
@@ -110,7 +111,7 @@ body {
     border: 1px solid #ccc;
     border-radius: .5em;
 	font-size: 3vh;
-	width: 100%;
+	width: 99.95%;
 }
 
 .container {
@@ -118,7 +119,6 @@ body {
 }
 
 #DisplayCanvas{
-	padding: 10px 10px 10px 10px;
 	display:none;
 	border-radius: .5em;
 	background-color:#C0C0C0"
@@ -167,9 +167,9 @@ body {
 }
 
 #btnVirtualKeyboard{
-	top: 0px;
-	right: 0px;
-	margin: 4.5em 1.4em 3em 2.5em;
+	top: 4px;
+	right: 2px;
+	margin: 4.4em 0em 3em 2.5em;
 	position:absolute;
 
 }
@@ -182,10 +182,10 @@ body {
 	z-index: 999;
 }
 #buttonGroup{
-	margin: 1.5em 1.4em 3em 2.5em;
+	
 	position:absolute;
-    bottom: 0px;
-    right: 0px;
+    bottom: 5px;
+    right: 2px;
 	height: 200px;
 	width: 200px;
     border: none;	
