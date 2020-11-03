@@ -52,46 +52,75 @@
     top: 100px;
 }
 
-.qcmdButtonSmall {
-    padding: 2px;
-    margin-left: 1px;
-    width: 60px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonSmall
+{
+	padding: 2px;
+	margin-left: 1px;
+	width: 60px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
+}
+.qcmdButtonSmall:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
+}
+.qcmdButtonSmall:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
 }
 
-.qcmdButtonMedium {
-    padding: 2px;
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 85px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium
+{
+	padding: 2px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 85px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
 }
-
-.qcmdButtonMediumPressed {
-    padding: 2px;
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 85px;
-    height: 20px;
-    background-color: red;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
 }
-
-.qcmdButtonLarge {
-    margin-left: 10px;
-    width: 140px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
+}		
+.qcmdButtonMediumPressed
+{
+	padding: 2px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 85px;
+	height: 20px;
+	background-color: red;
+	border: 1px solid blue;
+	border-radius: 3px;
 }
+.qcmdButtonLarge
+{
+	margin-left: 10px;
+	width: 140px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
+}
+.qcmdButtonLarge:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
+}
+.qcmdButtonLarge:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
+}	
 
 #controls {
     top: 560px;
