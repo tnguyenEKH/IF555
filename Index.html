@@ -48,7 +48,7 @@
 	</div>
 
 	<div id="benachrichtigung">
-		<span>Hier wird aktuelle Benachrichtigung gezeigt, z.B. wer ist gerade in der Fernbedienung, Steuerungsname .....</span>
+		<div id= "benachrichtigungText"></div>
 	</div>
 
 	<!-- virtual keyboard itself -->
@@ -63,8 +63,7 @@
 			<div class="hauptDisplay">
 				<!-- Hauptmenü -->
 				<div class="panelContent" id="displayPanel">
-					 <canvas id="testCanvas" width="900" height="550" style="display:none; background-color:#C0C0C0" </canvas>
-				 
+					 <canvas id="DisplayCanvas"</canvas>
 				</div>
 
 				<!-- Button Group -->
@@ -80,16 +79,13 @@
 				<div id ="btnVirtualKeyboard">
 					<button id="virtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
 				</div>
-				
-
-				
 			</div>
 		</div>
 	</div>
 
 	
-	<div id="visualisierungDisplay" class="tabcontent" style="height: 830px; width: 1300px">
-	<div id="vimage" class="col-md-8" style="height: 640px;">
+	<div id="visualisierungDisplay" class="tabcontent" style="height: 640px; width: 1300px">
+	<div id="vimage" style="height: 640px;">
 		<!-- <div id="vimage" class="col-md-8" style="height: 640px;"> -->
 			<div id="voutsideWrapper">
 				<div id="vimgArea" class="vinsideWrapper">
@@ -143,7 +139,7 @@
 				<div id="qimgArea" class="qinsideWrapper">
 					<canvas id="myqCanvas" class="qcoveringCanvas" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>
 					<canvas id="qtipCanvas" width="200" height="25"></canvas>
-                                                        <menu id="controls">
+                          <menu id="controls">
                                 <table id="tblbuttons">
                                     <tr>
                                         <td>
@@ -336,23 +332,20 @@
           </div>
 		</div>
 	</div>
-
-
+  
 	<script src="Scripts/jquery-3.5.1.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.7/umd/popper.min.js" integrity="sha384-UO2eT0CpHqdSJQ6hJty5KVphtPhzWj9WO1clHTMGa3JDZwrnQq4sF86dIHNDz0W1" crossorigin="anonymous"></script>
-	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js" integrity="sha384-JjSmVgyd0p3pXB1rRibZUAYoIIy6OrQ6VrjIEaFf/nJGzIxFDsf4x0xIM+B07jRM" crossorigin="anonymous"></script>
-	
+	<script src="Scripts/popper.min.js"</script>
+	<script src="Scripts/bootstrap.min.js"</script>
 	<script src="Scripts/pdfReader.js"></script>	
 	<script src="Scripts/EK_Local.JS"></script>
 	<script src="Scripts/sidebar.js"></script>
 	<script src="Scripts/QHView.js"></script>
 	<script src="Scripts/VisuView.js"></script>
-
 	<!-- script to manage virtual keyboard -->
 	<script src="Scripts/VirtualKeyboard/index.js"></script>
 	<script src="Scripts/VirtualKeyboard/loadKeyboard.js"></script>
 
-	<script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+	<script src="Scripts/pdf.js"></script>
 	
 	
 	

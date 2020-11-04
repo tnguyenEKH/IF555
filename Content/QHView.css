@@ -1,6 +1,6 @@
 #qoutsideWrapper {
-    width: 1120px;
-    height: 780px;
+    width: 100%;
+    height: 680px;
     /*border: 1px solid blue;*/
     padding: 0px;
     border-radius: 25px;
@@ -52,50 +52,79 @@
     top: 100px;
 }
 
-.qcmdButtonSmall {
-    padding: 2px;
-    margin-left: 1px;
-    width: 60px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonSmall
+{
+	padding: 2px;
+	margin-left: 1px;
+	width: 60px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
+}
+.qcmdButtonSmall:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
+}
+.qcmdButtonSmall:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
 }
 
-.qcmdButtonMedium {
-    padding: 2px;
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 85px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium
+{
+	padding: 2px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 85px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
 }
-
-.qcmdButtonMediumPressed {
-    padding: 2px;
-    margin-left: 10px;
-    margin-right: 10px;
-    width: 85px;
-    height: 20px;
-    background-color: red;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
 }
-
-.qcmdButtonLarge {
-    margin-left: 10px;
-    width: 140px;
-    height: 20px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-    border-radius: 3px;
+.qcmdButtonMedium:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
+}		
+.qcmdButtonMediumPressed
+{
+	padding: 2px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 85px;
+	height: 20px;
+	background-color: red;
+	border: 1px solid blue;
+	border-radius: 3px;
 }
+.qcmdButtonLarge
+{
+	margin-left: 10px;
+	width: 140px;
+	height: 20px;
+	background-color: lightgrey;
+	border: 1px solid blue;
+	border-radius: 3px;
+}
+.qcmdButtonLarge:hover{
+	background-color: #4CAF50; /* Green */
+	color: white;
+}
+.qcmdButtonLarge:active{
+	background-color: #3e8e41;
+	box-shadow: 0 3px #666;
+	transform: translateY(2px);
+}	
 
 #controls {
-    top: 650px;
-    left: -40px;
+    top: 560px;
+    left: 0px;
     position: absolute;
     width: 100%;
 }
@@ -105,11 +134,11 @@ bdi {
 }
 
 #qSettings {
-    top: 0px;
-    left: 635px;
+    top: 5px;
+    left: 620px;
     position: absolute;
-    width: 350px;
-    height: 630px;
+    width: 280px;
+    height: 540px;
     overflow-x: hidden;
     overflow-y: scroll;
     float: left;
