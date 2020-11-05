@@ -58,7 +58,7 @@ $(document).ready(function () {
 
   
   /**********Visualization*/
-	///initVisu();
+	startVisu();
   
   
   /*********Data evaluation********/
@@ -1156,7 +1156,7 @@ function tabIdHanlder(evt, id)
 
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn die entsprechenden Tab angeklickt wird
     if (id == "visualisierung") {
-        startVisu();
+        //startVisu();
     }
     if (id == "datenauswertung") {
         startQH();
