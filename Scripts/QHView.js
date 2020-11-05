@@ -439,30 +439,6 @@ function getQH_Info_St(AllRecords) {
 }
 
 
-function requestUserSettings(St) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/loadQH_UserSetting",
-        data: '{steuerung: "' + St + '"}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("loadQH_UserSetting ok");
-            res = r;
-        },
-        complete: function (xhr, status) {
-            log("loadQH_UserSetting complete");
-        },
-        error: function (msg) {
-            log("loadQH_UserSetting fail: " + msg);
-        }
-    });
-    return res;
-}
-
 function saveUserSettings(UserSettingsObject) {
     var res = "failed";
 	res = writeToTextFile(UserSettingsObject)
@@ -513,39 +489,6 @@ function requestData(DataRequestObject) {
 }
 
 
-function DatenHolen(Steuerung) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/QHFillUpOnline",
-        data: '{Steuerung: "' + Steuerung + '"}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("QHFillUpOnline ok");
-            res = r;
-
-        },
-        complete: function (xhr, status) {
-            log("QHFillUpOnline complete");
-        },
-        error: function (msg) {
-            log("QHFillUpOnline fail: " + msg);
-        }
-
-    });
-    if (res == 1) {
-
-        MeldungAndCloseModal("Aktualisierung erfolgreich");
-    }
-    if (res == 0) {
-
-        MeldungAndCloseModal("Aktualisierung fehlgeschlagen");
-    }
-}
-
 function toColor(r, g, b) {
     a = 255;
     return "rgba(" + [r, g, b, a].join(",") + ")";
@@ -589,30 +532,6 @@ function SettingsColorHandler(id) {
     $("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 
-}
-
-function getProjektName(prj) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/getPrjName",
-        data: '{PrjNummer: ' + "'" + prj + "'" + '}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false,
-        success: function (response) {
-            res = response.d;
-            log("getname ok");
-
-        },
-        complete: function (xhr, status) {
-            log("getname complete");
-        },
-        error: function (msg) {
-            log("getname fail: " + msg);
-        }
-    });
-    return res;
 }
 
 /*
@@ -704,7 +623,6 @@ function setScaleSelection(idx, bLeft) {
     }
 
 }
-
 
 
 function createSettingsItem(id, visible, color, text, left, avg, sum) {
@@ -1336,9 +1254,6 @@ function exportData() {
     var datum = diagramZeitraum
     var len = diagramData.length;
     var zeitraum = diagramZeitraum;
-
-
-
 
     var res = [];
     if (len > 0) {
