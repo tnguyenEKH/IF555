@@ -9,6 +9,7 @@ var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
 var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
 var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
+var numberOfDataTrack;
 
 
 var zyklus;               // ZUM SUCHEN <<< 
@@ -149,7 +150,7 @@ function readFromTextFile(fileName) {
       var datum   = new Date("20"+ dataRaw[0].toString(), (dataRaw[1] -1).toString(), dataRaw[2].toString()); //month index from 0-11
       var index = dataRaw[3].toString();
       
-      record.Datum = datum.toISOString().split('T')[0];
+      record.Datum = datum.toLocaleString().split(',')[0];
       record.Index = index;
       record.nValues = numberOfDataTrack;
       record.Projektnumer = projektnummer;
@@ -1141,7 +1142,7 @@ function tabIdHanlder(evt, id)
     var i, tabcontent, tablinks, divBenachrichtigung;
     // Get all elements with class="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
+    for (i = 0; i < tabcontent.length; i++) { 
         tabcontent[i].style.display = "none";
     }
      // Get all elements with class="tablinks" and remove the class "active"

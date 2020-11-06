@@ -346,32 +346,6 @@ function brezLine(x1, y1, x2, y2) {
 			qctx.fillRect(x += (d += v) >> 15, y, 1, 1); // d &= 32767 is accumulator partial emptyer
 }
 
-
-function exportCSV(Steuerung, dtFrom, dtTo) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/CsvExport",
-        data: "{Steuerung: '" + Steuerung + "', dtFrom:'" + dtFrom + "', dtTo:'" + dtTo + "'}",
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("requestHeader ok");
-            res = r;
-        },
-        complete: function (xhr, status) {
-            log("requestHeader complete");
-        },
-        error: function (msg) {
-            log("requestHeader fail: " + msg);
-        }
-    });
-    return res;
-}
-
-
 function createDataRequestObject(Steuerung, DatumFrom, DatumTo, bViertelstunden, bJahresdaten) {
     var obj = new Object();
     obj.Steuerung = Steuerung;
@@ -390,9 +364,6 @@ function createDataRequestObject(Steuerung, DatumFrom, DatumTo, bViertelstunden,
     return obj;
 }
 
-function log(logstring) {
-    // not used yet
-}
 
 function loadHeader(QHHeaderFile) {
 	var shdr = readFromTextFile(QHHeaderFile);
@@ -451,19 +422,31 @@ function requestData(DataRequestObject) {
     var res = [];
 	var dtFrom = new Date(DataRequestObject.DatumFrom.y, DataRequestObject.DatumFrom.m -1, DataRequestObject.DatumFrom.d);
 	var dtTo = 	 new Date(DataRequestObject.DatumTo.y, DataRequestObject.DatumTo.m -1, DataRequestObject.DatumTo.d);
-	var DatumFrom = dtFrom.toISOString().split('T')[0];
-	var DatumTo =   dtTo.toISOString().split('T')[0];
+	var currentDate = new Date();
+	var today = new Date().toLocaleString().split(',')[0];;
+	var DatumFrom = dtFrom.toLocaleString().split(',')[0];
+	var DatumTo =   dtTo.toLocaleString().split(',')[0];
 	var startIndex = allQHDataRecords.findIndex(x => x.Datum === DatumFrom);
 	var endIndex = allQHDataRecords.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
-/* 	allQHDataRecords.forEach(function(item)
-	{
-		if ((item.Datum >= DatumFrom) && (item.Datum <= DatumTo))
-			{
-				res.push(item);
-			}
-	}); */
+	//erzeugt "leere" Datensätze, wenn die DatumTo in der Zukunft liegt.
+	if (dtTo.getTime() > currentDate.getTime()){
+		for (var i=1; i <= 96; i++ )
+		{
+			emmptyValues = new Array(numberOfDataTrack);
+			emmptyValues.fill(-999);
+			var emptyRecord = {};
+			emptyRecord.Datum = today.toLocaleString().split(',')[0];
+			emptyRecord.Index = i;
+			emptyRecord.nValues = numberOfDataTrack;
+			emptyRecord.Projektnumer = projektnummer;
+			emptyRecord.Values = emmptyValues;
+			res.push(emptyRecord);
+		}
+		return res;
+	}		
+	
 	if (DataRequestObject.bJahresdaten == true)
 	{
 		res = allQHDataRecords.slice(startIndex, endIndex);
