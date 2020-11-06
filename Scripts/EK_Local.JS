@@ -10,6 +10,7 @@ var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
 var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
 var numberOfDataTrack;
+var visuAutoReload;
 
 
 var zyklus;               // ZUM SUCHEN <<< 
@@ -59,7 +60,7 @@ $(document).ready(function () {
 
   
   /**********Visualization*/
-	startVisu();
+	//startVisu();
   
   
   /*********Data evaluation********/
@@ -71,7 +72,7 @@ $(document).ready(function () {
   /***********Operating******************/
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
 	var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-	var visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
+	
 	var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
@@ -1157,8 +1158,12 @@ function tabIdHanlder(evt, id)
 
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn die entsprechenden Tab angeklickt wird
     if (id == "visualisierung") {
-        //startVisu();
+        startVisu();
+		visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
     }
+	if (id != "visualisierung") {
+		clearInterval(visuAutoReload); // Deaktivieren  Visudaten aller 5 Sekunde
+	}
     if (id == "datenauswertung") {
         startQH();
     }
