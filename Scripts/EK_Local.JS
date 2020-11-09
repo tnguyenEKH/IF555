@@ -9,6 +9,8 @@ var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
 var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
 var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
+var numberOfDataTrack;
+var visuAutoReload;
 
 
 var zyklus;               // ZUM SUCHEN <<< 
@@ -58,7 +60,7 @@ $(document).ready(function () {
 
   
   /**********Visualization*/
-	///initVisu();
+	//startVisu();
   
   
   /*********Data evaluation********/
@@ -70,7 +72,7 @@ $(document).ready(function () {
   /***********Operating******************/
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
 	var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-	//var visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
+	
 	var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
@@ -149,7 +151,7 @@ function readFromTextFile(fileName) {
       var datum   = new Date("20"+ dataRaw[0].toString(), (dataRaw[1] -1).toString(), dataRaw[2].toString()); //month index from 0-11
       var index = dataRaw[3].toString();
       
-      record.Datum = datum.toISOString().split('T')[0];
+      record.Datum = datum.toLocaleString().split(',')[0];
       record.Index = index;
       record.nValues = numberOfDataTrack;
       record.Projektnumer = projektnummer;
@@ -1141,7 +1143,7 @@ function tabIdHanlder(evt, id)
     var i, tabcontent, tablinks, divBenachrichtigung;
     // Get all elements with class="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) {
+    for (i = 0; i < tabcontent.length; i++) { 
         tabcontent[i].style.display = "none";
     }
      // Get all elements with class="tablinks" and remove the class "active"
@@ -1157,7 +1159,11 @@ function tabIdHanlder(evt, id)
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn die entsprechenden Tab angeklickt wird
     if (id == "visualisierung") {
         startVisu();
+		visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
     }
+	if (id != "visualisierung") {
+		clearInterval(visuAutoReload); // Deaktivieren  Visudaten aller 5 Sekunde
+	}
     if (id == "datenauswertung") {
         startQH();
     }

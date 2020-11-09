@@ -346,32 +346,6 @@ function brezLine(x1, y1, x2, y2) {
 			qctx.fillRect(x += (d += v) >> 15, y, 1, 1); // d &= 32767 is accumulator partial emptyer
 }
 
-
-function exportCSV(Steuerung, dtFrom, dtTo) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/CsvExport",
-        data: "{Steuerung: '" + Steuerung + "', dtFrom:'" + dtFrom + "', dtTo:'" + dtTo + "'}",
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("requestHeader ok");
-            res = r;
-        },
-        complete: function (xhr, status) {
-            log("requestHeader complete");
-        },
-        error: function (msg) {
-            log("requestHeader fail: " + msg);
-        }
-    });
-    return res;
-}
-
-
 function createDataRequestObject(Steuerung, DatumFrom, DatumTo, bViertelstunden, bJahresdaten) {
     var obj = new Object();
     obj.Steuerung = Steuerung;
@@ -390,9 +364,6 @@ function createDataRequestObject(Steuerung, DatumFrom, DatumTo, bViertelstunden,
     return obj;
 }
 
-function log(logstring) {
-    // not used yet
-}
 
 function loadHeader(QHHeaderFile) {
 	var shdr = readFromTextFile(QHHeaderFile);
@@ -439,30 +410,6 @@ function getQH_Info_St(AllRecords) {
 }
 
 
-function requestUserSettings(St) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/loadQH_UserSetting",
-        data: '{steuerung: "' + St + '"}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("loadQH_UserSetting ok");
-            res = r;
-        },
-        complete: function (xhr, status) {
-            log("loadQH_UserSetting complete");
-        },
-        error: function (msg) {
-            log("loadQH_UserSetting fail: " + msg);
-        }
-    });
-    return res;
-}
-
 function saveUserSettings(UserSettingsObject) {
     var res = "failed";
 	res = writeToTextFile(UserSettingsObject)
@@ -475,19 +422,31 @@ function requestData(DataRequestObject) {
     var res = [];
 	var dtFrom = new Date(DataRequestObject.DatumFrom.y, DataRequestObject.DatumFrom.m -1, DataRequestObject.DatumFrom.d);
 	var dtTo = 	 new Date(DataRequestObject.DatumTo.y, DataRequestObject.DatumTo.m -1, DataRequestObject.DatumTo.d);
-	var DatumFrom = dtFrom.toISOString().split('T')[0];
-	var DatumTo =   dtTo.toISOString().split('T')[0];
+	var currentDate = new Date();
+	var today = new Date().toLocaleString().split(',')[0];;
+	var DatumFrom = dtFrom.toLocaleString().split(',')[0];
+	var DatumTo =   dtTo.toLocaleString().split(',')[0];
 	var startIndex = allQHDataRecords.findIndex(x => x.Datum === DatumFrom);
 	var endIndex = allQHDataRecords.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
-/* 	allQHDataRecords.forEach(function(item)
-	{
-		if ((item.Datum >= DatumFrom) && (item.Datum <= DatumTo))
-			{
-				res.push(item);
-			}
-	}); */
+	//erzeugt "leere" Datensätze, wenn die DatumTo in der Zukunft liegt.
+	if (dtTo.getTime() > currentDate.getTime()){
+		for (var i=1; i <= 96; i++ )
+		{
+			emmptyValues = new Array(numberOfDataTrack);
+			emmptyValues.fill(-999);
+			var emptyRecord = {};
+			emptyRecord.Datum = today.toLocaleString().split(',')[0];
+			emptyRecord.Index = i;
+			emptyRecord.nValues = numberOfDataTrack;
+			emptyRecord.Projektnumer = projektnummer;
+			emptyRecord.Values = emmptyValues;
+			res.push(emptyRecord);
+		}
+		return res;
+	}		
+	
 	if (DataRequestObject.bJahresdaten == true)
 	{
 		res = allQHDataRecords.slice(startIndex, endIndex);
@@ -512,39 +471,6 @@ function requestData(DataRequestObject) {
     return res;
 }
 
-
-function DatenHolen(Steuerung) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/QHFillUpOnline",
-        data: '{Steuerung: "' + Steuerung + '"}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false, // wichtig! sonst kein Rückgabewert
-        success: function (response) {
-            var r = response.d;
-            log("QHFillUpOnline ok");
-            res = r;
-
-        },
-        complete: function (xhr, status) {
-            log("QHFillUpOnline complete");
-        },
-        error: function (msg) {
-            log("QHFillUpOnline fail: " + msg);
-        }
-
-    });
-    if (res == 1) {
-
-        MeldungAndCloseModal("Aktualisierung erfolgreich");
-    }
-    if (res == 0) {
-
-        MeldungAndCloseModal("Aktualisierung fehlgeschlagen");
-    }
-}
 
 function toColor(r, g, b) {
     a = 255;
@@ -589,30 +515,6 @@ function SettingsColorHandler(id) {
     $("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 
-}
-
-function getProjektName(prj) {
-    var res;
-    $.ajax({
-        type: "POST",
-        url: "WebServiceEK.asmx/getPrjName",
-        data: '{PrjNummer: ' + "'" + prj + "'" + '}',
-        contentType: "application/json; charset=utf-8",
-        dataType: "json",
-        async: false,
-        success: function (response) {
-            res = response.d;
-            log("getname ok");
-
-        },
-        complete: function (xhr, status) {
-            log("getname complete");
-        },
-        error: function (msg) {
-            log("getname fail: " + msg);
-        }
-    });
-    return res;
 }
 
 /*
@@ -706,7 +608,6 @@ function setScaleSelection(idx, bLeft) {
 }
 
 
-
 function createSettingsItem(id, visible, color, text, left, avg, sum) {
     var res = '<div style="float:left; height:14px">';
     var cb1val = left ? "checked" : "";
@@ -714,7 +615,7 @@ function createSettingsItem(id, visible, color, text, left, avg, sum) {
 
     res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
     res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
-	res += '<div style="float: left; height:14px">';
+	res += '<div style="float: left; height: 14px; font-size: 1vh">';
     res += '<input id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
     res += '<input id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
 	res += '</div>';
@@ -1336,9 +1237,6 @@ function exportData() {
     var datum = diagramZeitraum
     var len = diagramData.length;
     var zeitraum = diagramZeitraum;
-
-
-
 
     var res = [];
     if (len > 0) {
