@@ -5,11 +5,14 @@
 
 .top-bar {
   background: #c0c0c0;
-  color: #0;
+  font-size: 1rem;
+  color: black;
   padding: 0.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  /*position: absolute;
+  top: canvas-container.height/2;*/
 }
 
 .btn {
@@ -35,5 +38,60 @@
 #canvas-container {
     background: #c0c0c0;
     text-align: center;
-    /*border: solid 3px;*/
+}
+
+#slp-prev-page {
+  position: absolute;
+  top: 75px;
+  left: 5px;
+  opacity: 0.8;
+}
+
+#slp-next-page {
+  position: absolute;
+  top: 75px;
+  right: 5px;
+  opacity: 0.8;
+}
+
+#slp-zoom_out {
+  position: absolute;
+  top: 150px;
+  left: 5px;
+  opacity: 0.8;
+}
+
+#slp-zoom_in {
+  position: absolute;
+  top: 150px;
+  right: 5px;
+  opacity: 0.8;
+}
+
+#bedien-prev-page {
+  position: absolute;
+  top: 75px;
+  left: 5px;
+  opacity: 0.8;
+}
+
+#bedien-next-page {
+  position: absolute;
+  top: 75px;
+  right: 5px;
+  opacity: 0.8;
+}
+
+#bedien-zoom_out {
+  position: absolute;
+  top: 150px;
+  left: 5px;
+  opacity: 0.8;
+}
+
+#bedien-zoom_in {
+  position: absolute;
+  top: 150px;
+  right: 5px;
+  opacity: 0.8;
 }
