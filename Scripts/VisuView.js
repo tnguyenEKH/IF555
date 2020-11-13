@@ -543,13 +543,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 1);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -564,13 +564,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -585,13 +585,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert > 0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -606,13 +606,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -627,13 +627,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -648,13 +648,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
 			item.isBool = true;
 			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
