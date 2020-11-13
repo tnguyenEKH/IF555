@@ -224,7 +224,7 @@ function createVisudata(sText){
 		if(idx >=0)
 		{
 			item.Bezeichnung = "AI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -246,7 +246,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "TH";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -267,7 +267,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "GA";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -288,7 +288,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PKT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -309,7 +309,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -330,7 +330,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "DF";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -351,7 +351,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "UDR";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -372,7 +372,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PDI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -393,7 +393,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBE";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -414,7 +414,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBH";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -435,7 +435,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBZ";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -456,7 +456,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PEI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -477,7 +477,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "AA";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -522,13 +522,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 2), 3);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -540,13 +540,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "KPU";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 10), 1);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -561,13 +561,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "KL";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -582,13 +582,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BPU";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert > 0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -603,13 +603,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BL";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -624,13 +624,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "LP";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -645,13 +645,13 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "ZP";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
 			sText= sText.slice((idx+17), sText.length);
@@ -665,16 +665,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "SG";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -686,16 +686,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -707,7 +707,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "ZZ";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -727,7 +727,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "HKT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -748,7 +748,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BWT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -769,7 +769,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "GR";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
