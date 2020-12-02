@@ -5,7 +5,7 @@ var zahlerDataFile = "./DATA/zaehl.txt";
 // Vorgehensweise analog zu der in VCO_Edit.aspx
 var prj;
 var IdVisu;
-var canvas;
+var vcanvas;
 var vctx;
 var visudata;
 var bmpIndex = 0;
@@ -88,18 +88,18 @@ function closeModalZaehler() {
 	}
 }
 
-function startVisu() {
-
+function initVisu()
+{
 	wInit = window.outerWidth;
 	hInit = window.outerHeight;
 	bAutoReload = false;
-	canvas = document.getElementById('myvCanvas');
-	canvas.width = 1400;
-	canvas.height = 630;
-	vctx = canvas.getContext('2d');
+	vcanvas = document.getElementById('myvCanvas');
+	vcanvas.width = 1400;
+	vcanvas.height = 630;
+	vctx = vcanvas.getContext('2d');
 
 	// test listener for stoerung
-	canvas.addEventListener("mousedown", getPosition, false);
+	vcanvas.addEventListener("mousedown", getPosition, false);
 	
 	vtipCanvas = document.getElementById("vtipCanvas");
 	vtipCanvas.style.left = "-2000px";
@@ -113,6 +113,22 @@ function startVisu() {
 	//Read deployed visufile /visu/visu.txt 
 	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
 	prj = visudata.VCOData.Projektnumer;
+
+	// Tooltips einlesen
+	initTooltips();
+
+	$("#myvCanvas").mousemove(function (e) {
+		handleMouseMove(e);
+	});
+
+	$("#myvCanvas").mousedown(function (e) {
+		handleMouseDown(e);
+	});	
+	setBitmap(bmpIndex);
+}
+
+
+function startVisu() {
 	try {
 		//read visudata from visdat.txt
 		var rawvisuData = readFromTextFile(visuDataFile);
@@ -121,32 +137,17 @@ function startVisu() {
 		createVisudata(rawvisuData);
 		var Stoerungen = VisuDownload.Stoerungen;
 		var stoerungencount = Stoerungen.length;
-
+		stoerungText ="";
 		for (var i = 0; i < stoerungencount; i++) {
 			stoerungText += Stoerungen[i].BezNr + ". " + Stoerungen[i].StoerungText.trim() + "<br/>";
 		}
 		//alert(stoerungText);
 		var u = k;
-
 	}
 	catch (e) {
 		log(e.message);
 		log("Es konnten keine Visualisierungsdaten heruntergeladen werden von Steuerung " + prj);
-	}
-	//var Projektname = getProjektName(prj);
-	// Tooltips einlesen
-	initTooltips();
-
-	//initBGColors();
-
-	$("#myvCanvas").mousemove(function (e) {
-		handleMouseMove(e);
-	});
-
-	$("#myvCanvas").mousedown(function (e) {
-		handleMouseDown(e);
-	});
-	setBitmap(bmpIndex);
+	}	
 	DrawVisu();
 	findLabelAnstehendeStoerung();
 	//getCoordinateOfCanvasButton();
@@ -224,7 +225,7 @@ function createVisudata(sText){
 		if(idx >=0)
 		{
 			item.Bezeichnung = "AI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -246,7 +247,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "TH";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -267,7 +268,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "GA";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -288,7 +289,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PKT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -309,7 +310,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -330,7 +331,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "DF";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -351,7 +352,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "UDR";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -372,7 +373,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PDI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -393,7 +394,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBE";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -414,7 +415,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBH";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -435,7 +436,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PBZ";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -456,7 +457,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "PEI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -477,7 +478,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "AA";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -522,13 +523,13 @@ function createVisudata(sText){
 			item.Kanal = sText.substr((idx + 2), 3);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -540,16 +541,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "KPU";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -561,16 +562,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "KL";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert >0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -582,16 +583,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BPU";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert > 0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -603,16 +604,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BL";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -624,16 +625,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "LP";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -645,16 +646,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "ZP";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -665,16 +666,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "SG";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);
@@ -686,16 +687,16 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BI";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
+			item.Wert = sText.substr((idx + 8), 3);
 			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
+			item.isBool = true;
+			item.BoolVal = item.Wert>0;
 			item.EinheitText = getVisuItemEinheit(item.iEinheit);
 			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			sText= sText.slice((idx+11), sText.length);
 		}
 	}
 	while (idx >= 0);	
@@ -707,7 +708,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "ZZ";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -727,7 +728,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "HKT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -748,7 +749,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "BWT";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -769,7 +770,7 @@ function createVisudata(sText){
 		if (idx >= 0)
 		{
 			item.Bezeichnung = "GR";
-			item.Kanal = sText.substr((idx + 2), 3);
+			item.Kanal = sText.substr((idx + 3), 2);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -897,7 +898,7 @@ function getPosition(event) {
 	//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
 	if (((x - xZaehlerButtonNeu > 0) && (xZaehlerButtonNeuBot - x > 0)) && ((y - yZaehlerButtonNeu > 0) && (yZaehlerButtonNeuBot - y > 0))) {
 		//alert("on area");
-		var canvas = document.getElementById("myvCanvas");
+		var vcanvas = document.getElementById("myvCanvas");
 		var modal = document.getElementById('modalZaehler');
 		window.onclick = function (event) {
 			if (event.target == modal) {
@@ -1267,7 +1268,7 @@ function handleMouseDown(e) {
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
 function DrawVisu() {
-	vctx.clearRect(0, 0, canvas.width, canvas.height);
+	vctx.clearRect(0, 0, vcanvas.width, vcanvas.height);
 	drawTextList();
 	drawPropertyList();
 }
