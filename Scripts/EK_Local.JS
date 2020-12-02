@@ -11,7 +11,8 @@ var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
 var numberOfDataTrack;
 var visuAutoReload;
-
+var fernbedienungAutoReload;
+var benachrichtigungAutoReload;
 
 var zyklus;               // ZUM SUCHEN <<< 
 var einmalholen;          // ZUM SUCHEN <<< 
@@ -57,10 +58,10 @@ $(document).ready(function () {
   /***********Layout************/
 	// Table wird nicht mehr verwendet, da die Darstellung auf dem Canvas zum Einsatz kommt
 	//tableBuilder(22);
-
+	refreshTextAreaWithoutParameterLocal();
   
   /**********Visualization*/
-	//startVisu();
+	initVisu();
   
   
   /*********Data evaluation********/
@@ -71,9 +72,9 @@ $(document).ready(function () {
   
   /***********Operating******************/
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
-	var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
+	//var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 	
-	var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
+	//var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
 	einmalholen=7;         // <<<
@@ -1162,7 +1163,13 @@ function tabIdHanlder(evt, id)
 		visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
     }
 	if (id != "visualisierung") {
-		clearInterval(visuAutoReload); // Deaktivieren  Visudaten aller 5 Sekunde
+		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
+	}
+	if (id == "fernbedienung") {
+		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50); // Aktivieren  der Datenabholung der Fernbedienung 
+	}	
+	if (id != "fernbedienung") {
+		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
 	}
     if (id == "datenauswertung") {
         startQH();
@@ -1173,6 +1180,7 @@ function tabIdHanlder(evt, id)
     */
   if(id != "fernbedienung") 
   {
+	  
     hideElemementById("benachrichtigung");
   }
   else{
