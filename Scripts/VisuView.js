@@ -1604,7 +1604,7 @@ function ReloadData() {
 	}
 	else
 	{
-		document.querySelector('#vupdateStatus-bar').style.color = 'red';
+		document.querySelector('#vupdateStatus-bar').style.color = 'black';
 		if(document.querySelector('#vupdateStatus-info').textContent == " ") document.querySelector('#vupdateStatus-info').textContent = 'Datenaktualisierung fehlgeschlagen!';
 		//console.log("Datenaktualisierung fehlgeschlagen!");
 	}
