@@ -1,20 +1,29 @@
-* {
+/* {
   margin: 0;
-  padding: 0;/*10rem 10rem;*/
+  padding: 0;
+}*/
+
+.clr{
+	clear: both;
 }
 
-.top-bar {
+.pdf-top-bar {
   background: #c0c0c0;
-  color: #0;
+  font-size: 1rem;
+  color: black;
   padding: 0.1rem;
   display: flex;
   align-items: center;
   justify-content: center;
+  border-radius: .5em .5em 0em 0em;
 }
 
-.btn {
+.pdf-btn {
   cursor: pointer;
-  padding: 1.5rem 1rem;
+  /*padding: 1.5rem 1rem;*/
+  width: 100px;
+  height: 60px;
+  opacity: 0.8;
 }
 
 
@@ -26,14 +35,28 @@
   margin-left: 1rem;
 }
 
-.error {
+.pdf-error {
   background: #ff8080;
   color: #0;
   padding: 1rem;
 }
 
-#canvas-container {
+.pdf-canvas-container {
     background: #c0c0c0;
     text-align: center;
-    /*border: solid 3px;*/
+	border-radius: 0em 0em .5em .5em;
+}
+
+.pdf-leftBtnGroup {
+	position: fixed;
+	top: 45%;
+	left: 1%;
+	width: 100px;
+}
+
+.pdf-rightBtnGroup {
+	position: fixed;
+	top: 45%;
+	right: 1%;
+	width: 100px;
 }

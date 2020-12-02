@@ -112,6 +112,7 @@ body {
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
+	/*min-height: 100%/**/
 }
 
 .container {
@@ -156,11 +157,11 @@ body {
 
 }
 
-.btn:hover{
+.btn:hover, .pdf-btn:hover{
 	background-color: #4CAF50; /* Green */
 	color: white;
 }
-.btn:active{
+.btn:active, .pdf-btn:active{
 	background-color: #3e8e41;
 	box-shadow: 0 3px #666;
 	transform: translateY(2px);
