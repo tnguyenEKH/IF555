@@ -162,7 +162,7 @@ bdi {
     top: 1.3vh;/*5px;*/
     left: 92vh;
     position: absolute;
-    width: 280px;
+    width: 290px;
     height: 70.6vh;/*540px;*/
     overflow-x: hidden;
     overflow-y: scroll;
@@ -172,7 +172,7 @@ bdi {
 }
 
 .QHcheckbox {
-	margin: 0px 3px;
+	margin: 0px 6px 0px 0px;
 }
 
 .SettingsText {
