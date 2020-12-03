@@ -70,6 +70,7 @@ function callReader(pdf_file){
 	// Show Prev Page
 	const showPrevPage = () => {
 	  if (pageNum <= 1) {
+		/*document.querySelector('#'+filename+'-prev-page').display = none;*/
 		return;
 	  }
 	  pageNum--;
@@ -121,11 +122,11 @@ function callReader(pdf_file){
 	  .catch(err => {
 		// Display error
 		const div = document.createElement('div');
-		div.className = 'error';
+		div.className = 'pdf-error';
 		div.appendChild(document.createTextNode(err.message));
 		document.querySelector('body').insertBefore(div, canvas);
 		// Remove top bar
-		document.querySelector('.top-bar').style.display = 'none';
+		document.querySelector('.pdf-top-bar').style.display = 'none';
 	  });
 
 	// Button Events

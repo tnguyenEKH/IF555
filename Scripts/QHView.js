@@ -67,7 +67,7 @@ function startQH() {
         
         canvas = document.getElementById('myqCanvas');
         canvas.width = 1120;
-        canvas.height = 630;
+        canvas.height =630;
         qctx = canvas.getContext('2d');
         qctx.clearRect(0, 0, canvas.width, canvas.height);
         canvasOffset = $("#myqCanvas").offset();
@@ -633,8 +633,8 @@ function createSettingsItem(id, visible, color, text, left, enable, avg, sum) {
 	res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
 	res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
 	res += '<div style="float: left; height: 14px; font-size: 1vh">';
-	res += '<input id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
-	res += '<input id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+  res += '<input class = "QHcheckbox" id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
+  res += '<input class = "QHcheckbox" id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
 	res += '</div>';
 	res += '</div></br>';
 	return res;
@@ -1158,11 +1158,11 @@ function YScaleMenuConfirm() {
 
 function toggleDauerlinie() {
     var className = $('#btnDauerlinie').attr('class');
-    if (className == "cmdButtonMedium") {
-        $("#btnDauerlinie").removeClass(className).addClass("cmdButtonMediumPressed");
+    if (className == "qcmdButtonMedium") {
+        $("#btnDauerlinie").removeClass(className).addClass("qcmdButtonMediumPressed");
     }
     else {
-        $("#btnDauerlinie").removeClass(className).addClass("cmdButtonMedium");
+        $("#btnDauerlinie").removeClass(className).addClass("qcmdButtonMedium");
     }
 }
 
