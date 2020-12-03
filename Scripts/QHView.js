@@ -579,6 +579,21 @@ function ConfirmColorMenu() {
     location.href = "#";
 }
 
+
+function enadbleDisableTrack(id) {
+	var idx = id.substr(id.indexOf('_'));
+	if (itemsFound.length > 0) {
+		var idx = UserSettings.qh_Spuren.indexOf(itemsFound[0]);
+		UserSettings.qh_Spuren.splice(idx, 1);
+		UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
+	}
+	InitSettings();
+	drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
+	drawData();
+	location.href = "#";
+}
+
+
 function SettingsLeftRightHandler(id) {
     var checked = $('#' + id).prop("checked");
     var theOther = id;
@@ -607,22 +622,22 @@ function setScaleSelection(idx, bLeft) {
 
 }
 
-
-function createSettingsItem(id, visible, color, text, left, avg, sum) {
-    var res = '<div style="float:left; height:14px">';
-    var cb1val = left ? "checked" : "";
-    var cb2val = left ? "" : "checked";
+function createSettingsItem(id, visible, color, text, left, enable, avg, sum) {
+	var res = '<div style="float:left; height:14px">';
+	var cb1val = left ? "checked" : "";
+	var cb2val = left ? "" : "checked";
 	var enableVal = enable ? "checked" : "";
-	res += '<div id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + 'onchange="enadbleDisableTrack(id)" />';
-    res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
-    res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
-	res += '<div style="float: left; height: 14px; font-size: 1vh">';
-    res += '<input id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
-    res += '<input id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<div class = "" id="trackVisibleSettings">'
+	res += '<input id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + 'onchange="enadbleDisableTrack(id)" />';
 	res += '</div>';
-    res += '</div></br>';
-
-    return res;
+	res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
+	res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
+	res += '<div style="float: left; height: 14px; font-size: 1vh">';
+	res += '<input id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<input id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '</div>';
+	res += '</div></br>';
+	return res;
 }
 
 var defaultColors = ["#931414", "#920000", "#4c5660", "#39444f", "#485663", "#315172", "#920000",
