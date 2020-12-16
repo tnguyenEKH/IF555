@@ -582,11 +582,8 @@ function ConfirmColorMenu() {
 
 function enadbleDisableTrack(id) {
 	var idx = id.substr(id.indexOf('_'));
-	if (itemsFound.length > 0) {
-		var idx = UserSettings.qh_Spuren.indexOf(itemsFound[0]);
-		UserSettings.qh_Spuren.splice(idx, 1);
-		UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
-	}
+	UserSettings.qh_Spuren.splice(idx, 1);
+	UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
 	InitSettings();
 	drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
 	drawData();

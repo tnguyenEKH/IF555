@@ -65,7 +65,7 @@ $(document).ready(function () {
   
   
   /*********Data evaluation********/
-
+	startQH();
 	readQHFromFile(QHDataFile);
 	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
 
@@ -1172,7 +1172,7 @@ function tabIdHanlder(evt, id)
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
 	}
     if (id == "datenauswertung") {
-        startQH();
+        //startQH();
     }
   
   /*wegen des kleine Display  wird div#benachrichtigung nur angezeit, wenn das Modul fernbedienung aktiv ist
