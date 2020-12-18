@@ -430,23 +430,6 @@ function requestData(DataRequestObject) {
 	var endIndex = allQHDataRecords.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
-	//erzeugt "leere" Datensätze, wenn die DatumTo in der Zukunft liegt.
-	if (dtTo.getTime() > currentDate.getTime()){
-		for (var i=1; i <= 96; i++ )
-		{
-			emmptyValues = new Array(numberOfDataTrack);
-			emmptyValues.fill(-999);
-			var emptyRecord = {};
-			emptyRecord.Datum = today.toLocaleString().split(',')[0];
-			emptyRecord.Index = i;
-			emptyRecord.nValues = numberOfDataTrack;
-			emptyRecord.Projektnumer = projektnummer;
-			emptyRecord.Values = emmptyValues;
-			res.push(emptyRecord);
-		}
-		return res;
-	}		
-	
 	if (DataRequestObject.bJahresdaten == true)
 	{
 		res = allQHDataRecords.slice(startIndex, endIndex);
@@ -468,6 +451,21 @@ function requestData(DataRequestObject) {
 				}
 		}
 	}
+	if (res.length ==0)
+	{
+		for (var i=1; i <= 96; i++ )
+		{
+			emmptyValues = new Array(numberOfDataTrack);
+			emmptyValues.fill(-999);
+			var emptyRecord = {};
+			emptyRecord.Datum = today.toLocaleString().split(',')[0];
+			emptyRecord.Index = i;
+			emptyRecord.nValues = numberOfDataTrack;
+			emptyRecord.Projektnumer = projektnummer;
+			emptyRecord.Values = emmptyValues;
+			res.push(emptyRecord);
+		}
+	}	
     return res;
 }
 
