@@ -84,10 +84,6 @@ $(document).ready(function () {
 	callReader(slp_pdf);
 });
 
-
-
-
-
 /************Get all JSON from dataURL*************************************/
 function getData(url) {
     var xhr = new XMLHttpRequest();
@@ -981,128 +977,6 @@ function refreshTextAreaWithParameter(data) {
 }
 
 
-/*----------------------------------------------------------------------------------------------------------------------------------------
-.read menu.txt from /RD02/menue.txt (alias /DATA/menue.txt)
-  .Text will be parsed in an array by (\r)
-  .first element of array is the project number
-  .sidebarHtml: the whole html code of sidebar and will be initialized with "Hauptmenue" item
-  .from 2nd element the html code of sidebar will be generated base on:
-    .menuID : this was used for clickable Sidebar menu
-    .menuPosition: decide if item on Main oder Sub-Menu "2,0" will be Main menu, "3,1" is the next level sub-menu and so on
-    .menuPositionNextItem: this determine which html tag (ul, li, div) of previous menu will be close to prepare for the next menu.
-  .try block will process the array till the penultimate item
-  .catch block work for the last item, where the menuPositionNextItem is null.
-
-.javascript does not support overloaded function, hence must 2 functions createMenuItem() and createMenuItemPosition20() be implemented.
-
-.TODO: The conditional statements are not yet complete, hence we have 8 possible menuPosition and menuPositionNextItem
-  this statement can be change if we change the design of sidebar Menu (html, javascript, css) or reverse engineering a completed Model.
-*/
-function menuBuilder() {
-  var menuID;
-  var menuPosition;
-  var menuPositionNextItem;
-  var menuName;
-  var menuText = readFromTextFile("/DATA/menue.txt");
-  var menuID = "";
-  var menuTextInArray = menuText.split('\r'); 
-	  projektnummer = menuTextInArray[0];
-  var sidebar = document.getElementById("sidebar");
-  //sidebarHtml declare and init with "root" menu Item
-  var sidebarHtml = "<ul><li><a id=\"1\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">Hauptmenue</span></a></li>"
-  for (var i = 2; i < menuTextInArray.length-1; i++) {
-    //split() return an Array, split(separator)[0] return the first element of the array after split was done. Array index starts at zero.
-    menuID = menuTextInArray[i].split(':')[0].trim();
-    menuPosition = menuTextInArray[i].split(':')[1].trim().substring(0, 3);
-    menuName = menuTextInArray[i].split(':')[1].trim().substring(4);
-    try
-    {
-      menuPositionNextItem = menuTextInArray[i+1].split(':')[1].trim().substring(0, 3);
-    
-      if (menuPosition == "2,1")
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-      }
-      else if(menuPosition == "2,0")  
-      {
-        sidebarHtml += createMenuItemPosition20("sidebar-dropdown", menuID, menuName, "sidebar-submenu");
-      }
-      else if ((menuPosition == "3,1") & (menuPositionNextItem == "3,1"))
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-      }
-      else if ((menuPosition == "3,1") & (menuPositionNextItem == "2,0"))
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-        sidebarHtml += "</ul></div></li>";
-      }
-      else if ((menuPosition == "3,1") & (menuPositionNextItem == "3,0"))
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-      }
-      else if (menuPosition == "3,0")
-      {
-        sidebarHtml += createMenuItemPosition20("sidebar-2nddropdown", menuID, menuName, "sidebar-2ndsubmenu");
-      }
-      else if ((menuPosition == "4,1") & (menuPositionNextItem == "4,1"))
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-      }
-      else if ((menuPosition == "4,1") & (menuPositionNextItem == "2,0"))
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);      
-        sidebarHtml += "</ul></div></li></ul></div></li>";
-      }
-      else if ((menuPosition == "4,1") & (menuPositionNextItem == "3,0"))   
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);      
-        sidebarHtml += "</ul></div></li>";
-      }
-      else if ((menuPosition == "4,1") & (menuPositionNextItem == "3,1"))     
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName) + "</ul></div></li>"; 
-      }
-      else if (menuPosition == "4,0")
-      {
-        sidebarHtml += createMenuItemPosition20("sidebar-3rddropdown", menuID, menuName, "sidebar-3rdsubmenu");
-      }
-      else if (menuPosition == "5,1")
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-      }
-      else if ((menuPosition == "5,1") & (menuPositionNextItem == "4,1"))   
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-        sidebarHtml += "</ul></div></li>";
-      }
-      else if ((menuPosition == "3,1") & (menuPositionNextItem == "2,1"))   
-      {
-        sidebarHtml += createMenuItem("", menuID, menuName);
-        sidebarHtml += "</ul></div></li>";
-      }
-    }
-    catch
-    {
-      sidebarHtml += "</ul></div></li>"
-      sidebarHtml += createMenuItem("", menuID, menuName);
-      sidebarHtml += "</ul>";
-    }
-  }
-  sidebar.innerHTML = sidebarHtml;
-}
-
-function createMenuItem(liElementClass, menuID, menuName)
-{
-  return "<li" + liElementClass + "><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a></li>";
-}
-
-function createMenuItemPosition20 ( liElementClass, menuID, menuName, divElementClass){
-  return "<li class=\"" + liElementClass + "\"><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a><div class=\"" +divElementClass + "\"><ul>";
-}
-/* function createMenuItemPosition30 ( liElementClass, menuID, menuName, divElementClass){
-  return "<ul><li class=\"" + liElementClass + "\"><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a><div class=\"" +divElementClass + "\"><ul>";
-} */
-
  /*--------------------------------------------------------------------------------------------------------------------------------
 Topbar navigation
 canceling setInterval call when item "Anlagenüberwachung" was not selected
@@ -1115,26 +989,6 @@ function topBarNavigationHanlder(id) {
   else {
     clearInterval(nIntervID);
   }
-}
-
-
-//Tabelle für die Darstellung der Texte
-function tableBuilder(rowEntries) {
-
-  var displayPanel = document.getElementById('displayPanel');
-  var table = document.createElement('table');
-  table.id = 'displayTable';
-  var tableBody = document.createElement('tbody');
-  var totalRows = 16 + rowEntries;
-  for (var i = 16; i < totalRows; i++) {
-    var tr = document.createElement('tr');
-    var td = document.createElement('td');
-    tr.appendChild(td);
-    tableBody.appendChild(tr);
-  }
-
-  table.appendChild(tableBody);
-  displayPanel.appendChild(table);
 }
 
 
@@ -1231,7 +1085,6 @@ function AnchorHandler(id) {
   refreshTextAreaWithoutParameterLocal(data);
   
 }
-
 
 
 /*****************Hanler für Button Click ******************/
@@ -1457,3 +1310,151 @@ function clearDisplayTable (){
 String.prototype.replaceAt = function(startIndex, replacement, numberOfCharacter){
   return this.substr(0, startIndex) + replacement + this.substr(startIndex + numberOfCharacter);
 }
+
+
+//obsolete, Sidebarmenü und tabellarische Display wurde nicht mehr genutzt
+
+
+//Tabelle für die Darstellung der Texte
+/* function tableBuilder(rowEntries) {
+
+  var displayPanel = document.getElementById('displayPanel');
+  var table = document.createElement('table');
+  table.id = 'displayTable';
+  var tableBody = document.createElement('tbody');
+  var totalRows = 16 + rowEntries;
+  for (var i = 16; i < totalRows; i++) {
+    var tr = document.createElement('tr');
+    var td = document.createElement('td');
+    tr.appendChild(td);
+    tableBody.appendChild(tr);
+  }
+
+  table.appendChild(tableBody);
+  displayPanel.appendChild(table);
+} */
+
+
+/*----------------------------------------------------------------------------------------------------------------------------------------
+.read menu.txt from /RD02/menue.txt (alias /DATA/menue.txt)
+  .Text will be parsed in an array by (\r)
+  .first element of array is the project number
+  .sidebarHtml: the whole html code of sidebar and will be initialized with "Hauptmenue" item
+  .from 2nd element the html code of sidebar will be generated base on:
+    .menuID : this was used for clickable Sidebar menu
+    .menuPosition: decide if item on Main oder Sub-Menu "2,0" will be Main menu, "3,1" is the next level sub-menu and so on
+    .menuPositionNextItem: this determine which html tag (ul, li, div) of previous menu will be close to prepare for the next menu.
+  .try block will process the array till the penultimate item
+  .catch block work for the last item, where the menuPositionNextItem is null.
+
+.javascript does not support overloaded function, hence must 2 functions createMenuItem() and createMenuItemPosition20() be implemented.
+
+.TODO: The conditional statements are not yet complete, hence we have 8 possible menuPosition and menuPositionNextItem
+  this statement can be change if we change the design of sidebar Menu (html, javascript, css) or reverse engineering a completed Model.
+*/
+
+/*function menuBuilder() {
+  var menuID;
+  var menuPosition;
+  var menuPositionNextItem;
+  var menuName;
+  var menuText = readFromTextFile("/DATA/menue.txt");
+  var menuID = "";
+  var menuTextInArray = menuText.split('\r'); 
+	  projektnummer = menuTextInArray[0];
+  var sidebar = document.getElementById("sidebar");
+  //sidebarHtml declare and init with "root" menu Item
+  var sidebarHtml = "<ul><li><a id=\"1\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">Hauptmenue</span></a></li>"
+  for (var i = 2; i < menuTextInArray.length-1; i++) {
+    //split() return an Array, split(separator)[0] return the first element of the array after split was done. Array index starts at zero.
+    menuID = menuTextInArray[i].split(':')[0].trim();
+    menuPosition = menuTextInArray[i].split(':')[1].trim().substring(0, 3);
+    menuName = menuTextInArray[i].split(':')[1].trim().substring(4);
+    try
+    {
+      menuPositionNextItem = menuTextInArray[i+1].split(':')[1].trim().substring(0, 3);
+    
+      if (menuPosition == "2,1")
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+      }
+      else if(menuPosition == "2,0")  
+      {
+        sidebarHtml += createMenuItemPosition20("sidebar-dropdown", menuID, menuName, "sidebar-submenu");
+      }
+      else if ((menuPosition == "3,1") & (menuPositionNextItem == "3,1"))
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+      }
+      else if ((menuPosition == "3,1") & (menuPositionNextItem == "2,0"))
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+        sidebarHtml += "</ul></div></li>";
+      }
+      else if ((menuPosition == "3,1") & (menuPositionNextItem == "3,0"))
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+      }
+      else if (menuPosition == "3,0")
+      {
+        sidebarHtml += createMenuItemPosition20("sidebar-2nddropdown", menuID, menuName, "sidebar-2ndsubmenu");
+      }
+      else if ((menuPosition == "4,1") & (menuPositionNextItem == "4,1"))
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+      }
+      else if ((menuPosition == "4,1") & (menuPositionNextItem == "2,0"))
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);      
+        sidebarHtml += "</ul></div></li></ul></div></li>";
+      }
+      else if ((menuPosition == "4,1") & (menuPositionNextItem == "3,0"))   
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);      
+        sidebarHtml += "</ul></div></li>";
+      }
+      else if ((menuPosition == "4,1") & (menuPositionNextItem == "3,1"))     
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName) + "</ul></div></li>"; 
+      }
+      else if (menuPosition == "4,0")
+      {
+        sidebarHtml += createMenuItemPosition20("sidebar-3rddropdown", menuID, menuName, "sidebar-3rdsubmenu");
+      }
+      else if (menuPosition == "5,1")
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+      }
+      else if ((menuPosition == "5,1") & (menuPositionNextItem == "4,1"))   
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+        sidebarHtml += "</ul></div></li>";
+      }
+      else if ((menuPosition == "3,1") & (menuPositionNextItem == "2,1"))   
+      {
+        sidebarHtml += createMenuItem("", menuID, menuName);
+        sidebarHtml += "</ul></div></li>";
+      }
+    }
+    catch
+    {
+      sidebarHtml += "</ul></div></li>"
+      sidebarHtml += createMenuItem("", menuID, menuName);
+      sidebarHtml += "</ul>";
+    }
+  }
+  sidebar.innerHTML = sidebarHtml;
+}
+*/
+/* function createMenuItem(liElementClass, menuID, menuName)
+{
+  return "<li" + liElementClass + "><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a></li>";
+} */
+
+/* function createMenuItemPosition20 ( liElementClass, menuID, menuName, divElementClass){
+  return "<li class=\"" + liElementClass + "\"><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a><div class=\"" +divElementClass + "\"><ul>";
+} */
+/* function createMenuItemPosition30 ( liElementClass, menuID, menuName, divElementClass){
+  return "<ul><li class=\"" + liElementClass + "\"><a id=\"" + menuID + "\" href=\"#\" onclick=\"AnchorHandler(id)\"><span class=\"menu-text\">" + menuName + "</span></a><div class=\"" +divElementClass + "\"><ul>";
+} */
+
