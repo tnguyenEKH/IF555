@@ -182,16 +182,44 @@ function getUserSettings() {
     
     catch
     {
-/* 		//var qh_Spuren = [];
 		var settings = {};
-		var default_colors = {0:"#00FF00", 1:"#FFA500", 2:"#FF00FF", 3:"#FF0000", 4:"#000000"};
 		settings.qh_Skalierung = {"Y_Links_Max" :100,  "Y_Links_Schrittweite": 10 , "Y_Rechts_Max": 400, "Y_Rechts_Schrittweite":40};
-		for(var i =0; i<5; i++)
-		{
-			settings.qh_Spuren[i].bSkala_Links = true;
-			settings.qh_Spuren[i].index = i; 
-			settings.qh_Spuren[i].color = settings.default_colors[i];
-		}	 */		
+		
+		var default_colors = {0:"#00FF00", 1:"#FFA500", 2:"#FF00FF", 3:"#FF0000", 4:"#000000"};
+		settings.qh_Spuren = [
+			{
+				bSkala_Links: true,
+				index: 0,
+				color: default_colors[0],
+				enabled: true
+			},
+			{
+				bSkala_Links: true,
+				index: 1,
+				color: default_colors[1],
+				enabled: true
+			},
+			{
+				bSkala_Links: true,
+				index: 2,
+				color: default_colors[2],
+				enabled: true
+			},
+			{
+				bSkala_Links: true,
+				index: 3,
+				color: default_colors[3],
+				enabled: true
+			},
+			{
+				bSkala_Links: true,
+				index: 4,
+				color: default_colors[4],
+				enabled: true
+			},
+		]
+		
+		UserSettings = settings;
     }
 	return UserSettings;
 
@@ -247,7 +275,7 @@ function drawData() {
     qctx.save();
     qctx.translate(diagramLeft, diagramTop);
     var nQH = diagramData.length;
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var nSpuren = UserSettings.qh_Spuren.length;
 
     var nTracks = diagramData[0].Values.length;
@@ -287,6 +315,9 @@ function drawData() {
     }
 
     for (var j = 0; j < nSpuren; j++) {
+		var spurindex = Spuren[j].index;
+		var isEnabled = Spuren[j].enabled;
+		//var isEnabled = $('#' + "enableTrack_" + spurindex).prop("checked");
         var arrDaten = [];
         for (var i = 0; i < nValues; i++) {
             try {
@@ -299,31 +330,33 @@ function drawData() {
         }
         if (isDauerlinie())
             arrDaten.sort(function (a, b) { return b - a });
+		
+		if (isEnabled){
+			qctx.beginPath();
+			qctx.lineWidth = 1;
+			//qctx.strokeStyle = Spuren[j].color;
+			qctx.fillStyle = Spuren[j].color; 
+			
 
-        qctx.beginPath();
-        qctx.lineWidth = 1;
-		//qctx.strokeStyle = Spuren[j].color;
-        qctx.fillStyle = Spuren[j].color; 
-        var spurindex = Spuren[j].index;
-
-        //var isLeft = $('#' + "cbSettingsL_" + j).prop("checked");
-        var isLeft = $('#' + "cbSettingsL_" + spurindex).prop("checked");
-        for (var i = 0; i < nValues; i++) {
-			if (i >=1) {
-				var gXprev = xd + ((i - 1) * didx + 1) * stepX;
-				var gYprev = toPixelY(arrDaten[(i - 1) * didx], isLeft);
-				}
-            var valFrom = arrDaten[i * didx];
-            var gXFrom = xd + (i * didx + 1) * stepX;
-            var gYFrom = toPixelY(valFrom, isLeft);
-            var gYTo = yd + hd - (i + 1) * valFrom;
-            if (i == 0 || valFrom == -999)
-                qctx.moveTo(gXFrom, gYFrom);
-            else
-                //qctx.lineTo(gXFrom, gYFrom);
-				brezLine(gXprev, gYprev, gXFrom, gYFrom);
-            qctx.stroke();
-        }
+			//var isLeft = $('#' + "cbSettingsL_" + j).prop("checked");
+			var isLeft = $('#' + "cbSettingsL_" + spurindex).prop("checked");
+			for (var i = 0; i < nValues; i++) {
+				if (i >=1) {
+					var gXprev = xd + ((i - 1) * didx + 1) * stepX;
+					var gYprev = toPixelY(arrDaten[(i - 1) * didx], isLeft);
+					}
+				var valFrom = arrDaten[i * didx];
+				var gXFrom = xd + (i * didx + 1) * stepX;
+				var gYFrom = toPixelY(valFrom, isLeft);
+				var gYTo = yd + hd - (i + 1) * valFrom;
+				if (i == 0 || valFrom == -999)
+					qctx.moveTo(gXFrom, gYFrom);
+				else
+					//qctx.lineTo(gXFrom, gYFrom);
+					brezLine(gXprev, gYprev, gXFrom, gYFrom);
+				qctx.stroke();
+			}
+		}
     }
     qctx.restore();
 
@@ -430,23 +463,6 @@ function requestData(DataRequestObject) {
 	var endIndex = allQHDataRecords.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
-	//erzeugt "leere" Datensätze, wenn die DatumTo in der Zukunft liegt.
-	if (dtTo.getTime() > currentDate.getTime()){
-		for (var i=1; i <= 96; i++ )
-		{
-			emmptyValues = new Array(numberOfDataTrack);
-			emmptyValues.fill(-999);
-			var emptyRecord = {};
-			emptyRecord.Datum = today.toLocaleString().split(',')[0];
-			emptyRecord.Index = i;
-			emptyRecord.nValues = numberOfDataTrack;
-			emptyRecord.Projektnumer = projektnummer;
-			emptyRecord.Values = emmptyValues;
-			res.push(emptyRecord);
-		}
-		return res;
-	}		
-	
 	if (DataRequestObject.bJahresdaten == true)
 	{
 		res = allQHDataRecords.slice(startIndex, endIndex);
@@ -468,6 +484,21 @@ function requestData(DataRequestObject) {
 				}
 		}
 	}
+	if (res.length ==0)
+	{
+		for (var i=1; i <= 96; i++ )
+		{
+			emmptyValues = new Array(numberOfDataTrack);
+			emmptyValues.fill(-999);
+			var emptyRecord = {};
+			emptyRecord.Datum = today.toLocaleString().split(',')[0];
+			emptyRecord.Index = i;
+			emptyRecord.nValues = numberOfDataTrack;
+			emptyRecord.Projektnumer = projektnummer;
+			emptyRecord.Values = emmptyValues;
+			res.push(emptyRecord);
+		}
+	}	
     return res;
 }
 
@@ -522,7 +553,6 @@ Farbauswahl:
  
 Die ausgewwählten Spuren werden in einer sortierten Liste in den Usersettings verwaltet.
 Der Zufriff erfolgt über den dort mit abgelegten Spur-Index.
-
 */
 
 function ColorSelectionHandler(id) {
@@ -530,7 +560,7 @@ function ColorSelectionHandler(id) {
     var si = id.substring(4);
     var i = parseInt(si);
     var sCol = defaultColors[i];
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var nSpuren = UserSettings.qh_Spuren.length;
     var itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
     if (itemsFound.length > 0) {
@@ -566,7 +596,7 @@ function ConfirmColorMenu() {
 
     // Color-Eintrag entfernen
     inColorMenue = false;
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
     if (itemsFound.length > 0) {
         var idx = UserSettings.qh_Spuren.indexOf(itemsFound[0]);
@@ -580,14 +610,17 @@ function ConfirmColorMenu() {
 }
 
 
-function enadbleDisableTrack(id) {
-	var idx = id.substr(id.indexOf('_'));
-	UserSettings.qh_Spuren.splice(idx, 1);
-	UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
-	InitSettings();
-	drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
-	drawData();
-	location.href = "#";
+function enadbleDisableTrack(id) {	
+	var checked = $('#' + id).prop("checked");
+	var idx = id.substr(id.indexOf('_') + 1);
+	var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
+	var itemsFound = $.grep(Spuren, function (e) { return e.index == idx; });
+    if (itemsFound.length > 0) {
+        itemsFound[0].enabled = checked;
+		InitSettings();
+		drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
+		drawData();
+	}
 }
 
 
@@ -608,7 +641,7 @@ function SettingsLeftRightHandler(id) {
 }
 
 function setScaleSelection(idx, bLeft) {
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var itemsFound = $.grep(Spuren, function (e) { return e.index == idx; });
     if (itemsFound.length > 0) {
         itemsFound[0].bSkala_Links = bLeft;
@@ -619,20 +652,24 @@ function setScaleSelection(idx, bLeft) {
 
 }
 
-function createSettingsItem(id, visible, color, text, left, enable, avg, sum) {
+function createSettingsItem(id, enable, color, text, left, avg, sum) {
 	var res = '<div style="float:left; height:14px">';
 	var cb1val = left ? "checked" : "";
 	var cb2val = left ? "" : "checked";
 	var enableVal = enable ? "checked" : "";
-	res += '<div class = "" id="trackVisibleSettings">'
-	res += '<input id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + 'onchange="enadbleDisableTrack(id)" />';
+
+	res += '<div class = "" id="trackVisibleSettings" style="float: left; height: 14px; font-size: 1vh">'
+	res += '<input class = "QHcheckbox" id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + ' onchange="enadbleDisableTrack(id)" />';
 	res += '</div>';
+	
 	res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
 	res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
+
 	res += '<div style="float: left; height: 14px; font-size: 1vh">';
-  res += '<input class = "QHcheckbox" id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
-  res += '<input class = "QHcheckbox" id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<input class = "QHcheckbox" id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<input class = "QHcheckbox" id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
 	res += '</div>';
+
 	res += '</div></br>';
 	return res;
 }
@@ -647,7 +684,7 @@ var defaultColors = ["#931414", "#920000", "#4c5660", "#39444f", "#485663", "#31
 
 function InitSettings() {
     var x = diagramData;
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var nSpuren = UserSettings.qh_Spuren.length;
     $("#qSettings").empty();
     var SettingsContent = "";
@@ -655,7 +692,7 @@ function InitSettings() {
     for (var i = 0; i < n; i++) {
         var itemsFound = $.grep(Spuren, function (e) { return e.index == i; });
         if (itemsFound.length > 0) {
-            SettingsContent += createSettingsItem(i, true, itemsFound[0].color, diagramHeader[i].Bezeichnung.trim()
+            SettingsContent += createSettingsItem(i, itemsFound[0].enabled, itemsFound[0].color, diagramHeader[i].Bezeichnung.trim()
                 + " [" + diagramHeader[i].Einheit + "]", itemsFound[0].bSkala_Links, 0, 0);
         }
         else {
@@ -1172,7 +1209,7 @@ function printCanvas() {
 
     var spurNameAndColor = "";
     var sCol = defaultColors[i];
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index
+    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
     var nSpuren = UserSettings.qh_Spuren.length;
 
     var pdf = new jsPDF('a4');
@@ -1186,6 +1223,7 @@ function printCanvas() {
     for (var i = 0; i < nSpuren; i++) {
         var index = Spuren[i].index;
         var color = Spuren[i].color;
+		var enabled = Spuren[i].enabled; //aktuell noch nicht Berücksichtigt!
         var spurname = diagramHeader[index].Bezeichnung;
         pdf.setTextColor(color, 0, 0, 0);
         pdf.text(30, 180 + i * 8, '-----: ' + spurname);
