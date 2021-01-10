@@ -202,20 +202,20 @@ bdi {
     }
 
 
-    #ModalMenu > div {
-        width: 300px;
-        left: 400px;
-        top: 100px;
-        position: absolute;
-        margin: 10% auto;
-        padding: 5px 20px 13px 20px;
-        border-radius: 10px;
-        background: #fff;
-        background: -moz-linear-gradient(#fff, #999);
-        background: -webkit-linear-gradient(#fff, #999);
-        background: -o-linear-gradient(#fff, #999);
-        box-shadow: 10px 10px 5px #888888;
-    }
+#ModalMenu > div {
+	width: 300px;
+	left: 400px;
+	top: 50px;
+	position: absolute;
+	margin: 10% auto;
+	padding: 5px 20px 13px 20px;
+	border-radius: 10px;
+	background: #fff;
+	background: -moz-linear-gradient(#fff, #999);
+	background: -webkit-linear-gradient(#fff, #999);
+	background: -o-linear-gradient(#fff, #999);
+	box-shadow: 10px 10px 5px #888888;
+}
 
 .draglabel {
     font: 14px Arial;
