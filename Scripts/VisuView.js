@@ -1282,14 +1282,14 @@ function addLinkButtonToList(x, y, w, h, orientation, targetBmp) {
 		item["x_min"] = x - 6;
 		item["y_min"] = y - h - 6;
 		item["x_max"] = x + w + 16;
-		item["y_max"] = y + 6;
+		item["y_max"] = y + 80;
 		item["bmp"] = targetBmp;
 	}
 	if (orientation == "up") {
 		item["x_min"] = x - h - 16;
 		item["y_min"] = y - w - 16;
 		item["x_max"] = x + 6;
-		item["y_max"] = y + 6;
+		item["y_max"] = y + 80;
 		item["bmp"] = targetBmp;
 	}
 
@@ -1542,9 +1542,11 @@ function drawTextList() {
 		// x0, yo
 		if (FreitextList[i].Freitext == "anstehende Störungen") {
 			xStoerButton = FreitextList[i].x - 6;
-			yStoerButton = FreitextList[i].y - 22;
+			//yStoerButton = FreitextList[i].y - 22;
+			yStoerButton = FreitextList[i].y + 40;
 			xStoerButtonBot = FreitextList[i].x + 200;
-			yStoerButtonBot = FreitextList[i].y + 18;
+			//yStoerButtonBot = FreitextList[i].y + 18;
+			yStoerButtonBot = FreitextList[i].y + 78;
 		}
 
 		//get coordinate of button zähler archiv
@@ -1559,9 +1561,11 @@ function drawTextList() {
 		//get coordinate of button zähler anzeigen
 		if (FreitextList[i].Freitext == "Zähler anzeigen" & FreitextList[i].BgColor == "slateBlue ") {
 			xZaehlerButtonNeu = FreitextList[i].x - 6;
-			yZaehlerButtonNeu = FreitextList[i].y - 22;
+			//yZaehlerButtonNeu = FreitextList[i].y - 22;
+			yZaehlerButtonNeu = FreitextList[i].y + 40;
 			xZaehlerButtonNeuBot = FreitextList[i].x + 130; 
-			yZaehlerButtonNeuBot = FreitextList[i].y + 18;
+			//yZaehlerButtonNeuBot = FreitextList[i].y + 18;
+			yZaehlerButtonNeuBot = FreitextList[i].y + 78;
 		}
 
 		//get coordinate of Button IPKamera1

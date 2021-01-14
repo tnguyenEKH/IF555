@@ -1,7 +1,7 @@
 /********************* URL SETTINGS *********************/
 var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
 var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
-var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=sel&V064';
+var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V064';
 var uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
 var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
 var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
@@ -62,7 +62,7 @@ $(document).ready(function () {
 	// Table wird nicht mehr verwendet, da die Darstellung auf dem Canvas zum Einsatz kommt
 	//tableBuilder(22);
 	refreshTextAreaWithoutParameterLocal();
-  
+	updateBenachrichtigung();
   /**********Visualization*/
 	initVisu();
   
@@ -76,8 +76,7 @@ $(document).ready(function () {
   /***********Operating******************/
   //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
 	//var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-	
-	//var getBenachrichtigung = setInterval (updateBenachrichtigung, 5000);
+
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
 	einmalholen=7;         // <<<
@@ -1312,9 +1311,12 @@ function tabIdHanlder(evt, id)
 	}
 	if (id == "fernbedienung") {
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50); // Aktivieren  der Datenabholung der Fernbedienung 
+		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
+		
 	}	
 	if (id != "fernbedienung") {
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
+		clearInterval(benachrichtigungAutoReload);
 	}
     if (id == "datenauswertung") {
         //startQH();
@@ -1325,8 +1327,8 @@ function tabIdHanlder(evt, id)
     */
   if(id != "fernbedienung") 
   {
-	  
     hideElemementById("benachrichtigung");
+	
   }
   else{
     showElemementById("benachrichtigung");
