@@ -29,6 +29,8 @@ var stat4;                // 1: Ausgabe Wochenkalender in grafischer Form auf CA
 var statTastzahl;         // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zahleneingabe zu machen 
 var statTastzeich;        // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
 var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
+var mousex;               // 1: xPosition der Maus im Canvas
+var mousey;               // 1: yPosition der Maus im Canvas
 var allQHDataRecords  = [];
 
 
@@ -40,6 +42,7 @@ var Displaycanvas = document.getElementById("DisplayCanvas");    // Canvas globa
 	DisplayCanvas.width = parent.offsetWidth;
 	DisplayCanvas.height = parent.offsetHeight;
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
+var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
 
 const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
 const slp_pdf = new PDF_file('../SD_DATA/SLP.pdf', 'slp');
@@ -194,8 +197,10 @@ function b32(n) {
 
 
 function refreshTextAreaWithoutParameterLocal() {
+
   var jsonData;
-   if (tastzaehler > 0) {                  // <<< 
+  
+    if (tastzaehler > 0) {                  // <<< 
       tastzaehler=tastzaehler-1;
       if (tastzaehler < 1) {
         zykzaehler=0;
@@ -210,6 +215,7 @@ function refreshTextAreaWithoutParameterLocal() {
       } 
       jsonData = getData(dataUrl);
       data = JSON.parse(jsonData);
+      var table = document.getElementById('displayTable');
       var x = data['v035'] - 1; //spalte, wo die texte anfang "rot" sein soll
       var y = data['v036'] + 15;    //Zeile, wo die Texte rot markiert werden soll
       var z = data['v037'];   //Anzahl der Zeichen, die rot markiert werden soll
@@ -243,8 +249,18 @@ function refreshTextAreaWithoutParameterLocal() {
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
 
+        // Texttabelle verschwinden lassen, CANVAS darstellen
+ //   	var table = document.getElementById("displayTable");
+ //   	table.style.display = "none";
+    //	var canvas = document.getElementById("testCanvas");
+    //	Displaycanvas.style.display = "block";
+    //	var ctx = Displaycanvas.getContext('2d');
+    //  ctx.width = 800;
+    //  ctx.height = 500;
       	ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
+     //	ctx.clearRect(0, 0, Displaycanvas.width, Displaycanvas.height);
+   
         ctx.fillStyle = "#000000";  
         ctx.font = "20px Arial";
         xpos= 5;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
@@ -258,6 +274,33 @@ function refreshTextAreaWithoutParameterLocal() {
         ctx.fillRect(xpos+4,ypos-17,14,17);
         ctx.fillStyle = "#000000";
 
+
+    //  JButton enter = new JButton("Enter");
+    //  document.getElementById('buttonId').onclick = test;
+    //  var button = document.createElement("button");
+    //  button.innerHTML = "Do Something";
+
+    //  var Eingabe;
+    //  Eingabe = window.prompt("Welche Datei soll geoeffnet werden?","Dateiname mit Pfad");
+    //  window.open(Eingabe);
+
+
+    //  ctx.setLineDash([2, 5]);
+    //  ctx.lineWidth = 1;
+    //  ctx.strokeStyle = "#000000";
+    //  ctx.beginPath();           // gestrichelte Linie 01:00
+    //  ctx.moveTo(82, 90);
+    //  ctx.lineTo(82, 305);
+    //  ctx.stroke(); 
+ 
+    //  ctx.beginPath();           // gestrichelte Linie 23:00
+    //  ctx.moveTo(736, 90);
+    //  ctx.lineTo(736, 305);
+    //  ctx.stroke(); 
+ 
+
+
+
         xpos= 50;   
         ypos=25;    
         ctx.fillText("Wochenkalender von", xpos, ypos); 
@@ -268,12 +311,12 @@ function refreshTextAreaWithoutParameterLocal() {
         ctx.fillText(textToReplace, xpos, ypos); 
 
         textToReplace = data['v039'].substring(39, 60)    //  Tag  Uhrzeit  auslesen aus 2. Zeile grosses Display x 39-60
-        xpos=xpos+180;
+        xpos=xpos+200;
         ypos=ypos+ 0;
         ctx.fillText(textToReplace, xpos, ypos); 
 
         textToReplace = data['v040'].substring(42, 57)    //  Zustand zum Zeitpunkt    auslesen aus 3. Zeile grosses Display x 42-57
-        xpos=xpos+180;
+        xpos=xpos+220;
         ypos=ypos+ 0;
         var index = textToReplace.indexOf("Tag");    
         if (index > 1) {
@@ -300,7 +343,7 @@ function refreshTextAreaWithoutParameterLocal() {
         xpos= 50;
         ypos=ypos+30;
         ctx.fillStyle = "#303030";  
-        ctx.fillText("0                             6                             12                            18                            24", xpos, ypos); 
+        ctx.fillText("0                              6                             12                            18                            24", xpos, ypos); 
         xpos=  2;
         ypos=ypos+30;
         ctx.fillText("MO",  xpos, ypos); 
@@ -319,6 +362,11 @@ function refreshTextAreaWithoutParameterLocal() {
         ypos=ypos+30;
         ctx.fillText("SO",  xpos, ypos); 
 
+        if (statmouseweek) {
+          timeweek();
+        }
+
+        var act=1;
         textToReplace = data['v056'].substring( 2, 40)    //  AKTION:   auslesen aus 19. Zeile grosses Display x 2-40           
         xpos=30;
         ypos=330;
@@ -326,10 +374,106 @@ function refreshTextAreaWithoutParameterLocal() {
         if (index > 2) {
           ctx.fillStyle = "#000000";  
         }
-        else {                                            // andere Aktion -> Darstellung rot
-          ctx.fillStyle = "#FF0000";  
+        else {                                            // andere Aktion 
+          index = textToReplace.indexOf("HT");       // bei Aktion "HT setzen" Darstellung rot
+          if (index > 2) {
+            ctx.fillStyle = "#C02020";  
+            act=2;
+          }
+          else {
+            index = textToReplace.indexOf("EIN");     // bei Aktion "EIN setzen" Darstellung rot
+            if (index > 2) {
+              ctx.fillStyle = "#C02020";  
+              act=2;
+            }
+            else {
+            index = textToReplace.indexOf("Tag");     // bei Aktion "Tagbetrieb setzen" Darstellung rot
+              if (index > 2) {
+                ctx.fillStyle = "#C02020";  
+                act=2;
+              }
+              else {
+                ctx.fillStyle = "#2020C0";            //  sonst blau
+                act=3;
+              }
+            }
+          }
+          ctx.font = "30px Arial";
+          xpos=250;
         }
         ctx.fillText(textToReplace, xpos, ypos); 
+        ctx.font = "20px Arial";
+
+        xpos=20;    
+        ypos=451;    
+        ctx.fillStyle = "#8080C0";             //  BUTTON Wochenkalender anschauen
+        ctx.fillRect(xpos+1,ypos-20,20,23);
+        ctx.fillStyle = "#6060A0";
+        ctx.fillRect(xpos+4,ypos-17,14,17);
+        ctx.fillStyle = "#000000";
+        xpos=50;    
+        ctx.fillText("Wochenkalender anschauen", xpos, ypos);        
+        if (act == 1) {
+          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.setLineDash([5,  0]);
+          ctx.lineWidth = 3;
+          xpos=28;    
+          ypos=442;    
+          ctx.beginPath();
+          ctx.moveTo(xpos, ypos);
+          ctx.lineTo(xpos+5, ypos+5);
+          ctx.lineTo(xpos+20, ypos-10);
+          ctx.stroke(); 
+        }          
+
+        xpos=20;    
+        ypos=481;    
+        ctx.fillStyle = "#8080C0";             //  BUTTON rot setzen
+        ctx.fillRect(xpos+1,ypos-20,20,23);
+        ctx.fillStyle = "#6060A0";
+        ctx.fillRect(xpos+4,ypos-17,14,17);
+     // ctx.fillStyle = "#C02020";
+        ctx.fillStyle = "#000000";
+        xpos=50;    
+        ctx.fillText("rot setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
+        if (act == 2) {
+          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.setLineDash([5,  0]);
+          ctx.lineWidth = 3;
+          xpos=28;    
+          ypos=472;    
+          ctx.beginPath();
+          ctx.moveTo(xpos, ypos);
+          ctx.lineTo(xpos+5, ypos+5);
+          ctx.lineTo(xpos+20, ypos-10);
+          ctx.stroke(); 
+        }          
+
+        xpos=20;    
+        ypos=511;    
+        ctx.fillStyle = "#8080C0";             //  BUTTON blau setzen
+        ctx.fillRect(xpos+1,ypos-20,20,23);
+        ctx.fillStyle = "#6060A0";
+        ctx.fillRect(xpos+4,ypos-17,14,17);
+     // ctx.fillStyle = "#2020C0";
+        ctx.fillStyle = "#000000";
+        xpos=50;    
+        ctx.fillText("blau setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
+        if (act == 3) {
+          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.setLineDash([5,  0]);
+          ctx.lineWidth = 3;
+          xpos=28;    
+          ypos=502;    
+          ctx.beginPath();
+          ctx.moveTo(xpos, ypos);
+          ctx.lineTo(xpos+5, ypos+5);
+          ctx.lineTo(xpos+20, ypos-10);
+          ctx.stroke(); 
+        }          
+        ctx.fillStyle = "#000000";
+
+        xpos=30;
 
         ctx.fillStyle = "#000000";  
         textToReplace = data['v057'].substring( 2, 40)    //  AKTION:    auslesen aus 20. Zeile grosses Display x 2-40              
@@ -384,7 +528,7 @@ function refreshTextAreaWithoutParameterLocal() {
 
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
         if (stat1 == '1') {
-          ctx.fillStyle = "#D0D0D0";
+        	ctx.fillStyle = "#D0D0D0";
           ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
           zykzaehler=zyklus;
           xpos= 1;   
@@ -458,7 +602,7 @@ function refreshTextAreaWithoutParameterLocal() {
             toclipboard=false;
           }
         }
-
+    
         else {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
           if (stat2 == '1'){
@@ -589,6 +733,7 @@ function refreshTextAreaWithoutParameterLocal() {
       } // if stst=4
   }    
 }
+
 
 
 function refreshTextAreaWithParameter(data) {
@@ -1386,14 +1531,27 @@ $(document).keydown(function (event)
 // und als xy Position an die MPC uebermitteln (z.B:  x=20 y=10 -> uebermitteln 1000+y + 100*x -> 3010 )
 Displaycanvas.addEventListener("click", function (evt) {
   var rect = Displaycanvas.getBoundingClientRect();
-  var x= evt.clientX - rect.left;
-  var y= 8 + evt.clientY - rect.top;
-  var xr = Math.round(x/16)   //   /16 Zeichenbreite
-  var yr = Math.round(y/30)   //   /30 Zeilenhoehe
-//  alert(xr + ',' + yr);
-  var maus = Math.round(1000+yr*100+xr) 
-  var TastURLId = TastURL + maus;
-  var data = getData(TastURLId);
+
+  if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
+    var x= evt.clientX - rect.left;
+    var y= evt.clientY - rect.top;
+    var ypos = Math.round((y-76)/30)-1;
+    var xpos = Math.round((x-50)/5);
+    var maus = Math.round(4001+ypos*144+xpos) 
+    var TastURLId = TastURL + maus;
+    var data = getData(TastURLId);
+  }
+  else {
+    var x= evt.clientX - rect.left;
+    var y= 8 + evt.clientY - rect.top;
+  
+    var xr = Math.round(x/16)   //   /16 Zeichenbreite
+    var yr = Math.round(y/30)   //   /30 Zeilenhoehe
+  //  alert(xr + ',' + yr);
+    var maus = Math.round(1000+yr*100+xr) 
+    var TastURLId = TastURL + maus;
+    var data = getData(TastURLId);
+  }
 
   if (zykzaehler > einmalholen) {
     zykzaehler=einmalholen;
@@ -1407,7 +1565,52 @@ Displaycanvas.addEventListener("click", function (evt) {
   if (xr > 54 && yr < 3) {
     toclipboard=true;
   }
+
+//if (xr > 39 && yr < 2) {
+//  document.getElementById("wochkalender").style.visibility = "visible";
+//}
   
+}, false);
+
+
+function timeweek () {
+ 	ctx.fillStyle = "#E0E0E0";
+  ctx.fillRect(775, 90, 70, 220);
+
+  var ypos = 85 + 30*(Math.round((mousey-76)/30));
+  var timehour = Math.round((mousex-64)/30);
+  var timemin = 10*Math.round((mousex-50-timehour*30)/5);
+  ctx.fillStyle = "#000000";
+  if (timemin > 50) {
+    timemin=50; 
+  }
+  if (timemin < 10) {
+    ctx.fillText(("00" + timehour).slice(-2) + ":00", 782, ypos); 
+  }
+  else {
+    ctx.fillText(("00" + timehour).slice(-2) + ":" + timemin, 778, ypos); 
+  }
+}
+
+
+Displaycanvas.addEventListener('mousemove', function (evt) {
+  var rect = Displaycanvas.getBoundingClientRect();
+  var x= evt.clientX - rect.left;
+  var y= evt.clientY - rect.top;
+  var xr = Math.round(x/1) 
+  var yr = Math.round(y/1) 
+
+  statmouseweek=false;
+
+  if (stat4 == '1') {    //status 4:  Wochenkalender in CANVAS anzeigen 
+    if (xr > 50 && xr < 768 && yr > 91 && yr < 300) { 
+      statmouseweek=true;
+      mousex=xr;
+      mousey=yr;
+      timeweek();
+    }
+  }
+
 }, false);
 
 
