@@ -1383,8 +1383,8 @@ function AnchorHandler(id) {
 
 /*****************Hanler für Button Click ******************/
 function EthernetButtonHanlder(id) {      /* <<< */
-  if (id == "virtualKeyboard"){
-      var buttonGroup = document.getElementById("buttonGroup");
+  if (id == "btnVirtualKeyboard"){
+      //var buttonGroup = document.getElementById("buttonGroup");
 	  var osk = document.getElementById("osk");
 	  if (osk.style.display == "none"){
 		  showElemementById("osk");
@@ -1618,20 +1618,21 @@ Displaycanvas.addEventListener('mousemove', function (evt) {
 
 //----------------------------------------------------------------------------------------------
 // show input modal window when "t" or "T" was pressed
+/*
 function openInputModal()
 {
   var modal = document.getElementById("inputModal");
   modal.style.display = "block";
-  //alert("T key was pressed");
+  alert("T key was pressed");
 }
 
-
+/*
 function ConfirmSaveValue()
 {
   var value = $("#inputValue").val();
   textInputUrl += value; 
   sendData(textInputUrl);
-}
+}*/
 
 
 /*************Hilfsfunktionen------------------*/
