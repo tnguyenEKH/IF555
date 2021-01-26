@@ -108,6 +108,7 @@ body {
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
+	background-color: rgb(192, 192, 192);
 	/*height: 84.5vh;*/
 	/*min-height: 84.5vh;*/
 }
@@ -176,31 +177,47 @@ body {
 }
 
 	#btnUp{
-		/*transform: rotate(0deg);*/
-		background-color: cyan;
+		background: url(/Images/Up.png);
 		left: 70px;
+	}
+	#btnUp:hover {
+		background: url(/Images/Up_hover.png);
 	}
 
-	#btnDown{
-		background-color: magenta;
+	#btnDown {
+		background: url(/Images/Down.png);
 		bottom: 0px;
 		left: 70px;
+	}	
+	#btnDown:hover {
+		background: url(/Images/Down_hover.png);
 	}
+	
 	#btnLeft{
-		background-color:yellow;
+		background: url(/Images/Left.png);
 		top: 70px;
 		left: 0px;
+	}	
+	#btnLeft:hover {
+		background: url(/Images/Left_hover.png);
 	}
+	
 	#btnRight{
-		background-color: red;
+		background: url(/Images/Right.png);
 		top: 70px;
 		right:0px;	
 	}
+	#btnRight:hover {
+		background: url(/Images/Right_hover.png);
+	}
 
 	#btnEnter{
-		background-color: blue;
+		background: url(/Images/Enter.png);
 		top: 70px;
 		left: 70px;
+	}
+	#btnEnter:hover {
+		background: url(/Images/Enter_hover.png);
 	}
 
 

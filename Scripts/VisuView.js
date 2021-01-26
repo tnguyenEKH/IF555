@@ -93,7 +93,7 @@ function initVisu()
 	wInit = window.outerWidth;
 	hInit = window.outerHeight;
 	bAutoReload = false;
-	vcanvas = document.getElementById('myvCanvas');
+	vcanvas = document.getElementById('vDynCanvas');
 	vcanvas.width = 1400;
 	vcanvas.height = 630;
 	vctx = vcanvas.getContext('2d');
@@ -105,7 +105,7 @@ function initVisu()
 	vtipCanvas.style.left = "-2000px";
 	tipvctx = vtipCanvas.getContext("2d");
 
-	canvasOffset = $("#myvCanvas").offset();
+	canvasOffset = $("#vDynCanvas").offset();
 	offsetX = canvasOffset.left;
 	offsetY = canvasOffset.top;
 	 
@@ -117,11 +117,11 @@ function initVisu()
 	// Tooltips einlesen
 	initTooltips();
 
-	$("#myvCanvas").mousemove(function (e) {
+	$("#vDynCanvas").mousemove(function (e) {
 		handleMouseMove(e);
 	});
 
-	$("#myvCanvas").mousedown(function (e) {
+	$("#vDynCanvas").mousedown(function (e) {
 		handleMouseDown(e);
 	});	
 	setBitmap(bmpIndex);
@@ -864,7 +864,7 @@ function getPosition(event) {
 	if (((x - xStoerButton > 0) && (xStoerButtonBot - x > 0)) && ((y - yStoerButton > 0) && (yStoerButtonBot - y > 0))) {
 
 
-		var vcanvas = document.getElementById("myvCanvas");
+		var vcanvas = document.getElementById("vDynCanvas");
 		var modal = document.getElementById('myModal');
 		window.onclick = function (event) {
 			if (event.target == modal) {
@@ -898,7 +898,7 @@ function getPosition(event) {
 	//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
 	if (((x - xZaehlerButtonNeu > 0) && (xZaehlerButtonNeuBot - x > 0)) && ((y - yZaehlerButtonNeu > 0) && (yZaehlerButtonNeuBot - y > 0))) {
 		//alert("on area");
-		var vcanvas = document.getElementById("myvCanvas");
+		var vcanvas = document.getElementById("vDynCanvas");
 		var modal = document.getElementById('modalZaehler');
 		window.onclick = function (event) {
 			if (event.target == modal) {
@@ -1644,7 +1644,7 @@ function UpdateLabelMouseOutHandler() {
 
 function findLabelAnstehendeStoerung() {
 	//find the freitext "anstehende Störungen" and create this onlick function
-	var elem = document.getElementById('myvCanvas');
+	var elem = document.getElementById('vDynCanvas');
 	elemLeft = elem.offsetLeft,
 	elemTop = elem.offsetTop,
 	context = elem.getContext('2d'),

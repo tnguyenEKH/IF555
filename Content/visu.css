@@ -1,158 +1,171 @@
-#voutsideWrapper {
+/*#voutsideWrapper {
  width: 1400px;
 height: 640px;
 
-/*border: 1px solid blue;*/
+/*border: 1px solid blue;
 padding: 0px;
 border-radius: 25px;
-/*left:-10px;*/
+/*left:-10px;
 
+}*/
+#visualisierungDisplay {
+	overflow-x: hidden; /*canvas ragt über png in x-richtung hinaus-> scroll-x unterdrücken*/
 }
 
-.vinsideWrapper
-{
-    width: 100%;
-    height: 630px;
-    position:relative ;
-    background-color: rgb(192, 192, 192);
-    border-radius: .5em;
-    left: 0px;
-}
+	.vinsideWrapper
+	{
+		width: 1006px;/*1400px;/*100%;*/
+		height: 660px;/*630px;*/
+		position:relative ;
+		background-color: rgb(192, 192, 192);
+		border-radius: .5em;
+		border: 1px solid blue;
+		left: 0px;
+	}
 
-.vcoveredImage
-{
-    /*width: 100%;
-    height: 100%;*/
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    background-color: rgb(192, 192, 192);
-    border-radius: .5em;
-}
+		#vimgTarget /*.vcoveredImage*/
+		{
+			/*width: 100%;
+			height: 100%;*/
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background-color: rgb(192, 192, 192);
+			border-radius: .5em;
+		}
 
-.vcoveringCanvas
-{
-    width: 100%;
-    height: 100%;
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    background-color: rgba(0, 0, 0, 0);
-    border-radius: .5em;
-    box-shadow: 5px 5px 5px #888888;
-}
+		.vcoveringCanvas /*#vDynCanvas & #vStatCanvas*/
+		{
+			width: 139.3%; /*ursprünglich auf width: 1400px dimensioniert; 1400/1006px = 139,3%*/
+			height: 95.5%; /*ursprünglich auf height: 630px dimensioniert;  630/ 660px =  95,5%*/
+			position: absolute;
+			top: 0px;
+			left: 0px;
+			background-color: rgba(0, 0, 0, 0);
+			border-radius: .5em;
+			/*box-shadow: 5px 5px 5px #888888;*/
+		}
+		
+		#vStatCanvas {
+			width:  inherit; /*Referenz ist .vcoveringCanvas !!!*/
+			height: inherit; /*Referenz ist .vcoveringCanvas !!!*/
+			/*background-color: red;*/
+		}
+		
+		#vtipCanvas
+		{
+			background-color:LightGreen;
+			border: 1px solid blue;
+			position: absolute;
+			left: -2000px;
+			top: 100px;
+		}
 
-bdi
-{
-            
-    font-family: Arial;
-}
+	/*bdi
+	{
+				
+		font-family: Arial;
+	}
 
-.right
-{
-    float:right;
-    background-color: lightgrey;
-}
+	.right
+	{
+		float:right;
+		background-color: lightgrey;
+	}
 
-#cbDebug {
-    left:20px;
-}
+	#cbDebug {
+		left:20px;
+	}
 
-.Logging
-{
-    width: 1000px;
-    height: 110px;
-    overflow-x: hidden;
-    overflow-y: scroll;
-    padding: 10px;
-    background-color: lightgrey;
-    border: 1px solid blue;
-           
-}
+	.Logging
+	{
+		width: 1000px;
+		height: 110px;
+		overflow-x: hidden;
+		overflow-y: scroll;
+		padding: 10px;
+		background-color: lightgrey;
+		border: 1px solid blue;
+			   
+	}*/
 
-#vtipCanvas
-{
-    background-color:LightGreen;
-    border: 1px solid blue;
-    position: absolute;
-    left: -2000px;
-    top: 100px;
-}
-
-#vupdateStatus-bar
-{
-	width: 1400px;
-    height: 2rem;
-	background-color: rgb(192, 192, 192);
-    border-radius: .5em;
-	padding: 0.5rem;
-	color: black;
-    font-size: 16px;
-    font-family: Arial;
-}
-
-#vupdateStatus-info
-{
-	font-size: 2vh;
-}
+	#vupdateStatus-bar
+	{
+		width: inherit;/*1400px;*/
+		height: 2rem;
+		background-color: rgb(192, 192, 192);
+		border-radius: .5em;
+		border: 1px solid green;
+		padding: 0.5rem;
+		color: black;
+		font-size: 2vh;
+		font-family: Arial;
+	}
+	/*
+	#vupdateStatus-info
+	{
+		font-size: 2vh;
+	}*/
 
 
-    /* The Modal (background) */
-.modalEK {
-    display: none; /* Hidden by default */
-    position: fixed; /* Stay in place */
-    z-index: 1; /* Sit on top */
-    left: 10px;
-    top: 10px;
-    width: 100%; /* Full width */
-    height: 100%; /* Full height */
-    overflow: auto; /* Enable scroll if needed */
-    background-color: rgb(0,0,0); /* Fallback color */
-    background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
-}
+		/* The Modal (background) */
+	.modalEK {
+		display: none; /* Hidden by default */
+		position: fixed; /* Stay in place */
+		z-index: 1; /* Sit on top */
+		left: 10px;
+		top: 10px;
+		width: 100%; /* Full width */
+		height: 100%; /* Full height */
+		overflow: auto; /* Enable scroll if needed */
+		background-color: rgb(0,0,0); /* Fallback color */
+		background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	}
 
-    /* Modal Content/Box */
-.modal-content {
-    background-color: #fefefe;
-    margin: 10px; /* 15% from the top and centered */
-    padding: 20px;
-    border: 1px solid #888;
-    width: 20%; /* Could be more or less, depending on screen size */
-}
+			/* Modal Content/Box */
+		.modal-content {
+			background-color: #fefefe;
+			margin: 10px; /* 15% from the top and centered */
+			padding: 20px;
+			border: 1px solid #888;
+			width: 20%; /* Could be more or less, depending on screen size */
+		}
 
-/* The Close Button */
-.close {
-    color: #aaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-}
+			.modal-header {
+				font-size: 18px;
+				padding: 2px 12px;
+				background-color: #FF0000;
+				color: white;
+				text-align:center;
+			}
 
-.close:hover,
-.close:focus {
-    color: black;
-    text-decoration: none;
-    cursor: pointer;
-} 
-.modal-header {
-	font-size: 18px;
-    padding: 2px 12px;
-    background-color: #FF0000;
-    color: white;
-    text-align:center;
-}
+				/* The Close Button */
+				.close {
+					color: #aaa;
+					float: right;
+					font-size: 28px;
+					font-weight: bold;
+				}
+				.close:hover,
+				.close:focus {
+					color: black;
+					text-decoration: none;
+					cursor: pointer;
+				} 
 
-.modal-body {
-font-size: 16px;
-width: 100%; /* Full width */
-height: 100%; /* Full height */
-}
 
-.datepicker {
-    z-index: 10 !important;
-    width:auto;
-}
-#btnCopyClip {
-width: 200px;
-background-color:aquamarine;
-}
+			.modal-body {
+				font-size: 16px;
+				width: 100%; /* Full width */
+				height: 100%; /* Full height */
+			}
+
+			.datepicker {
+				z-index: 10 !important;
+				width:auto;
+			}
+			
+			#btnCopyClip {
+				width: 200px;
+				background-color:aquamarine;
+			}

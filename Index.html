@@ -68,11 +68,11 @@
 
 				<!-- Button Group -->
 				<div id="buttonGroup">
-					<button id="btnUp" class="btn" onclick="EthernetButtonHanlder(id)" style="background: url(/Images/Up.png)"></button>
-					<button id="btnDown" class="btn" onclick="EthernetButtonHanlder(id)" style="background: url(/Images/Down.png)"></button>
-					<button id="btnLeft" class="btn" onclick="EthernetButtonHanlder(id)" style="background: url(/Images/Left.png)"></button>
-					<button id="btnRight" class="btn" onclick="EthernetButtonHanlder(id)" style="background: url(/Images/Right.png)"></button>
-					<button id="btnEnter" class="btn" onclick="EthernetButtonHanlder(id)" style="background: url(/Images/Enter.png)"></button>
+					<button id="btnUp" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnDown" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnLeft" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnRight" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnEnter" class="btn" onclick="EthernetButtonHanlder(id)"></button>
 				</div>
 				
 				<!-- Button to show/hide virtual keyboard -->
@@ -84,11 +84,12 @@
 	</div>
 
 
-	<div id="visualisierungDisplay" class="tabcontent" style="height: 640px; width: 1300px">
+	<div id="visualisierungDisplay" class="tabcontent"><!-- style="height: 640px; width: 1300px">
 		<!----<div id="vimage" style="height: 630px;">
 		 <div id="voutsideWrapper"><!---->
 				<div id="vimgArea" class="vinsideWrapper">
-					<canvas id="myvCanvas" class="vcoveringCanvas" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>
+					<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
+					<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
 					<canvas id="vtipCanvas" width="150" height="25"></canvas>
 				</div>
 			<!----</div>
@@ -133,7 +134,7 @@
 		<!--<div id="qimage"> <!--style="height: 90vh"><!--600px">-->
 			<div id="qoutsideWrapper" class="qoutsideWrapper">
 				<div id="qimgArea" class="qinsideWrapper">
-					<canvas id="myqCanvas" class="qcoveringCanvas" ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>
+					<canvas id="myqCanvas" class="qcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
 					<canvas id="qtipCanvas" width="200" height="25"></canvas>
                           <menu id="controls">
                                 <table id="tblbuttons">
