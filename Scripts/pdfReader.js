@@ -1,5 +1,5 @@
 class PDF_file {
-	constructor(url, filename, scale = 1.5, pageNum = 1){
+	constructor(url, filename, scale = 1.1, pageNum = 1){
 		this.url = url;
 		this.filename = filename;
 		

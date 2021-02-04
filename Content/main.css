@@ -1,3 +1,6 @@
+//Allgemeine Styles (hauptsächlich für Kopfzeile [Tab-Auswahl] & Fernbedienungstab)
+//Visu- QH- & pdfReader-Tabs haben eigene .css
+
 html {
     scroll-behavior: smooth;
 }
@@ -13,18 +16,6 @@ html {
 
 }
 
-.button {
-    background-color: #008CBA;
-    border: 2px solid;
-    color: white;
-    padding: 15px 32px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 16px;
-
-}
-
 body {
     background-color: #eee;
     /* font-family: Helvetica, Arial, sans-serif; */
@@ -32,33 +23,9 @@ body {
     overflow:auto;
 }
 
-#benachrichtigung {
-	width: 100%;
-	height: 1.7em;
-    border: 1px solid #ccc;
-    border-radius: .5em;
-    background-color: #f1f1f1;
-	margin-top: 0.5em;
-	margin-bottom: 0.5em;
-}
-
-#benachrichtigungText{
-	width: 100%;
-	margin-top: 0.3em;
-	height: 1.5em;
-	white-space: nowrap;
-	animation: floatText 20s infinite linear;
-	padding-left: 15%; /*Initial offset*/	
-}
-
-@keyframes floatText {
-  to {
-    transform: translateX(-100%);
-  }
-}
 
 
-/* Style the tab */
+/* Kopfzeile: Tab-Auswahl */
 .tab {
     overflow: hidden;
     border: 1px solid #ccc;
@@ -68,42 +35,71 @@ body {
 	font-family: sans-serif;
 }
 
-.tab ul {
-    display: flex;
-    margin: 0;
-    padding: 0;
-    list-style-type: none;
-}
+	.tab ul {
+		display: flex;
+		margin: 0;
+		padding: 0;
+		list-style-type: none;
+	}
 
-/* Style the li inside the tab */
-.tab ul li {
-    background-color: inherit;
-    float: left;
-    border: none;
-    outline: none;
-    cursor: pointer;
-    padding: 1em;
-    transition: 0.3s;
-    font-size: 16px;
-    list-style: none;
-}
+	/* Style the li inside the tab */
+	.tab ul li {
+		background-color: inherit;
+		float: left;
+		border: none;
+		outline: none;
+		cursor: pointer;
+		padding: 1em;
+		transition: 0.3s;
+		font-size: 16px;
+		list-style: none;
+	}
 
-/* Style the a inside the tab */
-.tab ul li a {
+	/* Change background color of buttons on hover */
+	.tab li:hover {
+		background-color: #ddd;
+	}
+
+	/* Create an active/current tablink class */
+	.tab li.active {
+		background-color: #ff8080;
+		height:10vh;
+	}
+
+
+
+/*Benachrichtigungs Bar*/
+#benachrichtigung {
+	width: 100%;
+	height: 1.7em;
+    border: 1px solid #ccc;
+    border-radius: .5em;
     background-color: #f1f1f1;
-    text-decoration: none;
+	margin-top: 0.5em;
+	margin-bottom: 0.5em;
+	overflow: hidden;
 }
 
-/* Change background color of buttons on hover */
-.tab li:hover {
-    background-color: #ddd;
-}
+	#benachrichtigungText{
+		width: 100%;
+		margin-top: 0.3em;
+		height: 1.5em;
+		white-space: nowrap;
+		animation: floatText 25s infinite linear;
+		/*padding-left: 15%; /*Initial offset*/	
+	}
 
-/* Create an active/current tablink class */
-.tab li.active {
-    background-color: #ff8080;
-	height:10vh;
-}
+	@keyframes floatText {
+		from {
+			margin-left: 100%;
+		}
+		to {
+			margin-left: -70%;
+			/*transform: translateX(-100%);*/
+		}
+	}
+
+
 
 /* Style the tab content */
 .tabcontent {
@@ -112,68 +108,128 @@ body {
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
-	/*min-height: 100%/**/
+	background-color: rgb(192, 192, 192);
+	/*height: 84.5vh;*/
+	/*min-height: 84.5vh;*/
 }
 
 .container {
     display: flex;
+	border-radius: inherit;
+	height: 84vh;
+	width: inherit;
+	background-color: #D0D0D0;
+	/*height: 100%;*/
 }
+	
+	.sidebar {
+		width: 0%;
+		background-color: #DDD;
+		border-radius: .5em;
+		height: 84vh;
+		font-family: sans-serif;
+		font-size: 15px;
+	}
+	
+	.hauptDisplay {
+		background-color: inherit;
+		border-radius: inherit;
+		/*height: 85vh;*/
+	}
 
-#DisplayCanvas{
-	display:none;
-	border-radius: .5em;
-	background-color:#C0C0C0";
-}
+	#DisplayCanvas {
+		display: none;			/*wird in EK_Local.js auf "block" gesetzt*/
+		border-radius: .5em;
+		background-color: inherit;
+	}
 
-.hauptDisplay {
-    background-color: #C0C0C0;
-    border-radius: .5em;
-	height: 85vh;
-}
 
-.sidebar {
-    width: 0%;
-    background-color: #DDD;
-    border-radius: .5em;
-    height: 85vh;
-	font-family: sans-serif;
-	font-size: 15px;
-}
-
-#inputModal{
-	display: none; /* Hidden by default */
-	//position: fixed; /* Stay in place */
-	z-index: 1; /* Sit on top */
-	left: 25vw;
-	top: 15vh;
-	width: 600px; 
-	height: 600px;
-	overflow: auto; /* Enable scroll if needed */
-	background-color: #f2f2f2;
-	opacity:0.9;
-}
-
-.modal-content{
-
-}
 
 .btn:hover, .pdf-btn:hover{
 	background-color: #4CAF50; /* Green */
 	color: white;
 }
+
 .btn:active, .pdf-btn:active{
 	background-color: #3e8e41;
 	box-shadow: 0 3px #666;
 	transform: translateY(2px);
 }
 
-#btnVirtualKeyboard{
-	top: 4px;
-	right: 2px;
-	margin: 4.4em 0em 3em 2.5em;
-	position:absolute;
-
+.btn {
+	position: inherit;
+	height: 60px;
+	width: 60px;
+	border: 2px solid;
+	background-color: #f1f1f1;
 }
+	
+
+
+#buttonGroup {
+	position:absolute;
+	bottom: 1.5vh;
+	right: 1vh;
+	height: 200px;
+	width: 200px;
+    border: none;	
+    transform: rotate(0deg);
+}
+
+	#btnUp{
+		background: url(/Images/Up.png);
+		left: 70px;
+	}
+	#btnUp:hover {
+		background: url(/Images/Up_hover.png);
+	}
+
+	#btnDown {
+		background: url(/Images/Down.png);
+		bottom: 0px;
+		left: 70px;
+	}	
+	#btnDown:hover {
+		background: url(/Images/Down_hover.png);
+	}
+	
+	#btnLeft{
+		background: url(/Images/Left.png);
+		top: 70px;
+		left: 0px;
+	}	
+	#btnLeft:hover {
+		background: url(/Images/Left_hover.png);
+	}
+	
+	#btnRight{
+		background: url(/Images/Right.png);
+		top: 70px;
+		right:0px;	
+	}
+	#btnRight:hover {
+		background: url(/Images/Right_hover.png);
+	}
+
+	#btnEnter{
+		background: url(/Images/Enter.png);
+		top: 70px;
+		left: 70px;
+	}
+	#btnEnter:hover {
+		background: url(/Images/Enter_hover.png);
+	}
+
+
+
+#btnVirtualKeyboard {
+	position: absolute;
+	bottom: 80vh;
+	right: 1vh;
+	height: 1.7em;
+	padding: 2px;
+}
+
 #osk{
 	position:absolute;
 	bottom: 10px;
@@ -181,66 +237,4 @@ body {
 	height: 30%;
 	width: 780px;
 	z-index: 999;
-}
-#buttonGroup{
-	
-	position:absolute;
-    bottom: 5px;
-    right: 2px;
-	height: 200px;
-	width: 200px;
-    border: none;	
-    transform: rotate(0deg);
-}
-
-#btnUp{
-	position:absolute;
-	height: 60px;
-	width: 60px;
-	border: 2px solid;
-	transform: rotate(0deg);
-	background-color: cyan;
-	left: 70px;
-}
-
-#btnDown{
-	position:absolute;
-	height: 60px;
-	width: 60px;
-	border: 2px solid;
-	transform: rotate(0deg);
-	background-color: magenta;
-	bottom: 0px;
-	left: 70px;
-}
-#btnLeft{
-	position:absolute;
-	height: 60px;
-	width: 60px;
-	border: 2px solid;
-	transform: rotate(0deg);
-	background-color:yellow;
-	top: 70px;
-	left: 0px;
-}
-#btnRight{
-	position:absolute;
-	height: 60px;
-	width: 60px;
-	border: 2px solid;
-	transform: rotate(0deg);
-	background-color: red;
-	top: 70px;
-	right:0px;	
-}
-
-#btnEnter{
-	position:absolute;
-	height: 60px;
-	width: 60px;
-	border: 2px solid;
-	transform: rotate(0deg);
-	background-color: blue;
-	top: 70px;
-	left: 70px;
 }
