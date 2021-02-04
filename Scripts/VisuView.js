@@ -5,15 +5,17 @@ var zahlerDataFile = "./DATA/zaehl.txt";
 // Vorgehensweise analog zu der in VCO_Edit.aspx
 var prj;
 var IdVisu;
-var vcanvas;
-var vctx;
+var vDynCanvas;
+var vStatCanvas;
+var vDynCtx;
+var vStatCtx;
 var visudata;
 var bmpIndex = 0;
 var VisuDownload = {};
 var LinkButtonList = [];
 var canvasOffset;
-var offsetX;
-var offsetY;
+var canvasOffsetX;
+var canvasOffsetY;
 var requestDrawingFlag = false;
 var bgColors = [];
 var hasSymbolsFlag = false;
@@ -32,14 +34,14 @@ var startAngle = 1.1 * Math.PI;
 var endAngle = 1.9 * Math.PI;
 var stoerungen;
 var stoerungText = "";
-var xStoerButton;
-var yStoerButton;
-var xStoerButtonBot;
-var yStoerButtonBot;
-var xZaehlerButtonNeu;
-var xZaehlerButtonNeuBot;
-var yZaehlerButtonNeu;
-var yZaehlerButtonNeuBot;
+var xStoerButtonMin;
+var yStoerButtonMin;
+var xStoerButtonMax;
+var yStoerButtonMax;
+var xZaehlerButtonNeuMin;
+var xZaehlerButtonNeuMax;
+var yZaehlerButtonNeuMin;
+var yZaehlerButtonNeuMax;
 
 
 function copyToClip() {
@@ -71,10 +73,10 @@ function getOnlinegesamtZaehler()
 }
 
 
-function closeModal()
+function closeModalStoerung()
 {
-	var modal = document.getElementById('myModal');
-	var span = document.getElementById("closeModal");
+	var modal = document.getElementById('modalStoerung');
+	var span = document.getElementById("closeModalStoerung");
 	span.onclick = function () {
 		modal.style.display = "none";
 	}
@@ -93,21 +95,27 @@ function initVisu()
 	wInit = window.outerWidth;
 	hInit = window.outerHeight;
 	bAutoReload = false;
-	vcanvas = document.getElementById('vDynCanvas');
-	vcanvas.width = 1400;
-	vcanvas.height = 630;
-	vctx = vcanvas.getContext('2d');
+	
+	vStatCanvas = document.getElementById('vStatCanvas');
+	vStatCanvas.width = 1400;
+	vStatCanvas.height = 630;
+	vStatCtx = vStatCanvas.getContext('2d');
+	
+	vDynCanvas = document.getElementById('vDynCanvas');
+	vDynCanvas.width = 1400;
+	vDynCanvas.height = 630;
+	vDynCtx = vDynCanvas.getContext('2d');
 
 	// test listener for stoerung
-	vcanvas.addEventListener("mousedown", getPosition, false);
+	vStatCanvas.addEventListener("mousedown", getPosition, false);
 	
 	vtipCanvas = document.getElementById("vtipCanvas");
 	vtipCanvas.style.left = "-2000px";
 	tipvctx = vtipCanvas.getContext("2d");
 
-	canvasOffset = $("#vDynCanvas").offset();
-	offsetX = canvasOffset.left;
-	offsetY = canvasOffset.top;
+	canvasOffset = $("body").offset();
+	canvasOffsetX = canvasOffset.left;
+	canvasOffsetY = canvasOffset.top + $(".tab").height();
 	 
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
@@ -116,12 +124,14 @@ function initVisu()
 
 	// Tooltips einlesen
 	initTooltips();
-
+	
+	// Mouse-hover-handler für ToolTip dynamischer Elemente
 	$("#vDynCanvas").mousemove(function (e) {
 		handleMouseMove(e);
 	});
-
-	$("#vDynCanvas").mousedown(function (e) {
+	
+	// Mouse-down-handler für bmp wechsel (statische Elemente)
+	$("#vStatCanvas").mousedown(function (e) {
 		handleMouseDown(e);
 	});	
 	setBitmap(bmpIndex);
@@ -148,31 +158,10 @@ function startVisu() {
 		log(e.message);
 		log("Es konnten keine Visualisierungsdaten heruntergeladen werden von Steuerung " + prj);
 	}	
-	DrawVisu();
-	findLabelAnstehendeStoerung();
+	DrawVisu(true);
+	//findLabelAnstehendeStoerung();
 	//getCoordinateOfCanvasButton();
 }
-
-/* function getCoordinateOfCanvasButton()
-{
-	var FreitextList = visudata.FreitextList;
-	var n = FreitextList.length;
-	for (i = 0; i < n; i++) {
-		if (FreitextList[i].Freitext == "anstehende Störungen") {
-			xStoerButton = FreitextList[i].x - 6;
-			yStoerButton = FreitextList[i].y - 22;
-			xStoerButtonBot = FreitextList[i].x + 200;
-			yStoerButtonBot = FreitextList[i].y + 18;
-		}
-		
-		if (FreitextList[i].Freitext == "Zähler anzeigen" & FreitextList[i].BgColor == "slateBlue ") {
-			xZaehlerButtonNeu = FreitextList[i].x - 6;
-			yZaehlerButtonNeu = FreitextList[i].y - 22;
-			xZaehlerButtonNeuBot = FreitextList[i].x + 130; 
-			yZaehlerButtonNeuBot = FreitextList[i].y + 18;
-		}
-	}
-} */
 
 
 /*This function was written in C# as WebService and called per ajax
@@ -807,7 +796,7 @@ function getVisuItemEinheit(i)
 			return "kW";
 			break;
 		case "5":
-			return "m^3/h";
+			return "m³/h";
 			break;
 		case "6":
 			return "mWS";
@@ -822,7 +811,7 @@ function getVisuItemEinheit(i)
 			return "Bh";
 			break;	
 		case "10":
-			return "m^3";
+			return "m³";
 			break;
 		case "11":
 			return "°C\u00F8";
@@ -854,18 +843,17 @@ function getVisuItemEinheit(i)
 	}
 }
 
-// click event on canvas
-
+// click event on (Stat)canvas: Zaehler- und Störungsbutton
 function getPosition(event) {
-	var x = event.x -offsetX;
-	var y = event.y -offsetY;
+	var x = event.x - canvasOffsetX;
+	var y = event.y - canvasOffsetY;
 
 	//click event für das anstehende Störungen button
-	if (((x - xStoerButton > 0) && (xStoerButtonBot - x > 0)) && ((y - yStoerButton > 0) && (yStoerButtonBot - y > 0))) {
+	if (bmpIndex == 0 && ((x > xStoerButtonMin) && (x < xStoerButtonMax)) && ((y > yStoerButtonMin) && (y < yStoerButtonMax))) {
 
 
-		var vcanvas = document.getElementById("vDynCanvas");
-		var modal = document.getElementById('myModal');
+		var vStatCanvas = document.getElementById("vStatCanvas");
+		var modal = document.getElementById('modalStoerung');
 		window.onclick = function (event) {
 			if (event.target == modal) {
 				modal.style.display = "none";
@@ -874,19 +862,19 @@ function getPosition(event) {
 
 		//alert(stoerungText);
 		if (stoerungText != "") {
-			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModal" class="close">&times;</span>';
+			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
 			document.getElementById("modalContent").style.width = '30%';
 			document.getElementById("modalBody").innerHTML =  stoerungText ;
-			var span = document.getElementById("closeModal");
+			var span = document.getElementById("closeModalStoerung");
 			span.onclick = function () {
 				modal.style.display = "none";
 			}
 		}
 		else {
-			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModal" class="close">&times;</span>';
+			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
 			document.getElementById("modalContent").style.width = '30%';
 			document.getElementById("modalBody").innerHTML = "keine weiteren Störungen";
-			var span = document.getElementById("closeModal");
+			var span = document.getElementById("closeModalStoerung");
 			span.onclick = function () {
 				modal.style.display = "none";
 			}
@@ -896,9 +884,9 @@ function getPosition(event) {
 	}
 
 	//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
-	if (((x - xZaehlerButtonNeu > 0) && (xZaehlerButtonNeuBot - x > 0)) && ((y - yZaehlerButtonNeu > 0) && (yZaehlerButtonNeuBot - y > 0))) {
+	if (bmpIndex == 0 && ((x > xZaehlerButtonNeuMin) && (x < xZaehlerButtonNeuMax)) && ((y > yZaehlerButtonNeuMin) && (y < yZaehlerButtonNeuMax))) {
 		//alert("on area");
-		var vcanvas = document.getElementById("vDynCanvas");
+		var vStatCanvas = document.getElementById("vStatCanvas");
 		var modal = document.getElementById('modalZaehler');
 		window.onclick = function (event) {
 			if (event.target == modal) {
@@ -944,14 +932,14 @@ function getPosition(event) {
 }
 
 
-// Mouse Handler für Tooltip Anzeige
+// Mouse Handler für Tooltip Anzeige (dynCanvas)
 function handleMouseMove(e) {
 
 	var currentBmpIndex = bmpIndex;
 	var match = false;
 	for (var i = 0; i < tt_dots.length; i++) {
-		mouseX = parseInt(e.clientX - offsetX);
-		mouseY = parseInt(e.clientY - offsetY);
+		mouseX = parseInt(e.clientX - canvasOffsetX);
+		mouseY = parseInt(e.clientY - canvasOffsetY);
 		var dx = mouseX - tt_dots[i].x;
 		var dy = mouseY - tt_dots[i].y;
 		var txt = tt_dots[i].t;
@@ -1021,8 +1009,8 @@ function globalTimer() {
 			TimerToggleCounter = 0;
 			TimerToggle = !TimerToggle;
 		}
+		DrawVisu(requestDrawingFlag);
 		requestDrawingFlag = false;
-		DrawVisu();
 	}
 
 }
@@ -1031,55 +1019,55 @@ function globalTimer() {
 // Diverse Zeichenfunktionen wie im Editor
 
 
-function Absenkung(vctx, x, y, scale, active) {
-	vctx.save();
-	vctx.moveTo(0 - 10 * scale, 0);
-	vctx.font = '10pt Arial';
-	vctx.fillStyle = 'blue';
+function Absenkung(vDynCtx, x, y, scale, active) {
+	vDynCtx.save();
+	vDynCtx.moveTo(0 - 10 * scale, 0);
+	vDynCtx.font = '10pt Arial';
+	vDynCtx.fillStyle = 'blue';
 
-	vctx.translate(x, y);
+	vDynCtx.translate(x, y);
 
 	if (active == 1)
-		vctx.fillText('Nacht', 0, 0);
+		vDynCtx.fillText('Nacht', 0, 0);
 	else
-		vctx.fillText('Tag', 1, 0);
+		vDynCtx.fillText('Tag', 1, 0);
 
-	vctx.restore();
+	vDynCtx.restore();
 }
 
 
-function BHDreh(vctx, x, y, scale, rotation) {
-	vctx.save();
-	vctx.lineWidth = 1 * scale;
-	vctx.translate(x, y);
-	vctx.rotate(Math.PI / 180 * rotation);
-	vctx.strokeStyle = "steelblue";
-	vctx.beginPath();
-	vctx.arc(0, 0, 13 * scale, 0, Math.PI * 2, true);
+function BHDreh(vDynCtx, x, y, scale, rotation) {
+	vDynCtx.save();
+	vDynCtx.lineWidth = 1 * scale;
+	vDynCtx.translate(x, y);
+	vDynCtx.rotate(Math.PI / 180 * rotation);
+	vDynCtx.strokeStyle = "steelblue";
+	vDynCtx.beginPath();
+	vDynCtx.arc(0, 0, 13 * scale, 0, Math.PI * 2, true);
 
-	vctx.moveTo(0 + 10 * scale, 0);
-	vctx.arc(0, 0, 10 * scale, 0, -Math.PI / 4, true);
-	vctx.moveTo(0 + 10 * scale, 0);
-	vctx.arc(0, 0, 10 * scale, 0, Math.PI / 4, false);
+	vDynCtx.moveTo(0 + 10 * scale, 0);
+	vDynCtx.arc(0, 0, 10 * scale, 0, -Math.PI / 4, true);
+	vDynCtx.moveTo(0 + 10 * scale, 0);
+	vDynCtx.arc(0, 0, 10 * scale, 0, Math.PI / 4, false);
 
-	vctx.moveTo(0 - 10 * scale, 0);
-	vctx.arc(0, 0, 10 * scale, Math.PI, -3 * Math.PI / 4, false);
-	vctx.moveTo(0 - 10 * scale, 0);
-	vctx.arc(0, 0, 10 * scale, Math.PI, 3 * Math.PI / 4, true);
-	vctx.stroke();
+	vDynCtx.moveTo(0 - 10 * scale, 0);
+	vDynCtx.arc(0, 0, 10 * scale, Math.PI, -3 * Math.PI / 4, false);
+	vDynCtx.moveTo(0 - 10 * scale, 0);
+	vDynCtx.arc(0, 0, 10 * scale, Math.PI, 3 * Math.PI / 4, true);
+	vDynCtx.stroke();
 
-	vctx.lineWidth = 3 * scale;
+	vDynCtx.lineWidth = 3 * scale;
 
-	vctx.beginPath();
-	vctx.moveTo(0 - 10 * scale, 0);
-	vctx.lineTo(0 + 10 * scale, 0);
+	vDynCtx.beginPath();
+	vDynCtx.moveTo(0 - 10 * scale, 0);
+	vDynCtx.lineTo(0 + 10 * scale, 0);
 
-	vctx.stroke();
-	vctx.restore();
+	vDynCtx.stroke();
+	vDynCtx.restore();
 }
 
 
-function feuer(vctx, x, y, scale) {
+function feuer(vDynCtx, x, y, scale) {
 	// 30x48
 	var rd1 = (Math.random() - 0.5) * 3;
 	var rd2 = (Math.random() - 0.5) * 3;
@@ -1087,63 +1075,63 @@ function feuer(vctx, x, y, scale) {
 	var rd4 = (Math.random() - 0.5) * 3;
 	var rd5 = (Math.random() - 0.5) * 3;
 	var rd6 = (Math.random() - 0.5) * 3;
-	vctx.save();
+	vDynCtx.save();
 
-	vctx.lineWidth = 1;
-	vctx.translate(x, y);
-	vctx.scale(scale, scale);
-	vctx.strokeStyle = "red";
-	vctx.fillStyle = "yellow";
-	vctx.beginPath();
-	vctx.moveTo(0 + rd1, -20);
-	vctx.lineTo(-5 + rd2, -10);
-	vctx.lineTo(-8 + rd3, -5);
-	vctx.lineTo(-7 + rd4, 5);
-	vctx.lineTo(-2 + rd5, 10);
+	vDynCtx.lineWidth = 1;
+	vDynCtx.translate(x, y);
+	vDynCtx.scale(scale, scale);
+	vDynCtx.strokeStyle = "red";
+	vDynCtx.fillStyle = "yellow";
+	vDynCtx.beginPath();
+	vDynCtx.moveTo(0 + rd1, -20);
+	vDynCtx.lineTo(-5 + rd2, -10);
+	vDynCtx.lineTo(-8 + rd3, -5);
+	vDynCtx.lineTo(-7 + rd4, 5);
+	vDynCtx.lineTo(-2 + rd5, 10);
 
-	vctx.lineTo(2 + rd5, 10);
-	vctx.lineTo(4 + rd4, 5);
-	vctx.lineTo(6 + rd6, -5);
-	vctx.lineTo(5 + rd2, -10);
-	vctx.lineTo(0 + rd1, -20);
-	vctx.fill();
-	vctx.stroke();
+	vDynCtx.lineTo(2 + rd5, 10);
+	vDynCtx.lineTo(4 + rd4, 5);
+	vDynCtx.lineTo(6 + rd6, -5);
+	vDynCtx.lineTo(5 + rd2, -10);
+	vDynCtx.lineTo(0 + rd1, -20);
+	vDynCtx.fill();
+	vDynCtx.stroke();
 
-	//vctx.closePath();
-	vctx.restore();
+	//vDynCtx.closePath();
+	vDynCtx.restore();
 }
 
-function pmpDreh2(vctx, x, y, scale, rot) {
+function pmpDreh2(vDynCtx, x, y, scale, rot) {
 	// 12x12
-	vctx.save();
-	vctx.strokeStyle = "black";
-	vctx.fillStyle = "black";
-	vctx.lineWidth = 1;
-	vctx.translate(x, y);
-	vctx.rotate(Math.PI / 180 * rot);
-	vctx.scale(scale, scale);
-	vctx.beginPath();
-	vctx.arc(0, 0, 11, 0, Math.PI * 2, true);
-	vctx.stroke();
-	vctx.closePath();
-	vctx.beginPath();
-	vctx.lineWidth = 1, 5;
-	vctx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	vctx.fillStyle = 'black';
-	vctx.fill();
-	vctx.closePath();
-	vctx.beginPath();
-	vctx.arc(0, 0, 6, startAngle, endAngle, true);
-	vctx.lineTo(0, 0);
-	vctx.fillStyle = 'white';
-	vctx.fill();
-	vctx.closePath();
+	vDynCtx.save();
+	vDynCtx.strokeStyle = "black";
+	vDynCtx.fillStyle = "black";
+	vDynCtx.lineWidth = 1;
+	vDynCtx.translate(x, y);
+	vDynCtx.rotate(Math.PI / 180 * rot);
+	vDynCtx.scale(scale, scale);
+	vDynCtx.beginPath();
+	vDynCtx.arc(0, 0, 11, 0, Math.PI * 2, true);
+	vDynCtx.stroke();
+	vDynCtx.closePath();
+	vDynCtx.beginPath();
+	vDynCtx.lineWidth = 1, 5;
+	vDynCtx.arc(0, 0, 6, 0, Math.PI * 2, true);
+	vDynCtx.fillStyle = 'black';
+	vDynCtx.fill();
+	vDynCtx.closePath();
+	vDynCtx.beginPath();
+	vDynCtx.arc(0, 0, 6, startAngle, endAngle, true);
+	vDynCtx.lineTo(0, 0);
+	vDynCtx.fillStyle = 'white';
+	vDynCtx.fill();
+	vDynCtx.closePath();
 
-	vctx.stroke();
-	vctx.restore();
+	vDynCtx.stroke();
+	vDynCtx.restore();
 }
 
-function drawEllipse(vctx, x, y, w, h) {
+function drawEllipse(vDynCtx, x, y, w, h) {
 	var kappa = .5522848,
 		ox = (w / 2) * kappa, // control point offset horizontal
 		oy = (h / 2) * kappa, // control point offset vertical
@@ -1153,80 +1141,80 @@ function drawEllipse(vctx, x, y, w, h) {
 		ym = y + h / 2;       // y-middle
 
 
-	vctx.moveTo(x, ym);
-	vctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-	vctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-	vctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-	vctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-	//vctx.closePath(); // not used correctly, see comments (use to close off open path)
-	vctx.stroke();
+	vDynCtx.moveTo(x, ym);
+	vDynCtx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+	vDynCtx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+	vDynCtx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+	vDynCtx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+	//vDynCtx.closePath(); // not used correctly, see comments (use to close off open path)
+	vDynCtx.stroke();
 }
 
-function luefter(vctx, x, y, scale, rotL, rotDir) {
+function luefter(vDynCtx, x, y, scale, rotL, rotDir) {
 	// 51x51
-	vctx.save();
-	vctx.strokeStyle = "black";
-	vctx.fillStyle = "grey";
-	vctx.lineWidth = 1;
-	vctx.translate(x, y);
-	vctx.rotate(Math.PI / 180 * rotDir);
-	vctx.scale(scale, scale);
-	vctx.beginPath();
-	vctx.arc(0, 0, 24, 0, Math.PI * 2, true);
-	vctx.moveTo(0, -24);
-	vctx.lineTo(-23, -5);
-	vctx.moveTo(0, 24);
-	vctx.lineTo(-23, 5);
-	vctx.stroke();
-	vctx.closePath();
-	vctx.beginPath();
-	vctx.rotate(Math.PI / 180 * rotL);
-	drawEllipse(vctx, 0, -5, 22, 10);
-	drawEllipse(vctx, -22, -5, 22, 10);
-	vctx.fill();
+	vDynCtx.save();
+	vDynCtx.strokeStyle = "black";
+	vDynCtx.fillStyle = "grey";
+	vDynCtx.lineWidth = 1;
+	vDynCtx.translate(x, y);
+	vDynCtx.rotate(Math.PI / 180 * rotDir);
+	vDynCtx.scale(scale, scale);
+	vDynCtx.beginPath();
+	vDynCtx.arc(0, 0, 24, 0, Math.PI * 2, true);
+	vDynCtx.moveTo(0, -24);
+	vDynCtx.lineTo(-23, -5);
+	vDynCtx.moveTo(0, 24);
+	vDynCtx.lineTo(-23, 5);
+	vDynCtx.stroke();
+	vDynCtx.closePath();
+	vDynCtx.beginPath();
+	vDynCtx.rotate(Math.PI / 180 * rotL);
+	drawEllipse(vDynCtx, 0, -5, 22, 10);
+	drawEllipse(vDynCtx, -22, -5, 22, 10);
+	vDynCtx.fill();
 
-	vctx.restore();
+	vDynCtx.restore();
 }
 
-function ventil(vctx, x, y, scale, rot) {
+function ventil(vDynCtx, x, y, scale, rot) {
 	// 6x6
-	vctx.save();
-	vctx.strokeStyle = "black";
-	vctx.fillStyle = "black";
-	vctx.lineWidth = 1;
-	vctx.translate(x, y);
-	vctx.rotate(Math.PI / 180 * rot);
-	vctx.scale(scale, scale);
-	vctx.beginPath();
-	vctx.fillRect(-3, -1, 3, 2);
-	vctx.moveTo(0, 3);
-	vctx.lineTo(3, 0);
-	vctx.lineTo(0, -3);
-	vctx.fill();
+	vDynCtx.save();
+	vDynCtx.strokeStyle = "black";
+	vDynCtx.fillStyle = "black";
+	vDynCtx.lineWidth = 1;
+	vDynCtx.translate(x, y);
+	vDynCtx.rotate(Math.PI / 180 * rot);
+	vDynCtx.scale(scale, scale);
+	vDynCtx.beginPath();
+	vDynCtx.fillRect(-3, -1, 3, 2);
+	vDynCtx.moveTo(0, 3);
+	vDynCtx.lineTo(3, 0);
+	vDynCtx.lineTo(0, -3);
+	vDynCtx.fill();
 
-	vctx.restore();
+	vDynCtx.restore();
 }
 
-function Led(vctx, x, y, scale, col) {
+function Led(vDynCtx, x, y, scale, col) {
 
 
-	vctx.save();
-	vctx.strokeStyle = "black";
-	vctx.fillStyle = "#aaa";
-	vctx.lineWidth = 1;
-	vctx.translate(x, y);
-	vctx.scale(scale, scale);
-	vctx.beginPath();
+	vDynCtx.save();
+	vDynCtx.strokeStyle = "black";
+	vDynCtx.fillStyle = "#aaa";
+	vDynCtx.lineWidth = 1;
+	vDynCtx.translate(x, y);
+	vDynCtx.scale(scale, scale);
+	vDynCtx.beginPath();
 
-	vctx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	vctx.stroke();
-	vctx.fill();
-	vctx.closePath();
-	vctx.beginPath();
-	vctx.arc(0, 0, 4, 0, Math.PI * 2, true);
-	vctx.fillStyle = col;
-	vctx.fill();
-	vctx.restore();
+	vDynCtx.arc(0, 0, 6, 0, Math.PI * 2, true);
+	vDynCtx.stroke();
+	vDynCtx.fill();
+	vDynCtx.closePath();
+	vDynCtx.beginPath();
+	vDynCtx.arc(0, 0, 4, 0, Math.PI * 2, true);
+	vDynCtx.fillStyle = col;
+	vDynCtx.fill();
+	vDynCtx.restore();
 }
 
 
@@ -1250,56 +1238,113 @@ function setBitmap(idx) {
 
 // Mousebutton Eventhandler für Bitmapwechsel
 function handleMouseDown(e) {
-	mx = parseInt(e.clientX - offsetX);
-	my = parseInt(e.clientY - offsetY);
+	mx = parseInt(e.clientX - canvasOffsetX);
+	my = parseInt(e.clientY - canvasOffsetY);
 	var n = LinkButtonList.length;
 	for (var i = 0; i < n; i++) {
 		var item = LinkButtonList[i];
 		if (mx > item.x_min && mx < item.x_max && my > item.y_min && my < item.y_max) {
 			//log(item.x + " " + item.y);
 			//log(item.x_min + " " + item.x_max + " " + item.y_min + " " + item.y_max + " - " + mx + " / " + my);
-			bmpIndex = item.bmp;
+			
+			/*bmpIndex = item.bmp;
 			setBitmap(bmpIndex);
-			requestDrawing();
+			requestDrawing();*/
+			
+			if (bmpIndex != item.bmp) {
+				requestDrawing();
+				bmpIndex = item.bmp;
+				setBitmap(bmpIndex);
+			}
 		}
 	}
 }
 
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
-function DrawVisu() {
-	vctx.clearRect(0, 0, vcanvas.width, vcanvas.height);
-	drawTextList();
+function DrawVisu(redrawStat = false) {
+	vDynCtx.clearRect(0, 0, vDynCanvas.width, vDynCanvas.height);
 	drawPropertyList();
+	
+	if (redrawStat) {
+		vStatCtx.clearRect(0, 0, vStatCanvas.width, vStatCanvas.height);
+		drawTextList();
+	}
+	
 }
 
 // Linkbutton in Liste eintragen
-function addLinkButtonToList(x, y, w, h, orientation, targetBmp) {
+function addLinkButtonToList(x, y, w, h, orientation, targetBmp, txt) {
 	var item = new Object();
+	item["txt"] = txt;
 	item["x"] = x;
 	item["y"] = y;
+	0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16
+	
+	//Referenzpunkt (x,y = TextBeginn unten links bei orientation==hor)
 	if (orientation == "hor") {
 		item["x_min"] = x - 6;
 		item["y_min"] = y - h - 6;
-		item["x_max"] = x + w + 16;
-		item["y_max"] = y + 80;
+		item["x_max"] = item.x_min + w + h;
+		item["y_max"] = item.y_min + 2 * h;
 		item["bmp"] = targetBmp;
 	}
-	if (orientation == "up") {
-		item["x_min"] = x - h - 16;
-		item["y_min"] = y - w - 16;
-		item["x_max"] = x + 6;
-		item["y_max"] = y + 80;
+	if (orientation == "up") {		
+		item["x_min"] = x - h - 6;
+		item["y_max"] = y + 6;
+		item["y_min"] = item.y_max - w - h;
+		item["x_max"] = item.x_min + 2 * h;
 		item["bmp"] = targetBmp;
+	}
+	if (orientation == "dn") {		
+		item["x_max"] = x + h + 6;
+		item["y_min"] = y - 6;
+		item["x_min"] = item.x_max - 2 * h;
+		item["y_max"] = item.y_min + w + h;
+		item["bmp"] = targetBmp;
+	}
+	
+	// get coordinate of the stoerung button
+	if (txt == "anstehende Störungen") {
+		xStoerButtonMin = item.x_min;
+		xStoerButtonMax = item.x_max;
+		yStoerButtonMin = item.y_min;
+		yStoerButtonMax = item.y_max;
+	}
+	//get coordinate of button zähler archiv
+	if (txt == "Zähler Archiv") {
+		xArchivButton = item.x_min;
+		yArchivButton = item.y_min;
+		xArchivButtonBot = item.x_max;
+		yArchivButtonBot = item.y_max;
 	}
 
-	if (orientation == "dn") {
-		item["x_min"] = x - 6;
-		item["y_min"] = y - 6;
-		item["x_max"] = x + h + 16;
-		item["y_max"] = y + w + 6;
-		item["bmp"] = targetBmp;
+	//get coordinate of button zähler anzeigen
+	if (txt == "Zähler anzeigen") { // & FreitextList[i].BgColor == "slateBlue ") {
+		xZaehlerButtonNeuMin = item.x_min;
+		yZaehlerButtonNeuMin = item.y_min;
+		xZaehlerButtonNeuMax = item.x_max;
+		yZaehlerButtonNeuMax = item.y_max;
 	}
+
+	//get coordinate of Button IPKamera1
+	if (txt == "IP Kamera 1") { // &  FreitextList[i].BgColor == "#ff9966") {
+		xIPKamera1Button = item.x_min;
+		yIPKamera1Button = item.y_min;
+		xIPkamera1ButtonBot = item.x_max;
+		yIPkamera1ButtonBot = item.y_max;
+	}
+
+	//get coordinate of Button IPKamera2
+	if (txt == "IP Kamera 2") { // & FreitextList[i].BgColor == "#ff9966") {
+		xIPKamera2Button = item.x_min;
+		yIPKamera2Button = item.y_min;
+		xIPkamera2ButtonBot = item.x_max;
+		yIPkamera2ButtonBot = item.y_max;
+	}
+	
+	//Anzeige des Clickbereichs für Button
+	//vStatCtx.fillRect(item["x_min"], item["y_min"], item["x_max"] - item["x_min"], item["y_max"] - item["y_min"]);
 
 	LinkButtonList.push(item);
 }
@@ -1389,28 +1434,28 @@ function drawVCOItem(item) {
 
 				if (item.Symbol == "Absenkung") {
 					if (svalue.trim() == "1")
-						Absenkung(vctx, item.x, item.y, 1, 1);
+						Absenkung(vDynCtx, item.x, item.y, 1, 1);
 					else
-						Absenkung(vctx, item.x, item.y, 1, 0);
+						Absenkung(vDynCtx, item.x, item.y, 1, 0);
 				}
 
 				if (item.Symbol == "Feuer") {
 					if (svalue.trim() == "1")
-						feuer(vctx, item.x, item.y, 1);
+						feuer(vDynCtx, item.x, item.y, 1);
 				}
 
 				if (item.Symbol == "BHKW") {
 					if (svalue.trim() == "1")
-						BHDreh(vctx, item.x, item.y, 1, TimerCounter * 30);
+						BHDreh(vDynCtx, item.x, item.y, 1, TimerCounter * 30);
 					else
-						BHDreh(vctx, item.x, item.y, 1, 0);
+						BHDreh(vDynCtx, item.x, item.y, 1, 0);
 				}
 
 				if (item.Symbol == "Pumpe") {
 					if (svalue.trim() == "1")
-						pmpDreh2(vctx, item.x, item.y, 1, TimerCounter * 30);
+						pmpDreh2(vDynCtx, item.x, item.y, 1, TimerCounter * 30);
 					else
-						pmpDreh2(vctx, item.x, item.y, 1, 0);
+						pmpDreh2(vDynCtx, item.x, item.y, 1, 0);
 				}
 
 				if (item.Symbol == "Luefter") {
@@ -1419,16 +1464,16 @@ function drawVCOItem(item) {
 						angle = TimerCounter * 30;
 
 					if (item.SymbolFeature == "Links") {
-						luefter(vctx, item.x, item.y, 1, angle, 0);
+						luefter(vDynCtx, item.x, item.y, 1, angle, 0);
 					}
 					if (item.SymbolFeature == "Rechts") {
-						luefter(vctx, item.x, item.y, 1, angle, 180);
+						luefter(vDynCtx, item.x, item.y, 1, angle, 180);
 					}
 					if (item.SymbolFeature == "Oben") {
-						luefter(vctx, item.x, item.y, 1, angle, 90);
+						luefter(vDynCtx, item.x, item.y, 1, angle, 90);
 					}
 					if (item.SymbolFeature == "Unten") {
-						luefter(vctx, item.x, item.y, 1, angle, 270);
+						luefter(vDynCtx, item.x, item.y, 1, angle, 270);
 					}
 				}
 
@@ -1436,16 +1481,16 @@ function drawVCOItem(item) {
 					if (svalue.trim() == "1") {
 
 						if (item.SymbolFeature == "Links") {
-							ventil(vctx, item.x, item.y, 2, 180);
+							ventil(vDynCtx, item.x, item.y, 2, 180);
 						}
 						if (item.SymbolFeature == "Rechts") {
-							ventil(vctx, item.x, item.y, 2, 0);
+							ventil(vDynCtx, item.x, item.y, 2, 0);
 						}
 						if (item.SymbolFeature == "Oben") {
-							ventil(vctx, item.x, item.y, 2, 270);
+							ventil(vDynCtx, item.x, item.y, 2, 270);
 						}
 						if (item.SymbolFeature == "Unten") {
-							ventil(vctx, item.x, item.y, 2, 90);
+							ventil(vDynCtx, item.x, item.y, 2, 90);
 						}
 					}
 				}
@@ -1455,27 +1500,27 @@ function drawVCOItem(item) {
 
 					if (item.SymbolFeature == "unsichtbar/rot") {
 						if (b)
-							Led(vctx, item.x, item.y, 1, "red");
+							Led(vDynCtx, item.x, item.y, 1, "red");
 					}
 					if (item.SymbolFeature == "gruen/rot") {
 						if (!b)
-							Led(vctx, item.x, item.y, 1, "green");
+							Led(vDynCtx, item.x, item.y, 1, "green");
 						else
-							Led(vctx, item.x, item.y, 1, "red");
+							Led(vDynCtx, item.x, item.y, 1, "red");
 
 					}
 					if (item.SymbolFeature == "unsichtbar/rot blinkend") {
 						if (b) {
 							if (TimerToggle)
-								Led(vctx, item.x, item.y, 1, "red");
+								Led(vDynCtx, item.x, item.y, 1, "red");
 						}
 					}
 					if (item.SymbolFeature == "gruen/rot blinkend") {
 						if (!b)
-							Led(vctx, item.x, item.y, 1, "green");
+							Led(vDynCtx, item.x, item.y, 1, "green");
 						else {
 							if (TimerToggle)
-								Led(vctx, item.x, item.y, 1, "red");
+								Led(vDynCtx, item.x, item.y, 1, "red");
 						}
 					}
 				}
@@ -1484,12 +1529,12 @@ function drawVCOItem(item) {
 			}
 			else {
 				var sz = document.getElementById("selSize");
-				vctx.font = item.font;
-				var w = vctx.measureText(txt).width;
-				vctx.fillStyle = item.BgColor;
-				vctx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-				vctx.fillStyle = item.Color;
-				vctx.fillText(txt, x, y);
+				vDynCtx.font = item.font;
+				var w = vDynCtx.measureText(txt).width;
+				vDynCtx.fillStyle = item.BgColor;
+				vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				vDynCtx.fillStyle = item.Color;
+				vDynCtx.fillText(txt, x, y);
 			}
 		}
 	}
@@ -1504,84 +1549,37 @@ function drawPropertyList() {
 function drawTextList() {
 	var FreitextList = visudata.FreitextList;
 	var n = FreitextList.length;
+	LinkButtonList = [];	//LinkButtonList leeren -> wird nachfolgend neu erzeugt
 	for (i = 0; i < n; i++) {
 		var item = FreitextList[i];
 		if (FreitextList[i].bmpIndex == bmpIndex) {
 			var x = item.x;
 			var y = item.y;
 			var txt = item.Freitext;
-			vctx.font = item.font;
-			vctx.fillStyle = item.BgColor;
-			var w = vctx.measureText(txt).width;
+			vStatCtx.font = item.font;
+			vStatCtx.fillStyle = item.BgColor;
+			var w = vStatCtx.measureText(txt).width;
 
 			if (item.isVerweis) {
-				vctx.save();
-				vctx.translate(x, y);
+				vStatCtx.save();
+				vStatCtx.translate(x, y);
 				if (item.VerweisAusrichtung == "up")
-					vctx.rotate(-Math.PI / 2);
+					vStatCtx.rotate(-Math.PI / 2);
 				if (item.VerweisAusrichtung == "dn")
-					vctx.rotate(Math.PI / 2);
-				vctx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vctx.strokeStyle = "black";
-				vctx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vctx.fillStyle = item.Color;
-				vctx.fillText(txt, 0, 0);
-				vctx.restore();
-				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap)
-
+					vStatCtx.rotate(Math.PI / 2);
+				vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
+				vStatCtx.strokeStyle = "black";
+				vStatCtx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
+				vStatCtx.fillStyle = item.Color;
+				vStatCtx.fillText(txt, 0, 0);
+				vStatCtx.restore();
+				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap, txt);
 			}
 			else {
-				vctx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-				vctx.fillStyle = item.Color;
-				vctx.fillText(txt, x, y);
+				vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				vStatCtx.fillStyle = item.Color;
+				vStatCtx.fillText(txt, x, y);
 			}
-		}
-		// get coordinate of the stoerung button
-		// -6 and -22 because we want the coordinate of the rectangle
-		// but the FreitextList[i].x,y give the coordinate of the text "anste.."
-		// x0, yo
-		if (FreitextList[i].Freitext == "anstehende Störungen") {
-			xStoerButton = FreitextList[i].x - 6;
-			//yStoerButton = FreitextList[i].y - 22;
-			yStoerButton = FreitextList[i].y + 40;
-			xStoerButtonBot = FreitextList[i].x + 200;
-			//yStoerButtonBot = FreitextList[i].y + 18;
-			yStoerButtonBot = FreitextList[i].y + 78;
-		}
-
-		//get coordinate of button zähler archiv
-		
-		if (FreitextList[i].Freitext == "Zähler Archiv") {
-			xArchivButton = FreitextList[i].x - 6;
-			yArchivButton = FreitextList[i].y - 22;
-			xArchivButtonBot = FreitextList[i].x + 105;
-			yArchivButtonBot = FreitextList[i].y + 18;
-		}
-
-		//get coordinate of button zähler anzeigen
-		if (FreitextList[i].Freitext == "Zähler anzeigen" & FreitextList[i].BgColor == "slateBlue ") {
-			xZaehlerButtonNeu = FreitextList[i].x - 6;
-			//yZaehlerButtonNeu = FreitextList[i].y - 22;
-			yZaehlerButtonNeu = FreitextList[i].y + 40;
-			xZaehlerButtonNeuBot = FreitextList[i].x + 130; 
-			//yZaehlerButtonNeuBot = FreitextList[i].y + 18;
-			yZaehlerButtonNeuBot = FreitextList[i].y + 78;
-		}
-
-		//get coordinate of Button IPKamera1
-		if (FreitextList[i].Freitext == "IP Kamera 1" &  FreitextList[i].BgColor == "#ff9966") {
-			xIPKamera1Button = FreitextList[i].x - 6;
-			yIPKamera1Button = FreitextList[i].y - 22;
-			xIPkamera1ButtonBot = FreitextList[i].x + 105;
-			yIPkamera1ButtonBot = FreitextList[i].y + 18;
-		}
-
-		//get coordinate of Button IPKamera1
-		if (FreitextList[i].Freitext == "IP Kamera 2" & FreitextList[i].BgColor == "#ff9966") {
-			xIPKamera2Button = FreitextList[i].x - 6;
-			yIPKamera2Button = FreitextList[i].y - 22;
-			xIPkamera2ButtonBot = FreitextList[i].x + 105;
-			yIPkamera2ButtonBot = FreitextList[i].y + 18;
 		}
 	}
 }
@@ -1601,6 +1599,7 @@ function ReloadData() {
 	var date = new Date();
 	var rawvisuData = readFromTextFile(visuDataFile);
 	createVisudata(rawvisuData);
+
 	if (rawvisuData != "") {
 		DrawVisu();
 		document.querySelector('#vupdateStatus-bar').style.color = 'black';
@@ -1609,7 +1608,7 @@ function ReloadData() {
 	}
 	else
 	{
-		document.querySelector('#vupdateStatus-bar').style.color = 'black';
+		document.querySelector('#vupdateStatus-bar').style.color = 'red';
 		if(document.querySelector('#vupdateStatus-info').textContent == " ") document.querySelector('#vupdateStatus-info').textContent = 'Datenaktualisierung fehlgeschlagen!';
 		//console.log("Datenaktualisierung fehlgeschlagen!");
 	}
@@ -1641,10 +1640,10 @@ function UpdateLabelMouseOutHandler() {
 
 }
 
-
+/*
 function findLabelAnstehendeStoerung() {
 	//find the freitext "anstehende Störungen" and create this onlick function
-	var elem = document.getElementById('vDynCanvas');
+	var elem = document.getElementById('vStatCanvas');
 	elemLeft = elem.offsetLeft,
 	elemTop = elem.offsetTop,
 	context = elem.getContext('2d'),
@@ -1662,7 +1661,7 @@ function findLabelAnstehendeStoerung() {
 			}
 		});
 	})
-}
+}//*/
 
 
 /*

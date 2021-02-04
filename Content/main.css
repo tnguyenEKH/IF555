@@ -104,7 +104,7 @@ body {
 /* Style the tab content */
 .tabcontent {
     display: none;
-    border: 1px solid red;/*#ccc;*/
+    border: 1px solid #ccc;
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
