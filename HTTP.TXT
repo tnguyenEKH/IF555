@@ -67,3 +67,5 @@ V060 DISPSTATUS3:A(8):6:00000BEC     ;Displaystatus BIT(32)
 V061 XROT3:F(5):1:00000BF0           ;POS x ab der das Menue rot sein soll
 V062 YROT3:F(5):1:00000BF2           ;POS y ab der das Menue rot sein soll
 V063 ZROT3:F(5):1:00000BF4           ;Anzahl der roten Zeichen ab POS x,y
+#0004 ;Page Nummer
+V064 INFOTXT:A(120):8:00000BF6       ;Infotext fur Browser
