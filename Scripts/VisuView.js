@@ -110,6 +110,8 @@ function initVisu()
 	vStatCanvas.addEventListener("mousedown", getPosition, false);
 	
 	vtipCanvas = document.getElementById("vtipCanvas");
+	vtipCanvas.width = 170;
+	vtipCanvas.height = 25;
 	vtipCanvas.style.left = "-2000px";
 	tipvctx = vtipCanvas.getContext("2d");
 
@@ -126,7 +128,7 @@ function initVisu()
 	initTooltips();
 	
 	// Mouse-hover-handler für ToolTip dynamischer Elemente
-	$("#vDynCanvas").mousemove(function (e) {
+	$("#vimgArea").mousemove(function (e) {
 		handleMouseMove(e);
 	});
 	
@@ -932,7 +934,7 @@ function getPosition(event) {
 }
 
 
-// Mouse Handler für Tooltip Anzeige (dynCanvas)
+// Mouse Handler für Tooltip Anzeige (vimgArea)
 function handleMouseMove(e) {
 
 	var currentBmpIndex = bmpIndex;
@@ -945,14 +947,18 @@ function handleMouseMove(e) {
 		var txt = tt_dots[i].t;
 		var index = tt_dots[i].index
 		if ((dx * dx < 1600) && (dy * dy < 200) && (dx > 0) && (dy < 0) && (index == currentBmpIndex)) {
-
+			
 			vtipCanvas.style.left = (tt_dots[i].x) + "px";
 			vtipCanvas.style.top = (tt_dots[i].y - 40) + "px";
 			tipvctx = vtipCanvas.getContext("2d");
 			tipvctx.clearRect(0, 0, vtipCanvas.width, vtipCanvas.height);
 			//                  tipvctx.rect(0,0,vtipCanvas.width,vtipCanvas.height);
+			
+			vtipCanvas.width = (6 * txt.length + 22);
+			vtipCanvas.height = 20;
 			tipvctx.font = "12px Arial";
-			tipvctx.fillText(txt, 5, 15);
+			tipvctx.fillText(txt, 5, 14);
+			
 			match = true;
 
 		}
