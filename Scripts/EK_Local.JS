@@ -1383,7 +1383,7 @@ function AnchorHandler(id) {
 
 /*****************Hanler für Button Click ******************/
 function EthernetButtonHanlder(id) {      /* <<< */
-  if (id == "btnVirtualKeyboard"){
+  if (id == "btnVirtualKeyboard" || id == "qbtnVirtualKeyboard" ){
       //var buttonGroup = document.getElementById("buttonGroup");
 	  var osk = document.getElementById("osk");
 	  if (osk.style.display == "none"){
