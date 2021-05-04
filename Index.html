@@ -90,7 +90,7 @@
 				<div id="vimgArea" class="vinsideWrapper">
 					<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
 					<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
-					<canvas id="vtipCanvas" width="150" height="25"></canvas>
+					<canvas id="vtipCanvas" ></canvas>
 				</div>
 			<!----</div>
 		</div><!---->
@@ -133,7 +133,10 @@
 	<div id="datenauswertungDisplay" class="tabcontent">
 		<!--<div id="qimage"> <!--style="height: 90vh"><!--600px">-->
 			<div id="qoutsideWrapper" class="qoutsideWrapper">
+				<!--<button id="qbtnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>-->
+				
 				<div id="qimgArea" class="qinsideWrapper">
+					
 					<canvas id="myqCanvas" class="qcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
 					<canvas id="qtipCanvas" width="200" height="25"></canvas>
                           <menu id="controls">
@@ -219,7 +222,7 @@
                                             <input id="btnIncJahr" type="button" value="+ Jahr" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
                                         </td>
                                         <td>
-                                            
+                                            <input id="qbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
                                         </td>
                                         <td>
                                             
