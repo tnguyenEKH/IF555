@@ -216,7 +216,7 @@ function createVisudata(sText){
 		if(idx >=0)
 		{
 			item.Bezeichnung = "AI";
-			item.Kanal = sText.substr((idx + 3), 2);
+			item.Kanal = sText.substr((idx + 2), 3);
 			item.Nachkommastellen = sText.substr((idx + 6), 1);
 			item.iEinheit = sText.substr((idx + 8), 2);
 			item.Wert = sText.substr((idx + 10), 7);
@@ -954,7 +954,8 @@ function handleMouseMove(e) {
 			tipvctx.clearRect(0, 0, vtipCanvas.width, vtipCanvas.height);
 			//                  tipvctx.rect(0,0,vtipCanvas.width,vtipCanvas.height);
 			
-			vtipCanvas.width = (6 * txt.length + 22);
+			tipvctx.font = "13.5px Arial";
+			vtipCanvas.width = tipvctx.measureText(txt).width;//(6 * txt.length + 22);
 			vtipCanvas.height = 20;
 			tipvctx.font = "12px Arial";
 			tipvctx.fillText(txt, 5, 14);
