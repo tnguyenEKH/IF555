@@ -1320,6 +1320,7 @@ function tabIdHanlder(evt, id)
 	}
     if (id == "datenauswertung") {
         //startQH();
+		//document.getElementById('inpYLMax').focus();
     }
   
   /*wegen des kleine Display  wird div#benachrichtigung nur angezeit, wenn das Modul fernbedienung aktiv ist

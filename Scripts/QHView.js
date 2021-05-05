@@ -1152,8 +1152,13 @@ function launchYScaleMenue() {
     cont += '</div></br>';
     $("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
+	
+	//Set Focus to End of first Inputfield of ScaleMenue
+	var focusedInput = $('#inpYLMax');
+	var strLength = focusedInput.val().length * 2;
 
-
+	focusedInput.focus();
+	focusedInput[0].setSelectionRange(strLength, strLength);
 }
 
 function isValidFloat(fString) {

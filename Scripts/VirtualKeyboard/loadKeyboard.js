@@ -29,9 +29,44 @@ function onKeyPress(button) {
     default:
     }
   }
+  
+	// Get active tab [0 = Fernbedienung; 2 = QH-Tab]
+	tablinks = document.getElementsByClassName("tablink");
+	for (i = 0; i < tablinks.length; i++) {
+		if (tablinks[i].className.includes("active")) {
+			var activeTabID = i;
+			i = tablinks.length;			
+		}
+	}
+	
+  
   if (tastascii > 0)  {
-    var TastURLId = TastURL + tastascii;
-    var data = getData(TastURLId);
+	if (activeTabID == 0) {								//Fernbedienung aktiv
+		var TastURLId = TastURL + tastascii;
+		var data = getData(TastURLId);					//osk-input -> MPC
+	}
+	
+	if (activeTabID == 2) {								//QH-Tab aktiv
+		if (document.activeElement.id.length > 0) {		//Focus in InputFeld halten
+			focusedInput = document.activeElement;
+		}
+
+		if (isNaN(tastkey)) {
+			if (tastkey.includes('bksp')) {				//backspace Handling
+				focusedInput.value = focusedInput.value.slice(0, -1);
+				//focusedInput.setRangeText('');
+			}
+			if (tastkey.includes('enter')) {			//Enter Handling
+				YScaleMenuConfirm();
+			}
+		}
+		else {			//in ScaleMenue nur Zahleneingaben zulassen
+			focusedInput.value += tastkey;
+		}
+		
+	
+	}
+	
   }
   if (zykzaehler > einmalholen) {
     zykzaehler=einmalholen;
