@@ -17,7 +17,7 @@ html {
 }
 
 body {
-    background-color: #eee;
+    background-color: #E0E0E0; /*rgb(224, 224, 224);*/
     /* font-family: Helvetica, Arial, sans-serif; */
     font-family:monospace, 'Courier New';
     overflow:auto;
@@ -28,8 +28,8 @@ body {
 /* Kopfzeile: Tab-Auswahl */
 .tab {
     overflow: hidden;
-    border: 1px solid #ccc;
-    background-color: #f1f1f1;
+    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+    background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
     border-radius: .5em;
 	height: 8vh;
 	font-family: sans-serif;
@@ -62,7 +62,8 @@ body {
 
 	/* Create an active/current tablink class */
 	.tab li.active {
-		background-color: #ff8080;
+		background-color: #1F94B9; /*EKH blau*/
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 		height:10vh;
 	}
 
@@ -72,9 +73,9 @@ body {
 #benachrichtigung {
 	width: 100%;
 	height: 1.7em;
-    border: 1px solid #ccc;
+    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
-    background-color: #f1f1f1;
+    background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 	margin-top: 0.5em;
 	margin-bottom: 0.5em;
 	overflow: hidden;
@@ -104,11 +105,11 @@ body {
 /* Style the tab content */
 .tabcontent {
     display: none;
-    border: 1px solid #ccc;
+    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
-	background-color: rgb(192, 192, 192);
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 	/*height: 84.5vh;*/
 	/*min-height: 84.5vh;*/
 }
@@ -118,13 +119,13 @@ body {
 	border-radius: inherit;
 	height: 84vh;
 	width: inherit;
-	background-color: #D0D0D0;
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 	/*height: 100%;*/
 }
 	
 	.sidebar {
 		width: 0%;
-		background-color: #DDD;
+		background-color: #E0E0E0; /*rgb(224, 224, 224);*/
 		border-radius: .5em;
 		height: 84vh;
 		font-family: sans-serif;
@@ -146,22 +147,26 @@ body {
 
 
 .btn:hover, .pdf-btn:hover{
-	background-color: #4CAF50; /* Green */
-	color: white;
+	background-color: #1F94B9; /*EKH blau*/
+	color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 }
 
 .btn:active, .pdf-btn:active{
-	background-color: #3e8e41;
-	box-shadow: 0 3px #666;
+	background-color: #1F94B9; /*EKH blau*/
+	color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+	box-shadow: 4px 4px #666 /*rgb(102, 102, 102); dark gray*/;
 	transform: translateY(2px);
 }
 
 .btn {
+	cursor: pointer;
 	position: inherit;
 	height: 60px;
 	width: 60px;
 	border: 2px solid;
-	background-color: #f1f1f1;
+	border-radius: 3px;
+	background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+	box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 }
 	
 
@@ -234,7 +239,7 @@ body {
 	position:absolute;
 	bottom: 220px;
 	right: 1.5vh;
-	height: 30%;
+	height: 27%;
 	width: 50%;
 	z-index: 999;
 	/*position:absolute;

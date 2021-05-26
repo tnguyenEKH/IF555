@@ -954,10 +954,11 @@ function handleMouseMove(e) {
 			tipvctx.clearRect(0, 0, vtipCanvas.width, vtipCanvas.height);
 			//                  tipvctx.rect(0,0,vtipCanvas.width,vtipCanvas.height);
 			
-			tipvctx.font = "13.5px Arial";
+			tipvctx.font = "13.5px Arial";			
 			vtipCanvas.width = tipvctx.measureText(txt).width;//(6 * txt.length + 22);
 			vtipCanvas.height = 20;
 			tipvctx.font = "12px Arial";
+			tipvctx.fillStyle = "#F1F1F1"; /*rgb(241, 241, 241); white gray*/
 			tipvctx.fillText(txt, 5, 14);
 			
 			match = true;

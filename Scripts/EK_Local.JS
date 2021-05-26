@@ -16,7 +16,7 @@ var benachrichtigungAutoReload;
 
 var zyklus;               // ZUM SUCHEN <<< 
 var einmalholen;          // ZUM SUCHEN <<< 
-var zykzaehler;           // ZUM SUCHEN <<< 
+var zykzaehler;           // ZUM SUCHEN <<<
 var tastzaehler;          // ZUM SUCHEN <<< 
 var tastkey;              // ZUM SUCHEN <<< 
 var tastcode;             // ZUM SUCHEN <<< 
@@ -32,6 +32,8 @@ var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" 
 var mousex;               // 1: xPosition der Maus im Canvas
 var mousey;               // 1: yPosition der Maus im Canvas
 var allQHDataRecords  = [];
+
+var activeTabID = "fernbedienung";
 
 
 var Displaycanvas = document.getElementById("DisplayCanvas");    // Canvas global einrichten
@@ -267,9 +269,9 @@ function refreshTextAreaWithoutParameterLocal() {
         ctx.fillText("<", xpos, ypos);         //  Pfeil fuer Ausstieg
 
         xpos=20;    
-        ctx.fillStyle = "#8080C0";             //  BUTTON fuer Ausstieg
+        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON fuer Ausstieg
         ctx.fillRect(xpos+1,ypos-20,20,23);
-        ctx.fillStyle = "#6060A0";
+        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillRect(xpos+4,ypos-17,14,17);
         ctx.fillStyle = "#000000";
 
@@ -319,20 +321,20 @@ function refreshTextAreaWithoutParameterLocal() {
         ypos=ypos+ 0;
         var index = textToReplace.indexOf("Tag");    
         if (index > 1) {
-          ctx.fillStyle = "#C02020";  
+          ctx.fillStyle = "#C31D64";	/*EKH rot*/  
         }
         else {  
           index = textToReplace.indexOf("EIN");    
           if (index > 1) {
-            ctx.fillStyle = "#C02020";  
+            ctx.fillStyle = "#C31D64";	/*EKH rot*/ 
           }
           else {  
             index = textToReplace.indexOf("HT");    
             if (index > 1) {
-              ctx.fillStyle = "#C02020";  
+              ctx.fillStyle = "#C31D64";	/*EKH rot*/
             }
             else {  
-              ctx.fillStyle = "#2020C0";  
+              ctx.fillStyle = "#1F94B9";	/*EKH blau*/ 
             }
           }
         }
@@ -355,7 +357,7 @@ function refreshTextAreaWithoutParameterLocal() {
         ypos=ypos+30;
         ctx.fillText("FR",  xpos, ypos); 
      // ctx.fillStyle = "red";
-        ctx.fillStyle = "#E02020";  
+        ctx.fillStyle = "#C31D64";	/*EKH rot*/  
         ypos=ypos+30;
         ctx.fillText("SA",  xpos, ypos); 
         ypos=ypos+30;
@@ -376,23 +378,23 @@ function refreshTextAreaWithoutParameterLocal() {
         else {                                            // andere Aktion 
           index = textToReplace.indexOf("HT");       // bei Aktion "HT setzen" Darstellung rot
           if (index > 2) {
-            ctx.fillStyle = "#C02020";  
+            ctx.fillStyle = "#C31D64";	/*EKH rot*/
             act=2;
           }
           else {
             index = textToReplace.indexOf("EIN");     // bei Aktion "EIN setzen" Darstellung rot
             if (index > 2) {
-              ctx.fillStyle = "#C02020";  
+              ctx.fillStyle = "#C31D64";	/*EKH rot*/  
               act=2;
             }
             else {
             index = textToReplace.indexOf("Tag");     // bei Aktion "Tagbetrieb setzen" Darstellung rot
               if (index > 2) {
-                ctx.fillStyle = "#C02020";  
+                ctx.fillStyle = "#C31D64";	/*EKH rot*/  
                 act=2;
               }
               else {
-                ctx.fillStyle = "#2020C0";            //  sonst blau
+                ctx.fillStyle = "#1F94B9";	/*EKH blau*/	//  sonst blau
                 act=3;
               }
             }
@@ -405,15 +407,15 @@ function refreshTextAreaWithoutParameterLocal() {
 
         xpos=20;    
         ypos=451;    
-        ctx.fillStyle = "#8080C0";             //  BUTTON Wochenkalender anschauen
+        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON Wochenkalender anschauen
         ctx.fillRect(xpos+1,ypos-20,20,23);
-        ctx.fillStyle = "#6060A0";
+        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillRect(xpos+4,ypos-17,14,17);
         ctx.fillStyle = "#000000";
         xpos=50;    
         ctx.fillText("Wochenkalender anschauen", xpos, ypos);        
         if (act == 1) {
-          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.strokeStyle = "#000000";         // Haken setzen
           ctx.setLineDash([5,  0]);
           ctx.lineWidth = 3;
           xpos=28;    
@@ -427,16 +429,16 @@ function refreshTextAreaWithoutParameterLocal() {
 
         xpos=20;    
         ypos=481;    
-        ctx.fillStyle = "#8080C0";             //  BUTTON rot setzen
+        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON rot setzen
         ctx.fillRect(xpos+1,ypos-20,20,23);
-        ctx.fillStyle = "#6060A0";
+        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillRect(xpos+4,ypos-17,14,17);
-     // ctx.fillStyle = "#C02020";
+     // ctx.fillStyle = "#C31D64";	/*EKH rot*/
         ctx.fillStyle = "#000000";
         xpos=50;    
         ctx.fillText("rot setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
         if (act == 2) {
-          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.strokeStyle = "#000000";         // Haken setzen
           ctx.setLineDash([5,  0]);
           ctx.lineWidth = 3;
           xpos=28;    
@@ -450,16 +452,16 @@ function refreshTextAreaWithoutParameterLocal() {
 
         xpos=20;    
         ypos=511;    
-        ctx.fillStyle = "#8080C0";             //  BUTTON blau setzen
+        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON blau setzen
         ctx.fillRect(xpos+1,ypos-20,20,23);
-        ctx.fillStyle = "#6060A0";
+        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillRect(xpos+4,ypos-17,14,17);
-     // ctx.fillStyle = "#2020C0";
+     // ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillStyle = "#000000";
         xpos=50;    
         ctx.fillText("blau setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
         if (act == 3) {
-          ctx.strokeStyle = "#000000";         // Hacken setzen
+          ctx.strokeStyle = "#000000";         // Haken setzen
           ctx.setLineDash([5,  0]);
           ctx.lineWidth = 3;
           xpos=28;    
@@ -491,14 +493,14 @@ function refreshTextAreaWithoutParameterLocal() {
             textToReplace = data[variableName].substring(k, k+1);
             xpos= 17 + k*5 + ((i-41) % 2)*360;
             if (textToReplace == '1') { 
-              ctx.strokeStyle = "#C02020";
+              ctx.strokeStyle = "#C31D64";	/*EKH rot*/
               ctx.beginPath();
               ctx.moveTo(xpos, ypos);
               ctx.lineTo(xpos, ypos-16);
               ctx.stroke(); 
             }
             if (textToReplace == '0') { 
-              ctx.strokeStyle = "#2020C0";
+              ctx.strokeStyle = "#1F94B9";	/*EKH blau*/
               ctx.beginPath();
               ctx.moveTo(xpos, ypos);
               ctx.lineTo(xpos, ypos-10);
@@ -545,15 +547,15 @@ function refreshTextAreaWithoutParameterLocal() {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                   // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
                 else {                                                //  /= 127  dann Zeichen hinschreiben
                   if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                    ctx.fillStyle = "#F01010";                        //  dann rot
+                    ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
                     ctx.fillText(textToReplace, xpos, ypos);
                     ctx.fillStyle = "#000000";  
                   }
@@ -562,7 +564,7 @@ function refreshTextAreaWithoutParameterLocal() {
                   }
                 }
                 xpos=xpos+16;
-              } 
+              }
 
             }
             else {                //  Zeile ohne rot
@@ -570,9 +572,9 @@ function refreshTextAreaWithoutParameterLocal() {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                    // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
@@ -621,15 +623,15 @@ function refreshTextAreaWithoutParameterLocal() {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                   // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
                 else {
                   if (k > 18) {
-                    ctx.fillStyle = "#F01010";  
+                    ctx.fillStyle = "#C31D64";	/*EKH rot*/  
                     ctx.fillText(textToReplace, xpos, ypos);
                     ctx.fillStyle = "#000000";  
                   }
@@ -687,15 +689,15 @@ function refreshTextAreaWithoutParameterLocal() {
                     textToReplace = data[variableName].substring(k, k+1)    
                     var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                     if (ascii == 127) {                                   // bei = 127  Button erstellen
-                      ctx.fillStyle = "#8080C0";
+                      ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                       ctx.fillRect(xpos+1,ypos-20,20,23);
-                      ctx.fillStyle = "#6060A0";
+                      ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                       ctx.fillRect(xpos+4,ypos-17,14,17);
                       ctx.fillStyle = "#000000";
                     }
                     else {                                                //  /= 127  dann Zeichen hinschreiben
                       if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                        ctx.fillStyle = "#F01010";                        //  dann rot
+                        ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
                         ctx.fillText(textToReplace, xpos, ypos);
                         ctx.fillStyle = "#000000";  
                       }
@@ -712,9 +714,9 @@ function refreshTextAreaWithoutParameterLocal() {
                     textToReplace = data[variableName].substring(k, k+1)    
                     var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
                     if (ascii == 127) {                                    // bei = 127  Button erstellen
-                      ctx.fillStyle = "#8080C0";
+                      ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                       ctx.fillRect(xpos+1,ypos-20,20,23);
-                      ctx.fillStyle = "#6060A0";
+                      ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                       ctx.fillRect(xpos+4,ypos-17,14,17);
                       ctx.fillStyle = "#000000";
                     }
@@ -788,9 +790,9 @@ function refreshTextAreaWithParameter(data) {
         ctx.fillText("<", xpos, ypos);         //  Pfeil fuer Ausstieg
 
         xpos=20;    
-        ctx.fillStyle = "#8080C0";             //  BUTTON fuer Ausstieg
+        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON fuer Ausstieg
         ctx.fillRect(xpos+1,ypos-20,20,23);
-        ctx.fillStyle = "#6060A0";
+        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
         ctx.fillRect(xpos+4,ypos-17,14,17);
         ctx.fillStyle = "#000000";
 
@@ -813,20 +815,20 @@ function refreshTextAreaWithParameter(data) {
         ypos=ypos+ 0;
         var index = textToReplace.indexOf("Tag");    
         if (index > 1) {
-          ctx.fillStyle = "#C02020";  
+          ctx.fillStyle = "#C31D64";	/*EKH rot*/  
         }
         else {  
           index = textToReplace.indexOf("EIN");    
           if (index > 1) {
-            ctx.fillStyle = "#C02020";  
+            ctx.fillStyle = "#C31D64";	/*EKH rot*/  
           }
           else {  
             index = textToReplace.indexOf("HT");    
             if (index > 1) {
-              ctx.fillStyle = "#C02020";  
+              ctx.fillStyle = "#C31D64";	/*EKH rot*/  
             }
             else {  
-              ctx.fillStyle = "#2020C0";  
+              ctx.fillStyle = "#1F94B9";	/*EKH blau*/  
             }
           }
         }
@@ -849,7 +851,7 @@ function refreshTextAreaWithParameter(data) {
         ypos=ypos+30;
         ctx.fillText("FR",  xpos, ypos); 
      // ctx.fillStyle = "red";
-        ctx.fillStyle = "#E02020";  
+        ctx.fillStyle = "#C31D64";	/*EKH rot*/  
         ypos=ypos+30;
         ctx.fillText("SA",  xpos, ypos); 
         ypos=ypos+30;
@@ -863,7 +865,7 @@ function refreshTextAreaWithParameter(data) {
           ctx.fillStyle = "#000000";  
         }
         else {                                            // andere Aktion -> Darstellung rot
-          ctx.fillStyle = "#FF0000";  
+          ctx.fillStyle = "#C31D64";	/*EKH rot*/  
         }
         ctx.fillText(textToReplace, xpos, ypos); 
 
@@ -884,14 +886,14 @@ function refreshTextAreaWithParameter(data) {
             textToReplace = data[variableName].substring(k, k+1);
             xpos= 17 + k*5 + ((i-41) % 2)*360;
             if (textToReplace == '1') { 
-              ctx.strokeStyle = "#C02020";
+              ctx.strokeStyle = "#C31D64";	/*EKH rot*/
               ctx.beginPath();
               ctx.moveTo(xpos, ypos);
               ctx.lineTo(xpos, ypos-16);
               ctx.stroke(); 
             }
             if (textToReplace == '0') { 
-              ctx.strokeStyle = "#2020C0";
+              ctx.strokeStyle = "#1F94B9";	/*EKH blau*/
               ctx.beginPath();
               ctx.moveTo(xpos, ypos);
               ctx.lineTo(xpos, ypos-10);
@@ -938,15 +940,15 @@ function refreshTextAreaWithParameter(data) {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                   // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
                 else {                                                //  /= 127  dann Zeichen hinschreiben
                   if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                    ctx.fillStyle = "#F01010";                        //  dann rot
+                    ctx.fillStyle = "#C31D64";	/*EKH rot*/                        //  dann rot
                     ctx.fillText(textToReplace, xpos, ypos);
                     ctx.fillStyle = "#000000";  
                   }
@@ -963,9 +965,9 @@ function refreshTextAreaWithParameter(data) {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                    // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
@@ -1012,15 +1014,15 @@ function refreshTextAreaWithParameter(data) {
                 textToReplace = data[variableName].substring(k, k+1)    
                 var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                 if (ascii == 127) {                                   // bei = 127  Button erstellen
-                  ctx.fillStyle = "#8080C0";
+                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                   ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#6060A0";
+                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                   ctx.fillRect(xpos+4,ypos-17,14,17);
                   ctx.fillStyle = "#000000";
                 }
                 else {
                   if (k > 18) {
-                    ctx.fillStyle = "#F01010";  
+                    ctx.fillStyle = "#C31D64";	/*EKH rot*/  
                     ctx.fillText(textToReplace, xpos, ypos);
                     ctx.fillStyle = "#000000";  
                   }
@@ -1078,15 +1080,15 @@ function refreshTextAreaWithParameter(data) {
                     textToReplace = data[variableName].substring(k, k+1)    
                     var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                     if (ascii == 127) {                                   // bei = 127  Button erstellen
-                      ctx.fillStyle = "#8080C0";
+                      ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                       ctx.fillRect(xpos+1,ypos-20,20,23);
-                      ctx.fillStyle = "#6060A0";
+                      ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                       ctx.fillRect(xpos+4,ypos-17,14,17);
                       ctx.fillStyle = "#000000";
                     }
                     else {                                                //  /= 127  dann Zeichen hinschreiben
                       if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                        ctx.fillStyle = "#F01010";                        //  dann rot
+                        ctx.fillStyle = "#C31D64";	/*EKH rot*/                        //  dann rot
                         ctx.fillText(textToReplace, xpos, ypos);
                         ctx.fillStyle = "#000000";  
                       }
@@ -1103,9 +1105,9 @@ function refreshTextAreaWithParameter(data) {
                     textToReplace = data[variableName].substring(k, k+1)    
                     var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
                     if (ascii == 127) {                                    // bei = 127  Button erstellen
-                      ctx.fillStyle = "#8080C0";
+                      ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
                       ctx.fillRect(xpos+1,ypos-20,20,23);
-                      ctx.fillStyle = "#6060A0";
+                      ctx.fillStyle = "#1F94B9";	/*EKH blau*/
                       ctx.fillRect(xpos+4,ypos-17,14,17);
                       ctx.fillStyle = "#000000";
                     }
@@ -1286,6 +1288,7 @@ function tableBuilder(rowEntries) {
 function tabIdHanlder(evt, id)
 {
     var i, tabcontent, tablinks, divBenachrichtigung;
+	activeTabID = id;
     // Get all elements with class="tabcontent" and hide them
     tabcontent = document.getElementsByClassName("tabcontent");
     for (i = 0; i < tabcontent.length; i++) { 
@@ -1301,7 +1304,7 @@ function tabIdHanlder(evt, id)
     document.getElementById(neutabID).style.display = "block";
     evt.currentTarget.className += " active";
 
-  //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn die entsprechenden Tab angeklickt wird
+  //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn der entsprechende Tab angeklickt wird
     if (id == "visualisierung") {
         startVisu();
 		visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
@@ -1319,8 +1322,12 @@ function tabIdHanlder(evt, id)
 		clearInterval(benachrichtigungAutoReload);
 	}
     if (id == "datenauswertung") {
-        //startQH();
+		setNumlock();
+        startQH();
 		//document.getElementById('inpYLMax').focus();
+    }
+	if (id != "datenauswertung") {
+		resetNumlock();
     }
   
   /*wegen des kleine Display  wird div#benachrichtigung nur angezeit, wenn das Modul fernbedienung aktiv ist
@@ -1366,7 +1373,7 @@ function updateBenachrichtigung (){
 	var displayElement = document.getElementById('benachrichtigungText');
 	var jsonData = getData(benachrichtigungsUrl);
 	var data =  JSON.parse(jsonData);
-	var message = 'Heizzentrale ' + Projektname + '.	Fernbedienung aktiv durch: ' + '<span style="color:red">' + data['V064'].trim() + '</span>';
+	var message = 'Heizzentrale ' + Projektname + '.	Fernbedienung aktiv durch: ' + '<span style="color:#C31D64">' + data['V064'].trim() + '</span>';
 	displayElement.innerHTML = message;
 }
 

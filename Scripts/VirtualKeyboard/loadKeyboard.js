@@ -29,7 +29,7 @@ function onKeyPress(button) {
     default:
     }
   }
-  
+  /*
 	// Get active tab [0 = Fernbedienung; 2 = QH-Tab]
 	tablinks = document.getElementsByClassName("tablink");
 	for (i = 0; i < tablinks.length; i++) {
@@ -38,15 +38,15 @@ function onKeyPress(button) {
 			i = tablinks.length;			
 		}
 	}
-	
+	*/
   
   if (tastascii > 0)  {
-	if (activeTabID == 0) {								//Fernbedienung aktiv
+	if (activeTabID == "fernbedienung") {				//Fernbedienung aktiv
 		var TastURLId = TastURL + tastascii;
 		var data = getData(TastURLId);					//osk-input -> MPC
 	}
 	
-	if (activeTabID == 2) {								//QH-Tab aktiv
+	if (activeTabID == "datenauswertung") {				//QH-Tab aktiv		
 		if (document.activeElement.id.length > 0) {		//Focus in InputFeld halten
 			focusedInput = document.activeElement;
 		}
@@ -77,8 +77,11 @@ function onKeyPress(button) {
     tastzaehler=einmalholen;
   }
 
-  /*If you want to handle the shift and caps lock buttons*/
-  if (button === "{shift}" || button === "{lock}") handleShift();
+  /*handle shift*/
+  if (button === "{shift}" || button === "{shiftleft}" || button === "{shiftright}") handleShift();
+  
+  /*handle numlock*/
+  if (button === "{numlock}") handleNumlock();
 }
 
 function handleShift() {
@@ -87,5 +90,26 @@ function handleShift() {
 
   keyboard.setOptions({
     layoutName: shiftToggle
+  });
+}
+
+function handleNumlock() {
+  let currentLayout = keyboard.options.layoutName;
+  let numToggle = currentLayout === "default" ? "numlock" : "default";
+
+  keyboard.setOptions({
+    layoutName: numToggle
+  });
+}
+
+function setNumlock() {
+  keyboard.setOptions({
+    layoutName: "numlock"
+  });
+}
+
+function resetNumlock() {
+  keyboard.setOptions({
+    layoutName: "default"
   });
 }
