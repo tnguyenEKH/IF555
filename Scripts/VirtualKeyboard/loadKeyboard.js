@@ -1,84 +1,75 @@
 let Keyboard = window.SimpleKeyboard.default;
 
 let keyboard = new Keyboard({
-  onKeyPress: button => onKeyPress(button)
+	onKeyPress: button => onKeyPress(button)
 });
 
 function onKeyPress(button) {
-  tastascii=0;
-  tastkey = button;
-  tastkeylength = tastkey.length;
-  tastcode = button.charCodeAt(0);
-  if (tastkeylength < 2) {         /* ein einzelnes Zeichen  */
-    tastascii=tastkey.charCodeAt(0);
-  }
-  else {
-    switch (tastcode) {
- 
-    case 123:  //  ENTER
-      tastascii=13;
-      break;
-
-    case 27:  //  ESC
-      tastascii=27;
-      break;
-    case 17:  //  STRG
-      tastascii=17;
-      break; 
-
-    default:
-    }
-  }
-  
-	// Get active tab [0 = Fernbedienung; 2 = QH-Tab]
-	tablinks = document.getElementsByClassName("tablink");
-	for (i = 0; i < tablinks.length; i++) {
-		if (tablinks[i].className.includes("active")) {
-			var activeTabID = i;
-			i = tablinks.length;			
+	console.log(button);
+	console.log(button.length);
+	
+	if (button.includes('shift')) handleShift();
+	if (button.includes('numlock')) handleNumlock();
+	
+	
+	if (activeTabID == 'fernbedienung') {								//Fernbedienung aktiv
+		tastascii = 0;
+		
+		if (button.length > 1) {		
+			if (button.includes('bksp')) tastascii = 8;
+			if (button.includes('space')) tastascii = 32;
+			if (button.includes('enter')) tastascii = 13;
+			if (button.includes('esc')) tastascii = 27;
+			if (button.includes('strg')) tastascii = 17;
+			if (button.includes('tab')) tastascii = 9;	
+		}
+		else {
+			tastascii = button.charCodeAt(0);
+		}
+	
+		if (tastascii != 0) var data = getData(TastURL + tastascii);	//osk-input -> MPC
+		
+		if (zykzaehler > einmalholen) {
+			zykzaehler=einmalholen;
+			tastzaehler=0;
+		}
+		else {
+		//  zykzaehler=zykzaehler+1;
+			tastzaehler=einmalholen;
 		}
 	}
 	
-  
-  if (tastascii > 0)  {
-	if (activeTabID == 0) {								//Fernbedienung aktiv
-		var TastURLId = TastURL + tastascii;
-		var data = getData(TastURLId);					//osk-input -> MPC
-	}
 	
-	if (activeTabID == 2) {								//QH-Tab aktiv
-		if (document.activeElement.id.length > 0) {		//Focus in InputFeld halten
+	if (activeTabID == "datenauswertung") {								//QH-Tab aktiv		
+		if (document.activeElement.id.length > 0) {						//Focus in InputFeld halten
 			focusedInput = document.activeElement;
 		}
 
-		if (isNaN(tastkey)) {
-			if (tastkey.includes('bksp')) {				//backspace Handling
+		if (isNaN(button)) {
+			if (button == '-' || button == '.' || button == ',')
+				focusedInput.value += button;							//Sign & Fraction Handling
+			
+			if (button.includes('enter')) ConfirmModalMenu();			//Enter Handling
+			
+			if (button.includes('esc')) location.href = '#';			//Esc Handling
+			
+			if (button.includes('bksp')) {								//Backspace Handling
 				focusedInput.value = focusedInput.value.slice(0, -1);
 				//focusedInput.setRangeText('');
 			}
-			if (tastkey.includes('enter')) {			//Enter Handling
-				YScaleMenuConfirm();
-			}
 		}
-		else {			//in ScaleMenue nur Zahleneingaben zulassen
-			focusedInput.value += tastkey;
+		else {															//in ScaleMenue nur Zahleneingaben zulassen
+			focusedInput.value += button;
 		}
 		
 	
 	}
 	
-  }
-  if (zykzaehler > einmalholen) {
-    zykzaehler=einmalholen;
-    tastzaehler=0;
-  }
-  else  {
-//  zykzaehler=zykzaehler+1;
-    tastzaehler=einmalholen;
-  }
-
-  /*If you want to handle the shift and caps lock buttons*/
-  if (button === "{shift}" || button === "{lock}") handleShift();
+	
+	console.log(button);
+	console.log(button.length);
+	
+  
 }
 
 function handleShift() {
@@ -87,5 +78,26 @@ function handleShift() {
 
   keyboard.setOptions({
     layoutName: shiftToggle
+  });
+}
+
+function handleNumlock() {
+  let currentLayout = keyboard.options.layoutName;
+  let numToggle = currentLayout === "default" ? "numlock" : "default";
+
+  keyboard.setOptions({
+    layoutName: numToggle
+  });
+}
+
+function setNumlock() {
+  keyboard.setOptions({
+    layoutName: "numlock"
+  });
+}
+
+function resetNumlock() {
+  keyboard.setOptions({
+    layoutName: "default"
   });
 }

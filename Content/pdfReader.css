@@ -8,7 +8,7 @@
 }
 
 .pdf-top-bar {
-  background: #c0c0c0;
+  background: #C0C0C0; /*rgb(192, 192, 192);*/
   font-size: 1rem;
   color: black;
   padding: 0.1rem;
@@ -36,13 +36,13 @@
 }
 
 .pdf-error {
-  background: #ff8080;
-  color: #0;
+  background: #C31D64; /*EKH rot*/
+  color: black;
   padding: 1rem;
 }
 
 .pdf-canvas-container {
-    background: #c0c0c0;
+    background: #C0C0C0; /*rgb(192, 192, 192);*/
     text-align: center;
 	border-radius: 0em 0em .5em .5em;
 }

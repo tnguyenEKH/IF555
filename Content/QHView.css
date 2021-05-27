@@ -1,6 +1,6 @@
 #datenauswertungDisplay {
 	overflow: hidden;
-	background-color: rgb(192, 192, 192);
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 }
 
 .qoutsideWrapper {
@@ -9,7 +9,7 @@
 	height: 87vh;
 	width: 155vh;
 	
-	background-color: rgb(192, 192, 192);
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
     padding: 0px;
     border-radius: .5em;
 }
@@ -19,7 +19,7 @@
     width: 100%;
     height: 100%;
     position: relative;
-    background-color: rgb(192, 192, 192);
+    background-color: #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
 }
 
@@ -30,19 +30,9 @@
     position: absolute;
     top: 0px;
     left: 0px;
-    background-color: rgba(0, 0, 0, 0);
+    background-color: #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
     /*box-shadow: 10px 10px 5px #888888;*/
-}
-
-
-
-#qtipCanvas {
-    background-color: white;
-    border: 1px solid blue;
-    position: absolute;
-    left: -2000px;
-    top: 100px;
 }
 
 
@@ -57,21 +47,24 @@
 }
 
 	*[type=button] {
+		cursor: pointer;
 		padding: 2px;
 		height: 20px;
-		background-color: lightgrey;
-		border: 1px solid blue;
+		background-color: #E0E0E0; /*rgb(224, 224, 224);*/
+		border: 1px solid;/* blue;*/
 		border-radius: 3px;
+		box-shadow: 1px 1px #666 /*rgb(102, 102, 102); dark gray*/;
 	}
 
 	*[type=button]:hover {
-		background-color: #4CAF50; 
-		color: white;
+		background-color: #1F94B9; /*EKH blau*/
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 	}
 
 	*[type=button]:active {
-		background-color: #3e8e41;
-		box-shadow: 0 3px #666;
+		background-color: #1F94B9; /*EKH blau*/
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 		transform: translateY(2px);
 	}
 
