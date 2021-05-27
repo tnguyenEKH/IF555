@@ -25,10 +25,10 @@
 		"{shiftleft} > Y X C V B N M ; : _ {shiftright}",
 		"{strg} @ {space} {strg}"],
 	numlock:[
-		"{bksp} / * -",
-		"7 8 9 +",
-		"4 5 6 {enter}",
-		"1 2 3 ,",
-		"{numlock} 0 ."]},
+		"{esc} / * +",
+		"{bksp} 7 8 9",
+		"{enter} 4 5 6",
+		"{numlock} 1 2 3",
+		"- . 0 ,"]},
 	o=this.options.useTouchEvents||!1,i=o?"hg-touch-events":"",s=this.options.useMouseEvents||!1,a=this.options.disableRowButtonContainers;this.keyboardDOM.className=this.getKeyboardClassString(this.options.theme,e,this.keyboardPluginClasses,i),n[this.options.layoutName].forEach((function(e,n){var i=e.split(" "),r=document.createElement("div");r.className+="hg-row";var u=[],c=[];i.forEach((function(e,i){var l,h=!a&&"string"===typeof e&&e.length>1&&0===e.indexOf("["),d=!a&&"string"===typeof e&&e.length>1&&e.indexOf("]")===e.length-1;h&&(u.push(i),e=e.replace(/\[/g,"")),d&&(c.push(i),e=e.replace(/\]/g,""));var p=t.utilities.getButtonClass(e),f=t.utilities.getButtonDisplayName(e,t.options.display,t.options.mergeDisplay),y=t.options.useButtonTag?"button":"div",b=document.createElement(y);b.className+="hg-button ".concat(p),(l=b.classList).add.apply(l,_toConsumableArray(t.getButtonThemeClasses(e))),t.setDOMButtonAttributes(e,(function(t,e){b.setAttribute(t,e)})),t.activeButtonClass="hg-activeButton",!t.utilities.pointerEventsSupported()||o||s?o?(b.ontouchstart=function(n){t.handleButtonClicked(e),t.handleButtonMouseDown(e,n)},b.ontouchend=function(){t.handleButtonMouseUp(e)},b.ontouchcancel=function(){t.handleButtonMouseUp(e)}):(b.onclick=function(){t.handleButtonClicked(e)},b.onmousedown=function(n){t.handleButtonMouseDown(e,n)},b.onmouseup=function(){t.handleButtonMouseUp(e)}):(b.onpointerdown=function(n){t.handleButtonClicked(e),t.handleButtonMouseDown(e,n)},b.onpointerup=function(){t.handleButtonMouseUp(e)},b.onpointercancel=function(){t.handleButtonMouseUp(e)}),b.setAttribute("data-skBtn",e);var m="".concat(t.options.layoutName,"-r").concat(n,"b").concat(i);b.setAttribute("data-skBtnUID",m);var g=document.createElement("span");g.innerHTML=f,b.appendChild(g),t.buttonElements[e]||(t.buttonElements[e]=[]),t.buttonElements[e].push(b),r.appendChild(b)})),r=t.parseRowDOMContainers(r,n,u,c),t.keyboardDOM.appendChild(r)})),this.onRender(),this.initialized||(this.initialized=!0,this.onInit())}}])&&Keyboard_defineProperties(t.prototype,e),n&&Keyboard_defineProperties(t,n),SimpleKeyboard}();e.default=s}])}));
 //# sourceMappingURL=index.js.map
