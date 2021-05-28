@@ -84,6 +84,9 @@ $(document).ready(function () {
 	einmalholen=7;         // <<<
 	
 	/*******************************/
+	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50); // Aktivieren  der Datenabholung der Fernbedienung 
+	benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		 // Aktivieren der paralellen Fernbedienung
+	
 	callReader(bedien_pdf);
 	callReader(slp_pdf);
 });
@@ -1322,8 +1325,9 @@ function tabIdHanlder(evt, id)
 		clearInterval(benachrichtigungAutoReload);
 	}
     if (id == "datenauswertung") {
-		setNumlock();
-        startQH();
+		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
+		setNumlock();							//osk-layout auf Numpad wechseln
+        startQH();								//Daten aktualisieren
 		//document.getElementById('inpYLMax').focus();
     }
 	if (id != "datenauswertung") {
@@ -1465,76 +1469,83 @@ $(function () {
 });
 
 /**********Keyboard stroke********/
-$(document).keydown(function (event) 
-  { 
- //set focus on "#displayPanel" when a key was pressed. This prevent scroll effect, when the sidebar overflow
-   var displayPanel = document.getElementById('displayPanel');
-   displayPanel.focus();
+$(document).keydown(function (event) {
+	if (activeTabID == 'fernbedienung') {								//Fernbedienung aktiv
+		//set focus on "#displayPanel" when a key was pressed. This prevent scroll effect, when the sidebar overflow
+		var displayPanel = document.getElementById('displayPanel');
+		displayPanel.focus();
+		
+		tastascii=0;
+		tastkey = event.key;
+		tastkeylength = tastkey.length;
+		tastcode = event.keyCode;
+		if (tastkeylength < 2) {         /* ein einzelnes Zeichen  */
+			tastascii=tastkey.charCodeAt(0);
+		}
+		else {
+			switch (tastcode) {
+				case 37:  //  LEFT 
+				  tastascii=8;
+				  break;
+				case 38:  //  UP 
+				  tastascii=11;
+				  break;
+				case 39:  //  RIGTH
+				  tastascii=12;
+				  break;
+				case 40:  //  DOWN
+				  tastascii=10;
+				  break;
+				case 13:  //  ENTER
+				  tastascii=13;
+				  break;
 
-  tastascii=0;
-  tastkey = event.key;
-  tastkeylength = tastkey.length;
-  tastcode = event.keyCode;
-  if (tastkeylength < 2) {         /* ein einzelnes Zeichen  */
-    tastascii=tastkey.charCodeAt(0);
-  }
-  else {
-    switch (tastcode) {
-    case 37:  //  LEFT 
-      tastascii=8;
-      break;
-    case 38:  //  UP 
-      tastascii=11;
-      break;
-    case 39:  //  RIGTH
-      tastascii=12;
-      break;
-    case 40:  //  DOWN
-      tastascii=10;
-      break;
-    case 13:  //  ENTER
-      tastascii=13;
-      break;
+				case 27:  //  ESC
+				  tastascii=27;
+				  break;
+				case 17:  //  STRG
+				  tastascii=17;
+				  break; 
 
-    case 27:  //  ESC
-      tastascii=27;
-      break;
-    case 17:  //  STRG
-      tastascii=17;
-      break; 
-
-    default:
-    }
-  }
-
-  if (tastascii > 0)  {
-    var TastURLId = TastURL + tastascii;
-    var data = getData(TastURLId);
-  }
-  if (zykzaehler > einmalholen) {
-    zykzaehler=einmalholen;
-    tastzaehler=0;
-  }
-  else  {
-//  zykzaehler=zykzaehler+1;
-    tastzaehler=einmalholen;
-  }
+				default:
+			}
+		}
+		
+		if (tastascii > 0) {
+			var TastURLId = TastURL + tastascii;
+			var data = getData(TastURLId);
+		}
+		
+		if (zykzaehler > einmalholen) {
+			zykzaehler=einmalholen;
+			tastzaehler=0;
+		}
+		else  {
+			//  zykzaehler=zykzaehler+1;
+			tastzaehler=einmalholen;
+		}
 
 
-// if (tastascii == 116  || tastascii == 84) {
-//  if (statTastzahl == '1') {
-//  openInputModal();
-//      Eingabefeld fuer eine Zahl darstellen (Touchblock,...)
-//      nach Eingabe:  'http://172.16.0.102/JSONADD/PUT?V003=Zahl';
-//  }
-//    if (statTastzeich == '1') {
-//      Eingabefeld fuer eine Zeichenkette darstellen (Touchblock,...)
-//      nach Eingabe:  'http://172.16.0.102/JSONADD/PUT?V009=Zeichenkette';
-//    }
-//  }
-// }
+		// if (tastascii == 116  || tastascii == 84) {
+		//  if (statTastzahl == '1') {
+		//  openInputModal();
+		//      Eingabefeld fuer eine Zahl darstellen (Touchblock,...)
+		//      nach Eingabe:  'http://172.16.0.102/JSONADD/PUT?V003=Zahl';
+		//  }
+		//    if (statTastzeich == '1') {
+		//      Eingabefeld fuer eine Zeichenkette darstellen (Touchblock,...)
+		//      nach Eingabe:  'http://172.16.0.102/JSONADD/PUT?V009=Zeichenkette';
+		//    }
+		//  }
+		// }
+	}
+	if (activeTabID == "datenauswertung") {								//QH-Tab aktiv
+		
+		if (event.key.includes('Enter')) ConfirmModalMenu();			//Enter Handling	
+		if (event.key.includes('Esc')) location.href = '#';				//Esc Handling
+	}
 
-  });
+	});
 
 
 // Mausposition bei Click auf das CANVAS ermitteln (x austeilen auf Zeichenbreite, y aufteieln auf Zeilenhoehe)
