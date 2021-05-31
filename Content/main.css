@@ -31,7 +31,8 @@ body {
     border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
     border-radius: .5em;
-	height: 8vh;
+	height: 7vh;
+	margin-bottom: .5em;
 	font-family: sans-serif;
 }
 
@@ -76,7 +77,7 @@ body {
     border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
     background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
-	margin-top: 0.5em;
+	/*margin-top: 0.5em;*/
 	margin-bottom: 0.5em;
 	overflow: hidden;
 }
@@ -105,7 +106,7 @@ body {
 /* Style the tab content */
 .tabcontent {
     display: none;
-    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+    /*border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
 	font-size: 3vh;
 	width: 99.95%;
@@ -117,7 +118,7 @@ body {
 .container {
     display: flex;
 	border-radius: inherit;
-	height: 84vh;
+	height: 85.6vh;
 	width: inherit;
 	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 	/*height: 100%;*/
@@ -127,7 +128,7 @@ body {
 		width: 0%;
 		background-color: #E0E0E0; /*rgb(224, 224, 224);*/
 		border-radius: .5em;
-		height: 84vh;
+		height: 85.6vh;
 		font-family: sans-serif;
 		font-size: 15px;
 	}
@@ -229,10 +230,17 @@ body {
 
 #btnVirtualKeyboard {
 	position: absolute;
+	bottom: 75vh;
+	right: 1.5vh;
+	width: 120px;
+	font-size: 16px;
+	/*height: 1.7em;*/
+	padding: 2px;
+/*	position: absolute;
 	bottom: 80vh;
 	right: 1.5vh;
 	height: 1.7em;
-	padding: 2px;
+	padding: 2px;*/
 }
 
 #osk{

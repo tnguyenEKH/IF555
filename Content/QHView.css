@@ -38,7 +38,7 @@
 
 
 #controls {
-    top: 71vh;/*560px;*/
+    top: 72vh;/*560px;*/
     left: 1vh;/*0px;*/
     position: absolute;
     width: 100%;
@@ -83,7 +83,8 @@
 		margin-left: 10px;
 		margin-right: 10px;
 		width: 85px;
-		background-color: red;
+		background-color: #C31D64; /*EKH rot*/
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 	}
 
 	.qcmdButtonLarge {

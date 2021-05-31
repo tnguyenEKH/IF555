@@ -128,7 +128,7 @@ function readFromTextFile(fileName) {
   else
   return xhr.responseText;
 }
-/*1/4h Datafile will ber served by Apache webserver, which on Pi installed is. 
+/*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
 */
  function readQHFromFile(fileName) {
   var pufferArrayUint8;
@@ -1327,7 +1327,7 @@ function tabIdHanlder(evt, id)
     if (id == "datenauswertung") {
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
 		setNumlock();							//osk-layout auf Numpad wechseln
-        startQH();								//Daten aktualisieren
+		startQH();								//Daten in Diagramm ausrichten
 		//document.getElementById('inpYLMax').focus();
     }
 	if (id != "datenauswertung") {

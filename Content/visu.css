@@ -92,31 +92,38 @@
 
 			/* Modal Content/Box */
 		.modal-content {
-			background-color: #fefefe;
+			background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 			margin: 10px; /* 15% from the top and centered */
 			padding: 20px;
-			border: 1px solid #888;
+			border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+			border-radius: .5em;
 			width: 20%; /* Could be more or less, depending on screen size */
 		}
 
 			.modal-header {
-				font-size: 18px;
+				/*font-size: 28px;*/
+				font-weight: bold;
 				padding: 2px 12px;
-				background-color: #FF0000;
-				color: white;
+				background-color: #C31D64; /*EKH rot*/
+				border-radius: .5em;
+				color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 				text-align:center;
+			}
+			
+			#modalHeaderZaehler {
+				background-color: #1F94B9; /*EKH blau*/				
 			}
 
 				/* The Close Button */
 				.close {
-					color: #aaa;
+					color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 					float: right;
 					font-size: 28px;
 					font-weight: bold;
 				}
 				.close:hover,
 				.close:focus {
-					color: black;
+					color: #C0C0C0; /*rgb(192, 192, 192);*/
 					text-decoration: none;
 					cursor: pointer;
 				} 

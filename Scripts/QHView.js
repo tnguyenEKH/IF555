@@ -134,6 +134,11 @@ function OpenModalQH() {
     document.getElementById("modalbody").innerHTML = "<p>" + "<h2>" + "Daten werden heruntergeladen. Bitte warten Sie!" + "<h2>" + "</p>";
 
     modal.style.display = "block";
+	allQHDataRecords  = [];					//erase QH-Databuffer
+	readQHFromFile(QHDataFile);				//refill QH-Databuffer
+	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
+	startQH();								//Daten aktualisieren
+	modal.style.display = "none";
 }
 
 function MeldungAndCloseModal(meldung) {
@@ -1326,7 +1331,6 @@ function exportData() {
 }
 
 function ButtonHandler(id) {
-
     if (id == "btnGotoLast") {
         var Datum = new Date(sLastUpdate);
         var dat = { d: dLastUpdate.getDate(), m: dLastUpdate.getMonth() + 1, y: dLastUpdate.getFullYear() };
@@ -1387,7 +1391,8 @@ function ButtonHandler(id) {
     if (id == "btnGetData") {
         OpenModalQH();
         //alert("Daten werden heruntergeladen, bitte warten Sie!");
-        DatenHolen(Steuerung);
+        //DatenHolen(Steuerung);
+		
     }
 
     if (id == "btnUpdateQHHeader") {
