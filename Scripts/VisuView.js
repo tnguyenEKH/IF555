@@ -67,7 +67,7 @@ function copyToClip() {
 function getOnlinegesamtZaehler()
 {
 	res = readFromTextFile(zahlerDataFile);
-    var resWithoutDate = res.substring(27);
+    var resWithoutDate = res.substring(41);//27
 	var index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
 	return resWithoutDate.substr(0, index -1);
 }
@@ -115,10 +115,11 @@ function initVisu()
 	vtipCanvas.style.left = "-2000px";
 	tipvctx = vtipCanvas.getContext("2d");
 
-	canvasOffset = $("body").offset();
+	canvasOffset = $("body").offset(); //$("vinsideWrapper").offset();
 	canvasOffsetX = canvasOffset.left;
-	canvasOffsetY = canvasOffset.top + $(".tab").height();
-	 
+	canvasOffsetY = canvasOffset.top + $(".tab").height() + 2 * parseInt($(".tab").css('border-bottom-width')) + parseInt($(".tab").css('margin-bottom'));	// + $(".tab").marginBottom;
+	
+	
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
 	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
@@ -866,7 +867,7 @@ function getPosition(event) {
 		if (stoerungText != "") {
 			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
 			document.getElementById("modalContent").style.width = '30%';
-			document.getElementById("modalBody").innerHTML =  stoerungText ;
+			document.getElementById("modalBody").innerHTML =  "</br> <pre>" + stoerungText + "</pre>";//stoerungText ;
 			var span = document.getElementById("closeModalStoerung");
 			span.onclick = function () {
 				modal.style.display = "none";
@@ -934,16 +935,32 @@ function getPosition(event) {
 }
 
 
-// Mouse Handler für Tooltip Anzeige (vimgArea)
+// Mouse Handler für Tooltip Anzeige & Cursor Darstellung (vimgArea)
 function handleMouseMove(e) {
-
+	
+	var mouseX = parseInt(e.clientX - canvasOffsetX);
+	var	mouseY = parseInt(e.clientY - canvasOffsetY);
+	
 	var currentBmpIndex = bmpIndex;
 	var match = false;
+	var matchTT = false;
+	
+	for (var i = 0; i < LinkButtonList.length; i++) {
+		var item = LinkButtonList[i];
+		if (mouseX > item.x_min && mouseX < item.x_max && mouseY > item.y_min && mouseY < item.y_max) {
+			match = true;
+			i = LinkButtonList.length;
+		}
+	}
+
+	
 	for (var i = 0; i < tt_dots.length; i++) {
-		mouseX = parseInt(e.clientX - canvasOffsetX);
-		mouseY = parseInt(e.clientY - canvasOffsetY);
 		var dx = mouseX - tt_dots[i].x;
 		var dy = mouseY - tt_dots[i].y;
+		if (tt_dots[i].b) {							//Bool'sches Element?
+			dx = mouseX - (tt_dots[i].x - 15);		//Referenzpunkt der Bool'schen Grafiken für tt ungünstig
+			dy = mouseY - (tt_dots[i].y + 10);		//daher Verschiebung um 15 & 10px
+		}
 		var txt = tt_dots[i].t;
 		var index = tt_dots[i].index
 		if ((dx * dx < 1600) && (dy * dy < 200) && (dx > 0) && (dy < 0) && (index == currentBmpIndex)) {
@@ -962,21 +979,29 @@ function handleMouseMove(e) {
 			tipvctx.fillText(txt, 5, 14);
 			
 			match = true;
-
+			matchTT = true;
+			
+			i = tt_dots.length;
 		}
-		if (!match) {
-			vtipCanvas.style.left = "-2000px";
-		}
+		
 	}
+	
+	if (match) $(".vinsideWrapper").css("cursor", "pointer");	//Vorarbeit: Pointer als Cursor für zukünftige Visu Bedienung
+	
+	if (!matchTT) vtipCanvas.style.left = "-2000px";
+	
+	if (!match && !matchTT) $(".vinsideWrapper").css("cursor", "default");
+	
 }
 
 // Tooltip pushen
-function pushToolTip(px, py, txt, idx) {
+function pushToolTip(px, py, txt, idx, isbool) {
 	tt_dots.push({
 		x: px,
 		y: py,
 		t: txt,
-		index: idx
+		index: idx,
+		b: isbool
 	});
 }
 
@@ -989,7 +1014,7 @@ function initTooltips() {
 	var n = DropList.length;
 	for (i = 0; i < n; i++) {
 		if (DropList[i].ToolTip.trim() != "")
-			pushToolTip(DropList[i].x, DropList[i].y, DropList[i].ToolTip, DropList[i].bmpIndex);
+			pushToolTip(DropList[i].x, DropList[i].y, DropList[i].ToolTip, DropList[i].bmpIndex, DropList[i].VCOItem.isBool);
 	}
 }
 
@@ -1539,7 +1564,9 @@ function drawVCOItem(item) {
 				var sz = document.getElementById("selSize");
 				vDynCtx.font = item.font;
 				var w = vDynCtx.measureText(txt).width;
-				vDynCtx.fillStyle = item.BgColor;
+				(item.BgColor == '#BEBEBE' ||item.BgColor == '#E0E0E0') ? //durchsichtige Darstellung des Hintergrunds, wenn BmpBg || ZaehlerBg
+					vDynCtx.fillStyle = "rgba(0,0,0,0)":
+					vDynCtx.fillStyle = item.BgColor;
 				vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
 				vDynCtx.fillStyle = item.Color;
 				vDynCtx.fillText(txt, x, y);
