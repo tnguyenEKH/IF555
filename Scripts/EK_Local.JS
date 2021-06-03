@@ -1388,6 +1388,7 @@ function AnchorHandler(id) {
   var menuLinkId = menuLink + id;
   var data = getData(menuLinkId);
   refreshTextAreaWithoutParameterLocal(data);
+  console.log(id, menuLinkId, data);
   
 }
 
@@ -1395,42 +1396,25 @@ function AnchorHandler(id) {
 
 /*****************Hanler für Button Click ******************/
 function EthernetButtonHanlder(id) {      /* <<< */
-  if (id == "btnVirtualKeyboard" || id == "qbtnVirtualKeyboard" ){
-      //var buttonGroup = document.getElementById("buttonGroup");
+  
+  if (id == "btnVirtualKeyboard" || id == "qbtnVirtualKeyboard" ) {
 	  var osk = document.getElementById("osk");
-	  if (osk.style.display == "none"){
+	  if (osk.style.display == "none") {
 		  showElemementById("osk");
 	  }
-	  else{
+	  else {
 		  hideElemementById("osk");		  
 	  }
   }
+  
+  if (id == "btnHome")	AnchorHandler(1);
 
-  if (id == "btnUp") {
-    var Tast='11';
-   // alert("test1");
-
-  }
-  if (id == "btnDown") {
-    var Tast='10';
-   // alert("test2");
-  }
-  if (id == "btnLeft") {
-    var Tast='8';
-   // alert("test3");
-  }
-  if (id == "btnRight") {
-    var Tast='12';
-   // alert("test4");
-  }
-  if (id == "btnEnter") {
-    var Tast='13';
-  // alert("test5");
-  }
-    
-//  if (id == "btnTastatur") { 
-//      var Tast='116';   /* "t" */
-//  }
+  if (id == "btnUp") 	var Tast='11';
+  if (id == "btnDown")	var Tast='10';
+  if (id == "btnLeft")	var Tast='8';
+  if (id == "btnRight") var Tast='12';
+  if (id == "btnEnter") var Tast='13';
+  
 
   var TastURLId = TastURL + Tast;
   var data = getData(TastURLId);
