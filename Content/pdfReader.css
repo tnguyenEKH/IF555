@@ -19,11 +19,11 @@
 }
 
 .pdf-btn {
-  cursor: pointer;
-  /*padding: 1.5rem 1rem;*/
+  position: static;
   width: 100px;
-  height: 60px;
   opacity: 0.8;
+  border: 1px solid;
+  box-shadow: 1px 1px #666 /*rgb(102, 102, 102); dark gray*/;
 }
 
 

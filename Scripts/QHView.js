@@ -615,7 +615,7 @@ function ConfirmColorMenu() {
 }
 
 
-function enadbleDisableTrack(id) {	
+function enableDisableTrack(id) {	
 	var checked = $('#' + id).prop("checked");
 	var idx = id.substr(id.indexOf('_') + 1);
 	var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
@@ -664,7 +664,7 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
 	var enableVal = enable ? "checked" : "";
 
 	res += '<div class = "" id="trackVisibleSettings" style="float: left; height: 14px; font-size: 1vh">'
-	res += '<input class = "QHcheckbox" id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + ' onchange="enadbleDisableTrack(id)" />';
+	res += '<input class = "QHcheckbox" id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
 	res += '</div>';
 	
 	res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';

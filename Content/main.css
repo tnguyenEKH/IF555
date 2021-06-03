@@ -111,8 +111,12 @@ body {
 	font-size: 3vh;
 	width: 99.95%;
 	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
-	/*height: 84.5vh;*/
+	height: 90vh;
 	/*min-height: 84.5vh;*/
+}
+
+#fernbedienungDisplay {
+	height: 85.6vh;
 }
 
 .container {
@@ -159,7 +163,7 @@ body {
 	transform: translateY(2px);
 }
 
-.btn {
+.btn, .pdf-btn {
 	cursor: pointer;
 	position: inherit;
 	height: 60px;
@@ -228,19 +232,29 @@ body {
 
 
 
-#btnVirtualKeyboard {
-	position: absolute;
-	bottom: 75vh;
+#toolBtnGroup {
+	position:absolute;
+	bottom: 85vh;
 	right: 1.5vh;
+	/*height: 200px;*/
+	width: 250px;
+    border: none;	
+    transform: rotate(0deg);
+}
+#btnHome {
+	left: 0px;
 	width: 120px;
 	font-size: 16px;
-	/*height: 1.7em;*/
 	padding: 2px;
-/*	position: absolute;
-	bottom: 80vh;
-	right: 1.5vh;
-	height: 1.7em;
-	padding: 2px;*/
+}
+
+
+
+#btnVirtualKeyboard {
+	right: 0px;
+	width: 120px;
+	font-size: 16px;
+	padding: 2px;
 }
 
 #osk{
