@@ -1,4 +1,7 @@
 	var QHHeaderFile = "./DATA/vierttx.txt";
+	var QHUpdateFile = "./DATA/viertdat.txt";
+	var QHUpdateURL = "http://172.16.0.102/JSONADD/PUT?V007=Q2";
+	var FBviertdatURL = "http://172.16.0.102/JSONADD/GET?p=1&Var=sel&V012";
 	var QHSettingFile = "http://172.16.0.101/Data/QHSetting.txt"
     var Steuerung = "";
     var canvas;
@@ -123,21 +126,19 @@ function OpenModalQH() {
     var canvas = document.getElementById("myqCanvas");
     var modal = document.getElementById('ModalQH');
     var span = document.getElementsByClassName("close")[0];
-    //span.onclick = function () {
-    //    modal.style.display = "none";
-    //}
+    
     window.onclick = function (event) {
         if (event.target == modal) {
-            modal.style.display = "none";
+			CloseModalQH();
         }
     }
     document.getElementById("modalbody").innerHTML = "<p>" + "<h2>" + "Daten werden heruntergeladen. Bitte warten Sie!" + "<h2>" + "</p>";
 
     modal.style.display = "block";
-	allQHDataRecords  = [];					//erase QH-Databuffer
-	readQHFromFile(QHDataFile);				//refill QH-Databuffer
-	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
-	startQH();								//Daten aktualisieren
+}
+
+function CloseModalQH() {
+	var modal = document.getElementById('ModalQH');
 	modal.style.display = "none";
 }
 
@@ -437,6 +438,9 @@ function loadDataTrackNumber(QHHeaderFile) {
 	var nDigits = 3;
 	var headerEinheintenLength = 5;
 	var headerBezeichnungLength = 20;
+	
+	if (shdr == null) return null;
+	
 	var numberOfHeader = shdr.substr(41,3).trim();
 
     return numberOfHeader;
@@ -1390,9 +1394,8 @@ function ButtonHandler(id) {
 
     if (id == "btnGetData") {
         OpenModalQH();
-        //alert("Daten werden heruntergeladen, bitte warten Sie!");
-        //DatenHolen(Steuerung);
-		
+        DatenHolen(Steuerung);
+		CloseModalQH();
     }
 
     if (id == "btnUpdateQHHeader") {
@@ -1404,4 +1407,85 @@ function ButtonHandler(id) {
     drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
 
     drawData();
+}
+
+function DatenHolen() {
+	const MAX_CYCLE_TIMEOUT = 80;
+	var updated = false;
+	var date = InitialDatum();
+	
+	do {	//Schleife für Mehrtageabholung
+		var lastQHData = allQHDataRecords[allQHDataRecords.length - 1];
+		var lastQHDatum = lastQHData.Datum.split('.');
+		var lastQHdt = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), lastQHDatum[0]); //month index from 0-11
+		
+		getData(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));		//viertdat.txt auf MPC erzeugen lassen
+		//console.log(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));
+		var r_datum = lastQHdt;
+		var r_index = parseInt(lastQHData.Index) + 1;	//zu schreibenden Index generieren
+		
+		if (r_index > 96) {								//zu schreibenden Index verifizieren; ggf. Tagesüberlauf
+			r_index = 1;
+			r_datum = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), (parseInt(lastQHDatum[0]) + 1)); //month index from 0-11; +Tagesüberlauf
+		}
+		
+		var i = 0;
+		do {			//prüfen ob viertdat.txt verfügbar (Bit30 also 3.LSB [Wert==4] in V012)
+			var fb = getData(FBviertdatURL);
+			//console.log(fb);
+			fb = parseInt(fb.slice(18,19), 16);	//Antwort auf die letzten 4Bit (hex) reduzieren
+			fb &= 4;							//VerUndung mit Bitmaske (4==0100) 
+			i++;								//für notfallausstieg/Timeout
+			//console.log(fb);
+		} while (fb != 0 && i<MAX_CYCLE_TIMEOUT);				//wiederholen bis Bit30 == 0;
+		//console.log(i);
+		
+		var QHTrackNumber = loadDataTrackNumber(QHHeaderFile);	//Anz. Spuren aus vierttx.txt holen
+		if (QHTrackNumber == null) return null;
+		var QHData = readFromTextFile(QHUpdateFile);			//viertdat.txt auslesen
+		if (QHData == null) return null;
+		
+		
+		if (projektnummer == QHData.substring(0,5) &&			//Verifizierung viertdat.txt
+			r_datum.toLocaleString().split(',')[0] == QHData.substring(5,7).trim() + '.' + QHData.substring(7,9).trim() + '.20' + QHData.substring(9,11).padStart(2, '0') &&
+			r_index.toString() == QHData.substring(11,13).trim()) {
+			
+			updated = true;
+			console.log('Update läuft...');
+			var QHBuffer = QHData.split(',');					//Spurdaten in Array laden
+			
+			for (var i=0; i<QHBuffer.length; i++) {				//Arraydaten auf Messwerte reduzieren(11 Zeichen)
+				QHBuffer[i] = QHBuffer[i].slice(-11);
+			}
+			for (var i=0; i<10; i++) {							//Array um Reservespuren erweitern (relevant für letzte Messwerte; s.u.)
+				QHBuffer.push(-999.00);
+			}
+			
+			var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß allQHDataRecords)
+			
+			while (recordArray.length > allQHDataRecords[0].nValues && r_index <= 96) {		//allQHDataRecords erweitern bis Ende erreicht
+				var record = {};
+				record.Datum = r_datum.toLocaleString().split(',')[0];
+				record.Index = r_index.toString();
+				record.nValues = allQHDataRecords[0].nValues;
+				record.Projektnumer = projektnummer;
+				record.Values = recordArray.slice(0, record.nValues);
+				record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
+				console.log(record);
+				allQHDataRecords.push(record);
+				
+				r_index++;
+				
+				recordArray = recordArray.slice(QHTrackNumber);					//Float32Array beschneiden
+				//console.log(recordArray.length);
+			}				
+		
+		}
+		/*else {
+			alert('inkonsitente Daten!');			
+		}*/
+		
+	} while (date.d != lastQHDatum[0] || date.m != lastQHDatum[1] || date.y != lastQHDatum[2]); 
+	console.log(updated);
+	return updated;
 }
