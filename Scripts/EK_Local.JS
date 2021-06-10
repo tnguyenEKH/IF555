@@ -70,7 +70,7 @@ $(document).ready(function () {
   
   
   /*********Data evaluation********/
-	startQH();
+	//jw startQH();
 	readQHFromFile(QHDataFile);
 	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
 
@@ -114,6 +114,8 @@ function readFromTextFile(fileName) {
   var xhr = new XMLHttpRequest();
   xhr.overrideMimeType('text/plain; charset=Windows-1252')
   xhr.open("GET", fileName, false);
+  if (fileName != QHSettingFile) xhr.setRequestHeader('Cache-Control', 'no-cache');		//aktive Cacheunterdrückung, außer für QHSettingFile (Workaround CORS Fehler)
+  
   //exception handling
   try
   {
@@ -1310,7 +1312,7 @@ function tabIdHanlder(evt, id)
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn der entsprechende Tab angeklickt wird
     if (id == "visualisierung") {
         startVisu();
-		visuAutoReload = setInterval(ReloadData, 5000); //Lade Visudaten aller 5 Sekunde
+		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
     }
 	if (id != "visualisierung") {
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
@@ -1328,7 +1330,6 @@ function tabIdHanlder(evt, id)
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
 		setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
-		//document.getElementById('inpYLMax').focus();
     }
 	if (id != "datenauswertung") {
 		resetNumlock();
@@ -1387,9 +1388,7 @@ function updateBenachrichtigung (){
 function AnchorHandler(id) {
   var menuLinkId = menuLink + id;
   var data = getData(menuLinkId);
-  refreshTextAreaWithoutParameterLocal(data);
-  console.log(id, menuLinkId, data);
-  
+  refreshTextAreaWithoutParameterLocal(data);  
 }
 
 
