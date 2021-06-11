@@ -187,7 +187,7 @@ function sendData(url) {
     var xhr = new XMLHttpRequest();
     xhr.open("PUT", url, false);
     xhr.send();
-    console.log(xhr.responseText);
+    //console.log(xhr.responseText);
 }
 
 
