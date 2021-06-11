@@ -5,8 +5,8 @@ let keyboard = new Keyboard({
 });
 
 function onKeyPress(button) {
-	console.log(button);
-	console.log(button.length);
+	//console.log(button);
+	//console.log(button.length);
 	
 	if (button.includes('shift')) handleShift();
 	if (button.includes('numlock')) handleNumlock();
@@ -66,8 +66,8 @@ function onKeyPress(button) {
 	}
 	
 	
-	console.log(button);
-	console.log(button.length);
+	//console.log(button);
+	//console.log(button.length);
 	
   
 }

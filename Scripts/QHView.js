@@ -1451,7 +1451,7 @@ function DatenHolen() {
 			r_index.toString() == QHData.substring(11,13).trim()) {
 			
 			updated = true;
-			console.log('Update läuft...');
+			//console.log('Update läuft...');
 			var QHBuffer = QHData.split(',');					//Spurdaten in Array laden
 			
 			for (var i=0; i<QHBuffer.length; i++) {				//Arraydaten auf Messwerte reduzieren(11 Zeichen)
@@ -1471,7 +1471,7 @@ function DatenHolen() {
 				record.Projektnumer = projektnummer;
 				record.Values = recordArray.slice(0, record.nValues);
 				record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
-				console.log(record);
+				//console.log(record);
 				allQHDataRecords.push(record);
 				
 				r_index++;
@@ -1486,6 +1486,6 @@ function DatenHolen() {
 		}*/
 		
 	} while (date.d != lastQHDatum[0] || date.m != lastQHDatum[1] || date.y != lastQHDatum[2]); 
-	console.log(updated);
+	//console.log(updated);
 	return updated;
 }
