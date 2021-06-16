@@ -403,6 +403,27 @@ function createVisudata(sText){
 	do
 	{
 		var item = {};
+		idx = sText.indexOf("PGK");
+		if (idx >= 0)
+		{
+			item.Bezeichnung = "PGK";
+			item.Kanal = sText.substr((idx + 3), 2);
+			item.Nachkommastellen = sText.substr((idx + 6), 1);
+			item.iEinheit = sText.substr((idx + 8), 2);
+			item.Wert = sText.substr((idx + 10), 7);
+			//item.Wert *= 0.01;
+			item.isBool = false;
+			item.BoolVal = false;
+			item.EinheitText = getVisuItemEinheit(item.iEinheit);
+			Items.push(item);
+			sText= sText.slice((idx+17), sText.length);
+		}
+	}
+	while (idx >= 0);
+	
+	do
+	{
+		var item = {};
 		idx = sText.indexOf("PGB");
 		if (idx >= 0)
 		{
