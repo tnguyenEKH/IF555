@@ -43,6 +43,8 @@ var xZaehlerButtonNeuMax;
 var yZaehlerButtonNeuMin;
 var yZaehlerButtonNeuMax;
 
+var testPin = '0815';
+
 
 //Einstellungen Visualisierungen
 var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
@@ -2051,4 +2053,80 @@ function simVideoStream() {
 	ImgBox2.src = image;
 }
 
+/*Ab hier Visu Bedienung:*/
+// When the user clicks anywhere outside of the Modal, close it
+window.onclick = function(event) {
+  var modals = Array.from(document.getElementsByClassName("modalVisu"));
+  modals.forEach(function(el) {
+    if (el == event.target) el.style.display = "none";
+  });
+}
 
+function CloseVisuModals() {
+  var modals = Array.from(document.getElementsByClassName("modalVisu"));
+  modals.forEach(el => el.style.display = "none");
+}
+
+function ToggleBtnsPinLock(id) {
+  var btn = document.getElementById(id);
+  var relatedBtns = Array.from(document.getElementsByClassName(btn.className));
+  
+  relatedBtns.forEach(el => el.style.display = "inline-block");
+  btn.style.display = "none";
+}
+
+function PinLock(id) {
+  //console.log(id);
+  //console.log("locked?", locked);
+  ToggleBtnsPinLock(id);
+
+  locked = true;
+  handleConfirmBtn(locked);
+}
+
+function PinUnlock(id) {
+  //console.log(id);
+  //console.log("locked?", locked);
+  var modal = document.getElementById("modalPin");
+  modal.style.display = "block";
+  
+  var cb = document.getElementById("cbHidePin");
+  cb.checked = true;
+  handlePinVisibility(cb.checked);
+  
+  var txtPin = document.getElementById("txtPin");
+  txtPin.value = "";  
+  txtPin.focus();
+}
+
+function switchPinFocus(value) {
+  //console.log(value);
+  if (value.length >= 4) document.getElementById("btnPinConfirm").focus();
+}
+
+function handlePinVisibility(checked) {
+  //console.log(checked);
+  var txtPin = document.getElementById("txtPin");
+  checked ? txtPin.type = "password" : txtPin.type = "text";
+}
+
+function CheckPin() {
+  var txtPin = document.getElementById("txtPin");
+  let hash = readFromTextFile(HASH_FILE);
+  //console.log(txtPin.value, md5(txtPin.value), hash);
+  if (md5(txtPin.value) == hash) {
+    locked = false;
+    ToggleBtnsPinLock("btnUnlock");
+  }
+  else {
+    locked = true;
+    alert("Pin Inkorrekt!");
+  }
+
+  handleConfirmBtn(locked);
+  CloseVisuModals();
+}
+
+function handleConfirmBtn(disable) {
+  //document.getElementById("btnFPConfirm").disabled = disable;
+}

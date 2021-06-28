@@ -40,7 +40,7 @@ function onKeyPress(button) {
 	}
 	
 	
-	if (activeTabID == "datenauswertung") {								//QH-Tab aktiv		
+	if (activeTabID != 'fernbedienung'/*== "datenauswertung"*/) {								//QH-Tab aktiv		
 		if (document.activeElement.id.length > 0) {						//Focus in InputFeld halten
 			focusedInput = document.activeElement;
 		}

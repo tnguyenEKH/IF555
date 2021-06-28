@@ -21,6 +21,7 @@ body {
     /* font-family: Helvetica, Arial, sans-serif; */
     font-family:monospace, 'Courier New';
     overflow:auto;
+	margin: 1vh;
 }
 
 
@@ -30,9 +31,9 @@ body {
     overflow: hidden;
     border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
-    border-radius: .5em;
+    border-radius: 1vh;
 	height: 7vh;
-	margin-bottom: .5em;
+	margin-bottom: 1vh;
 	font-family: sans-serif;
 }
 
@@ -87,17 +88,17 @@ body {
 		margin-top: 0.3em;
 		height: 1.5em;
 		white-space: nowrap;
-		animation: floatText 25s infinite linear;
-		/*padding-left: 15%; /*Initial offset*/	
+		animation: floatText 30s infinite linear;
+		padding-left: 100%; /*Initial offset*/
 	}
 
 	@keyframes floatText {
-		from {
+		/*from {
 			margin-left: 100%;
-		}
+		}*/
 		to {
-			margin-left: -70%;
-			/*transform: translateX(-100%);*/
+			/*margin-left: -70%;*/
+			transform: translateX(-100%);
 		}
 	}
 
@@ -108,7 +109,7 @@ body {
     display: none;
     /*border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
-	font-size: 3vh;
+	/*font-size: 3vh;									<<<AUSKOMMENTIERT JW*/ 
 	width: 99.95%;
 	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 	height: 90vh;

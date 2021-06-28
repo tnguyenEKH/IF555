@@ -87,16 +87,37 @@
 	</div>
 
 
-	<div id="visualisierungDisplay" class="tabcontent"><!-- style="height: 640px; width: 1300px">
-		<!----<div id="vimage" style="height: 630px;">
-		 <div id="voutsideWrapper"><!---->
-				<div id="vimgArea" class="vinsideWrapper">
-					<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
-					<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
-					<canvas id="vtipCanvas" ></canvas>
-				</div>
-			<!----</div>
-		</div><!---->
+	<div id="visualisierungDisplay" class="tabcontent">
+		<button id="btnUnlock" class="btnToggleLock" onclick="PinUnlock(id)"><i class="fas fa-lock"></i></button>
+		<button id="btnLock" class="btnToggleLock" onclick="PinLock(id)"><i class="fa fa-unlock"></i></button>
+		<input id="vbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
+		<!-- Lock modal -->
+		<div id="modalPin" class="modalVisu" hidden>
+		  <div id="Pin-content" class="modalVisu-content">
+			<div class="modalVisu-header">
+			  <span id="xModalPin" class="close" onclick="CloseVisuModals()">&times;</span>
+			  <h4>Freischaltung der Bedienung</h4>
+			</div>
+			<div class="modalVisu-body">
+			  <label id="lblPin">Pin:</label>
+			  <input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
+
+			  <input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
+			  <label id="lblHidePin">Hide Pin</label></br>
+			</div>
+			<div class="modalVisu-footer">
+			  <button id="btnPinConfirm" class="modalVisuBtn" onclick="CheckPin()">OK</button>
+			  <button id="btnPinCancel" class="modalVisuBtn" onclick="CloseVisuModals()">Abbrechen</button>
+			</div>
+		  </div>
+		</div>
+		
+		<div id="vimgArea" class="vinsideWrapper">
+			<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
+			<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
+			<canvas id="vtipCanvas" ></canvas>
+		</div>
+		
 		<div id="vupdateStatus-bar" class="updateStatus-bar">
 			<bdi id="vupdateStatus-info"> </bdi>
 		</div>
@@ -368,7 +389,9 @@
 	<!-- script to manage virtual keyboard -->
 	<script src="Scripts/VirtualKeyboard/index.js"></script>
 	<script src="Scripts/VirtualKeyboard/loadKeyboard.js"></script>
-
+	<!-- script to manage md5 -->
+	<script src="Scripts/md5.min.js"></script>
+	<!-- script to manage pdf Viewer -->
 	<script src="Scripts/pdf.js"></script>
 	
 	
