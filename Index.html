@@ -10,7 +10,6 @@
 	<link href="Content/main.css" rel="stylesheet" />
 	<link href="Content/sidebar.css" rel="stylesheet" />
 	<!--<link href="Content/bootstrap.min.css" rel="stylesheet" />-->
-	<link href="Content/bootstrap-datepicker.css" rel="stylesheet" />
 	<link href="Content/visu.css" rel="stylesheet" />
 	<link href="Content/QHView.css" rel="stylesheet" />
 	<link href="Content/pdfReader.css" rel="stylesheet" />
@@ -131,6 +130,27 @@
                 </div>
             </div>
        <!--end modal zähler-->
+	   
+	   <!-- Modal für Einstellwerte-->
+		 <div id="FP_HK" class="modalVisu" hidden>
+		  <!-- FP content -->
+		  <div id="FP-content" class="modalVisu-content">
+			<div class="modalVisu-header">
+			  <span class="close">&times;</span>
+			  <h4 id="FP_header"></h4>
+			</div>
+			<div id="modalVisuBody" class="modalVisu-body">
+
+			</div>
+			<div class="modalVisu-footer">
+			  <button id="btnSend" onclick ="sendValueFromVisuToRtos()">Übernehmen</button>
+			  <button id="btnCancel" onclick="closeVisuSettingsModal()">Abbrechen</button>
+			</div>
+		  </div>
+
+		</div>
+		<!--end modal einstellwerte-->
+	   
 	</div>
 
 

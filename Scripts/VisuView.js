@@ -44,6 +44,11 @@ var yZaehlerButtonNeuMin;
 var yZaehlerButtonNeuMax;
 
 
+//Einstellungen Visualisierungen
+var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
+var ClickableElement = [];		   /*SettingsFromVisualisierung*/
+var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
+var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
 function copyToClip() {
 	// Create new element
 	var el = document.createElement('textarea');
@@ -123,6 +128,9 @@ function initVisu()
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
 	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
+	
+	addClickableElementToList(visudata);			/*SettingsFromVisualisierung*/
+	
 	prj = visudata.VCOData.Projektnumer;
 
 	// Tooltips einlesen
@@ -164,6 +172,123 @@ function startVisu() {
 	DrawVisu(true);
 	//findLabelAnstehendeStoerung();
 	//getCoordinateOfCanvasButton();
+}
+
+
+function addClickableElementToList(visudata) {
+	for (var i = 0; i < visudata.DropList.length; i++) {
+		if (visudata.DropList[i].VCOItem.clickable == true) {
+			var item = new Object();
+			item["x"] = visudata.DropList[i].x;
+			item["y"] = visudata.DropList[i].y;
+			item["clickable"] = true;
+			item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
+			item["id"] = visudata.DropList[i].VCOItem.iD.trim();
+			item["h"] = visudata.DropList[i].BgHeight;
+			item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
+			if (item["Bezeichnung"] == "HK") {
+				item["radius"] = 18;
+
+			}
+			if (item["Bezeichnung"] == "PMP") {
+
+			}
+
+			if (item["Bezeichnung"] == "MI") {
+
+			}
+
+			createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
+			ClickableElementList.push(item);
+		}
+	}    
+}
+
+
+function closeVisuSettingsModal() {
+	var modal = document.getElementById('FP_HK');
+	modal.style.display = 'none';
+}
+
+function createLinkForClickableElement(id) {
+	var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' +id ;
+	ClickableElementUrlList.push(link);
+}
+
+function addLinkButtonToList(visudata) {
+	var FreitextList = visudata.FreitextList;
+	var n = FreitextList.length;
+	for (var i = 0; i < n; i++) {
+		var item = new Object();
+		var freiTextListItem = FreitextList[i];
+		var x = freiTextListItem.x;
+		var y = freiTextListItem.y;
+		var txt = freiTextListItem.Freitext;
+		var w = ctx.measureText(txt).width;
+		var h = freiTextListItem.BgHeight;
+		var orientation = freiTextListItem.VerweisAusrichtung;
+		var targetBmp = freiTextListItem.idxVerweisBitmap;
+		
+		item["x"] = freiTextListItem.x;
+		item["y"] = freiTextListItem.y;
+
+		if (orientation == "hor") {
+			item["x_min"] = x - 6;
+			item["y_min"] = y - h - 6;
+			item["x_max"] = x + w + 16;
+			item["y_max"] = y + 6;
+			item["bmp"] = targetBmp;
+			item["text"] = txt;
+		}
+		if (orientation == "up") {
+			item["x_min"] = x - h - 16;
+			item["y_min"] = y - w - 16;
+			item["x_max"] = x + 6;
+			item["y_max"] = y + 6;
+			item["bmp"] = targetBmp;
+			item["text"] = txt;
+		}
+
+		if (orientation == "dn") {
+			item["x_min"] = x - 6;
+			item["y_min"] = y - 6;
+			item["x_max"] = x + h + 16;
+			item["y_max"] = y + w + 6;
+			item["bmp"] = targetBmp;
+			item["text"] = txt;
+		}
+		LinkButtonList.push(item);
+	}
+}
+
+// Linkbutton in Liste eintragen
+function addClickableElementToList(visudata) {
+	for (var i = 0; i < visudata.DropList.length; i++) {
+		if (visudata.DropList[i].VCOItem.clickable == true) {
+			var item = new Object();
+			item["x"] = visudata.DropList[i].x;
+			item["y"] = visudata.DropList[i].y;
+			item["clickable"] = true;
+			item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
+			item["id"] = visudata.DropList[i].VCOItem.iD.trim();
+			item["h"] = visudata.DropList[i].BgHeight;
+			item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
+			if (item["Bezeichnung"] == "HK") {
+				item["radius"] = 18;
+
+			}
+			if (item["Bezeichnung"] == "PMP") {
+
+			}
+
+			if (item["Bezeichnung"] == "MI") {
+
+			}
+
+			createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
+			ClickableElementList.push(item);
+		}
+	}    
 }
 
 
@@ -1114,6 +1239,15 @@ function globalTimer() {
 
 // Diverse Zeichenfunktionen wie im Editor
 
+function Heizkreis(vDynCtx, x, y, scale) {
+    vDynCtx.save();
+    vDynCtx.lineWidth = 1;
+    vDynCtx.translate(x, y);
+    vDynCtx.beginPath();
+    vDynCtx.arc(0, 0, 18, 0, 2 * Math.PI);
+    vDynCtx.stroke();
+    vDynCtx.restore();
+}
 
 function Absenkung(vDynCtx, x, y, scale, active) {
 	vDynCtx.save();
@@ -1354,8 +1488,140 @@ function handleMouseDown(e) {
 			}
 		}
 	}
+
+
+
+	/*SettingsFromVisualisierung*/
+	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
+
+	var n = ClickableElementList.length;
+	for (var i = 0; i < n; i++) {
+	var item = ClickableElementList[i];
+
+	//check bitmap referenz to avoid interferenz between layer
+	var currentBitmapIndex = bmpIndex;
+	//testing click event for HK (a cicle, radius is 18)
+	if ((item.Bezeichnung == "HK") && (item.bitmapIndex == currentBitmapIndex)) {
+		dx = mx - item.x;
+		dy = my - item.y;
+		if (dx * dx + dy * dy < item.radius * item.radius) {
+			var clickableElementUrl;
+
+			//search in the link list of clickable element base on unique id to find out the coresspondent link 
+			for (var i = 0; i < ClickableElementUrlList.length; i++) {
+				if (ClickableElementUrlList[i].indexOf(item.id) >= 0) {
+					clickableElementUrl = ClickableElementUrlList[i];
+				}
+			}
+
+			/*query the available adjustable params from RTOS in two step
+				1. tell the RTOS-Webserver, which elemente will be queried
+				2. wait "300ms" and get the information provided by RTOS-Webserver
+			*/
+			var test = createEinstellbareObject(item.id);
+			getData(clickableElementUrl);
+
+			var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
+
+			//set id for the visuEinstellungOutsideWrapper
+			//this id will be use later, when value are send back to rtos webserver
+			//var div = document.getElementsByClassName('visuEinstellungOutsideWrapper')[0];
+			//div.id = adjustmentOption["v070"].substr(0, 5);
+
+			//create object for the setting
+			//the id v070 was not formated as other row, so is must be out of the loop
+			var item = new Object();
+			item["id"] = adjustmentOption["v070"].substr(0, 5);
+			item["wert"] = adjustmentOption["v070"].substring(5);
+
+			var modalId = adjustmentOption["v070"].substr(0, 5);
+
+			ClickableElement.push(item);
+
+			//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+			for (var i = 71; i < 90; i++) {
+				var rtosVariable = "v0" + i;
+				var option = adjustmentOption[rtosVariable];
+				var item = new Object();
+				item['name'] = option.substr(0, 24)
+				item['wert'] = option.substr(24,10);
+				item["oberGrenze"] = option.substr(36,5);
+				item["unterGrenze"] = option.substr(42,5);
+				item["nachKommaStellen"] = option.substr(48,1);
+				item["einheit"] = option.substr(50,5);
+				item["lastItem"] = option.substr(59, 1);
+				ClickableElement.push(item);
+			}
+			//render the modal
+			var modal = document.getElementById('FP_HK');
+			var modalHeader = document.getElementById('FP_header');
+			modalHeader.innerHTML = 'Einstellungen für ' + ClickableElement[0].id;
+			var modalBody = document.getElementById('modalVisuBody');
+
+			var div = document.createElement('div');
+			div.id = 'v090';
+			var lblName = document.createElement('label');
+			lblName.innerHTML = "Name/Alias";
+
+			//modalBody.appendChild(lblName);
+			div.appendChild(lblName);
+
+			var textBoxName = document.createElement('input');
+			textBoxName.type = 'text';
+			textBoxName.value = ClickableElement[0].wert ;
+			//modalBody.appendChild(textBoxName);
+			div.appendChild(textBoxName);
+			modalBody.appendChild(div);
+			//modalBody.appendChild(document.createElement('br'));
+
+			for (var j = 1; j < ClickableElement.length ; j++) {
+				var lblName = document.createElement('label');
+				lblName.innerHTML = ClickableElement[j].name;
+				modalBody.appendChild(lblName);
+
+				var textBoxName = document.createElement('input');
+				textBoxName.type = 'text';
+				textBoxName.value = ClickableElement[j].wert ;
+				modalBody.appendChild(textBoxName);
+				modalBody.appendChild(document.createElement('br'));
+			}
+
+			modal.style.display = "block";
+		}
+		else {
+
+		}
+	}
+	if (item.Bezeichnung == "PMP") {
+
+	}
+
+	}
+	
 }
 
+
+
+function createEinstellbareObject(id) {
+	var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' + id;
+	getData(link);
+		
+	var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
+	var einstellbaresObjekt = new Object();
+	einstellbaresObjekt['id'] = adjustmentOption['v070'].substring(0, 5);
+	//create object for the setting
+	for (var i = 71; i < 90; i++) {
+
+		var rtosVariable = "v0" + i;
+		einstellbaresObjekt[adjustmentOption[rtosVariable].substr(0, 23)] = adjustmentOption[rtosVariable].substr(24, 10);
+		einstellbaresObjekt['einstellungWert'] = adjustmentOption[rtosVariable].substr(24, 10);
+		einstellbaresObjekt['einstellungOberGrenze'] = adjustmentOption[rtosVariable].substr(36, 5);
+		einstellbaresObjekt['einstellungUnterGrenze'] = adjustmentOption[rtosVariable].substr(42, 5);
+		einstellbaresObjekt['einstellungNachkommaStellen'] = adjustmentOption[rtosVariable].substr(48, 1);
+	}
+
+	return einstellbaresObjekt;
+}
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
 function DrawVisu(redrawStat = false) {
@@ -1527,6 +1793,14 @@ function drawVCOItem(item) {
 		}
 		else {
 			if (vco.isBool) {
+
+				/*SettingsFromVisualisierung*/
+				if (item.Symbol == "Heizkreis") {
+					if (svalue.trim() == "1")
+						Heizkreis(vDynCtx, item.x, item.y, 1);
+					else
+						Heizkreis(vDynCtx, item.x, item.y, 1);
+				}
 
 				if (item.Symbol == "Absenkung") {
 					if (svalue.trim() == "1")
