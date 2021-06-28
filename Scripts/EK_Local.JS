@@ -7,6 +7,7 @@ var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
 var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
 var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
 var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
+const HASH_FILE = '../SD_DATA/hash.txt';
 var Projektname = 'Köster Einrichtung';
 var projektnummer ="";
 var numberOfDataTrack;
@@ -1311,6 +1312,7 @@ function tabIdHanlder(evt, id)
 
   //die Visualisierung bzw. 1/4h Datenauswertung starten, wenn der entsprechende Tab angeklickt wird
     if (id == "visualisierung") {
+		setNumlock();							//osk-layout auf Numpad wechseln
         startVisu();
 		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
     }
@@ -1318,6 +1320,7 @@ function tabIdHanlder(evt, id)
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
 	}
 	if (id == "fernbedienung") {
+		resetNumlock();							//osk-Numpad-layout zurücksetzen
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50); // Aktivieren  der Datenabholung der Fernbedienung 
 		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
 		
@@ -1331,9 +1334,7 @@ function tabIdHanlder(evt, id)
 		setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
     }
-	if (id != "datenauswertung") {
-		resetNumlock();
-    }
+	
   
   /*wegen des kleine Display  wird div#benachrichtigung nur angezeit, wenn das Modul fernbedienung aktiv ist
     für  visu und 1/4h daten wird das ausgeblendet
@@ -1396,7 +1397,7 @@ function AnchorHandler(id) {
 /*****************Hanler für Button Click ******************/
 function EthernetButtonHanlder(id) {      /* <<< */
   
-  if (id == "btnVirtualKeyboard" || id == "qbtnVirtualKeyboard" ) {
+  if (id.includes("btnVirtualKeyboard")) {
 	  var osk = document.getElementById("osk");
 	  if (osk.style.display == "none") {
 		  showElemementById("osk");

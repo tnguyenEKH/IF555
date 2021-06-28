@@ -1,6 +1,32 @@
 #visualisierungDisplay {
 	overflow-x: hidden; /*canvas ragt über png in x-richtung hinaus-> scroll-x unterdrücken*/
 }
+	
+	#vbtnVirtualKeyboard {
+		position: absolute;
+		top: 10vh;
+		right: 6vh;
+	}
+	
+	.btnToggleLock {
+	  font-size: 3vh;
+	  position: absolute;
+	  top: 10vh;
+	  right: 2vh;
+	}
+	
+	.btnToggleLock:hover {
+		cursor: pointer;
+	}
+
+	#btnUnlock {
+	  color: #C31D64;
+	}
+
+	#btnLock {
+	  display: none;
+	  color: #1F94B9;
+	}
 
 	.vinsideWrapper
 	{
@@ -146,3 +172,132 @@
 				width: 200px;
 				background-color:aquamarine;
 			}
+			
+			
+	/* Modal Pin/FP (background) */
+	.modalVisu {
+	  display: none; /* Hidden by default */
+	  position: fixed; /* Stay in place */
+	  z-index: 1; /* Sit on top */
+	  /*padding-top: 100px; /* Location of the box */
+	  left: 0;
+	  top: 0;
+	  width: 100%; /* Full width */
+	  height: 100%; /* Full height */
+	  overflow: auto; /* Enable scroll if needed */
+	  background-color: rgb(0,0,0); /* Fallback color */
+	  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+	}
+	
+	/* Add Animation */
+	@-webkit-keyframes animatetop {
+	  from {top:-300px; opacity:0} 
+	  to {top:0; opacity:1}
+	}
+
+	@keyframes animatetop {
+	  from {top:-300px; opacity:0}
+	  to {top:0; opacity:1}
+	}
+
+
+		/* Pin/FP Content */
+		#Pin-content {
+		  position: absolute;
+		  top: 1vh;
+		  right: 7vh;
+		  width: 330px;
+		}
+		
+		.modalVisu-content {
+		  position: absolute;
+		  background-color: #fefefe;
+		  margin: auto;
+		  padding: 0;
+		  border: 1px solid #888;
+		  width: 400px;   /*550px*/
+		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+		  -webkit-animation-name: animatetop;
+		  -webkit-animation-duration: 0.4s;
+		  animation-name: animatetop;
+		  animation-duration: 0.4s
+		}
+		
+			.modalVisu-content button:hover {
+			  cursor: pointer;
+			}
+
+			.modalVisu-content button:disabled {
+			  cursor: default;
+			}
+
+		
+			.modalVisu-header {
+			  text-align: center;
+			  padding: 2px 16px;
+			  background-color: #1F94B9/*#5cb85c*/;
+			  color: #fefefe;/* white;*/
+			}
+			
+				/* The Close Button */
+				.close {
+				  color: #fefefe;/* white;*/
+				  float: right;
+				  font-size: 28px;
+				  font-weight: bold;
+				}
+
+				.close:hover,
+				.close:focus {
+				  /*color: black;*/
+				  color: #C31D64;
+				  text-decoration: none;
+				  cursor: pointer;
+				}
+				
+				
+			.modalVisu-body {
+			  padding: 2px 13px;  
+			}
+
+				.modalVisu-body [for="id"] {
+				  display: inline-block;
+				  width: 152px;
+				  text-align: right;
+				  
+				}
+
+				.modalVisu-body [for="unit"] {
+				  display: inline-block;
+				  width: 52px;
+				  text-align: left;
+				}
+
+				.modalVisu-body /*select,*/ input /*[type="text"]*/ {
+				  width: 152px;
+				  margin: 1px 0px;
+				  background-color: #fefefe;
+				}
+
+				.modalVisu-body button {
+				  height: 50px;
+				  width: 50px;
+				}
+				
+				
+			.modalVisu-footer {
+			  padding: 2px 16px;
+			  background-color: #1F94B9/*#5cb85c*/;
+			  color: #fefefe;/* white;*/
+			}
+
+		
+
+		
+		
+
+		
+
+		
+
+		
