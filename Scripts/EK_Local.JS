@@ -2,13 +2,16 @@
 var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
 var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
 var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V064';
+var getSteuerungNameUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V065';
 var uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
 var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
 var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
 var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
 var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
+
 const HASH_FILE = '../SD_DATA/hash.txt';
-var Projektname = 'Köster Einrichtung';
+var Projektname = '';
+
 var projektnummer ="";
 var numberOfDataTrack;
 var visuAutoReload;
@@ -54,18 +57,22 @@ const slp_pdf = new PDF_file('../SD_DATA/SLP.pdf', 'slp');
 
 
 $(document).ready(function () {
-	/*Projektnummer*/
-	projektnummer = readFromTextFile(QHHeaderFile).substr(0,5);
-	QHDataFile = "http://172.16.0.101/Data/" + projektnummer.substr(1) + ".bin";
-	
-	
   /*Initialize table, layout, static variable....*/
+	projektnummer = readFromTextFile(QHHeaderFile).substr(0,5);
+	Projektname = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
+	QHDataFile = "http://172.16.0.101/Data/" + projektnummer.substr(1) + ".bin";
   
   /***********Layout************/
 	// Table wird nicht mehr verwendet, da die Darstellung auf dem Canvas zum Einsatz kommt
 	//tableBuilder(22);
-	refreshTextAreaWithoutParameterLocal();
-	updateBenachrichtigung();
+
+	
+	  /***********Operating******************/
+  //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
+	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
+    updateBenachrichtigung();
+    benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 1000);		// Aktivieren der Aktualiserung der Benachrichtigung
+	
   /**********Visualization*/
 	initVisu();
   
@@ -76,9 +83,7 @@ $(document).ready(function () {
 	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
 
   
-  /***********Operating******************/
-  //function innerhalb setInterval soll keine Parameter und Rückgabewerten besitzen
-	//var t = setInterval(refreshTextAreaWithoutParameterLocal, 50);  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
+
 
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
@@ -91,10 +96,6 @@ $(document).ready(function () {
 	callReader(bedien_pdf);
 	callReader(slp_pdf);
 });
-
-
-
-
 
 /************Get all JSON from dataURL*************************************/
 function getData(url) {
@@ -115,8 +116,10 @@ function readFromTextFile(fileName) {
   var xhr = new XMLHttpRequest();
   xhr.overrideMimeType('text/plain; charset=Windows-1252')
   xhr.open("GET", fileName, false);
-  if (fileName != QHSettingFile) xhr.setRequestHeader('Cache-Control', 'no-cache');		//aktive Cacheunterdrückung, außer für QHSettingFile (Workaround CORS Fehler)
-  
+  if (fileName != QHSettingFile)
+  {
+	    xhr.setRequestHeader('Cache-Control', 'no-cache');
+  }
   //exception handling
   try
   {
