@@ -42,8 +42,8 @@ var xZaehlerButtonNeuMin;
 var xZaehlerButtonNeuMax;
 var yZaehlerButtonNeuMin;
 var yZaehlerButtonNeuMax;
+var match;
 
-var testPin = '0815';
 
 
 //Einstellungen Visualisierungen
@@ -51,6 +51,7 @@ var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Va
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
+var currentID;
 function copyToClip() {
 	// Create new element
 	var el = document.createElement('textarea');
@@ -204,12 +205,6 @@ function addClickableElementToList(visudata) {
 			ClickableElementList.push(item);
 		}
 	}    
-}
-
-
-function closeVisuSettingsModal() {
-	var modal = document.getElementById('FP_HK');
-	modal.style.display = 'none';
 }
 
 function createLinkForClickableElement(id) {
@@ -1132,7 +1127,7 @@ function handleMouseMove(e) {
 	var	mouseY = parseInt(e.clientY - canvasOffsetY);
 	
 	var currentBmpIndex = bmpIndex;
-	var match = false;
+	match = false;
 	var matchTT = false;
 	
 	for (var i = 0; i < LinkButtonList.length; i++) {
@@ -1473,133 +1468,29 @@ function handleMouseDown(e) {
 	mx = parseInt(e.clientX - canvasOffsetX);
 	my = parseInt(e.clientY - canvasOffsetY);
 	var n = LinkButtonList.length;
-	for (var i = 0; i < n; i++) {
-		var item = LinkButtonList[i];
-		if (mx > item.x_min && mx < item.x_max && my > item.y_min && my < item.y_max) {
-			//log(item.x + " " + item.y);
-			//log(item.x_min + " " + item.x_max + " " + item.y_min + " " + item.y_max + " - " + mx + " / " + my);
-			
-			/*bmpIndex = item.bmp;
-			setBitmap(bmpIndex);
-			requestDrawing();*/
-			
-			if (bmpIndex != item.bmp) {
-				requestDrawing();
-				bmpIndex = item.bmp;
+	match = false;							//Flag zur Click-treffer Erkennung (es ist nicht davon auszugehen, dass es keine doppelten Click-treffer gibt!)
+	if (!match) {
+		for (var i = 0; i < n; i++) {
+			var item = LinkButtonList[i];
+			if (mx > item.x_min && mx < item.x_max && my > item.y_min && my < item.y_max) {
+				match = true;
+				//log(item.x + " " + item.y);
+				//log(item.x_min + " " + item.x_max + " " + item.y_min + " " + item.y_max + " - " + mx + " / " + my);
+				
+				/*bmpIndex = item.bmp;
 				setBitmap(bmpIndex);
-			}
-		}
-	}
-
-
-
-	/*SettingsFromVisualisierung*/
-	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
-
-	var n = ClickableElementList.length;
-	for (var i = 0; i < n; i++) {
-	var item = ClickableElementList[i];
-
-	//check bitmap referenz to avoid interferenz between layer
-	var currentBitmapIndex = bmpIndex;
-	//testing click event for HK (a cicle, radius is 18)
-	if ((item.Bezeichnung == "HK") && (item.bitmapIndex == currentBitmapIndex)) {
-		dx = mx - item.x;
-		dy = my - item.y;
-		if (dx * dx + dy * dy < item.radius * item.radius) {
-			var clickableElementUrl;
-
-			//search in the link list of clickable element base on unique id to find out the coresspondent link 
-			for (var i = 0; i < ClickableElementUrlList.length; i++) {
-				if (ClickableElementUrlList[i].indexOf(item.id) >= 0) {
-					clickableElementUrl = ClickableElementUrlList[i];
+				requestDrawing();*/
+				
+				if (bmpIndex != item.bmp) {
+					requestDrawing();
+					bmpIndex = item.bmp;
+					setBitmap(bmpIndex);
 				}
 			}
-
-			/*query the available adjustable params from RTOS in two step
-				1. tell the RTOS-Webserver, which elemente will be queried
-				2. wait "300ms" and get the information provided by RTOS-Webserver
-			*/
-			var test = createEinstellbareObject(item.id);
-			getData(clickableElementUrl);
-
-			var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
-
-			//set id for the visuEinstellungOutsideWrapper
-			//this id will be use later, when value are send back to rtos webserver
-			//var div = document.getElementsByClassName('visuEinstellungOutsideWrapper')[0];
-			//div.id = adjustmentOption["v070"].substr(0, 5);
-
-			//create object for the setting
-			//the id v070 was not formated as other row, so is must be out of the loop
-			var item = new Object();
-			item["id"] = adjustmentOption["v070"].substr(0, 5);
-			item["wert"] = adjustmentOption["v070"].substring(5);
-
-			var modalId = adjustmentOption["v070"].substr(0, 5);
-
-			ClickableElement.push(item);
-
-			//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-			for (var i = 71; i < 90; i++) {
-				var rtosVariable = "v0" + i;
-				var option = adjustmentOption[rtosVariable];
-				var item = new Object();
-				item['name'] = option.substr(0, 24)
-				item['wert'] = option.substr(24,10);
-				item["oberGrenze"] = option.substr(36,5);
-				item["unterGrenze"] = option.substr(42,5);
-				item["nachKommaStellen"] = option.substr(48,1);
-				item["einheit"] = option.substr(50,5);
-				item["lastItem"] = option.substr(59, 1);
-				ClickableElement.push(item);
-			}
-			//render the modal
-			var modal = document.getElementById('FP_HK');
-			var modalHeader = document.getElementById('FP_header');
-			modalHeader.innerHTML = 'Einstellungen für ' + ClickableElement[0].id;
-			var modalBody = document.getElementById('modalVisuBody');
-
-			var div = document.createElement('div');
-			div.id = 'v090';
-			var lblName = document.createElement('label');
-			lblName.innerHTML = "Name/Alias";
-
-			//modalBody.appendChild(lblName);
-			div.appendChild(lblName);
-
-			var textBoxName = document.createElement('input');
-			textBoxName.type = 'text';
-			textBoxName.value = ClickableElement[0].wert ;
-			//modalBody.appendChild(textBoxName);
-			div.appendChild(textBoxName);
-			modalBody.appendChild(div);
-			//modalBody.appendChild(document.createElement('br'));
-
-			for (var j = 1; j < ClickableElement.length ; j++) {
-				var lblName = document.createElement('label');
-				lblName.innerHTML = ClickableElement[j].name;
-				modalBody.appendChild(lblName);
-
-				var textBoxName = document.createElement('input');
-				textBoxName.type = 'text';
-				textBoxName.value = ClickableElement[j].wert ;
-				modalBody.appendChild(textBoxName);
-				modalBody.appendChild(document.createElement('br'));
-			}
-
-			modal.style.display = "block";
 		}
-		else {
-
-		}
-	}
-	if (item.Bezeichnung == "PMP") {
-
-	}
-
 	}
 	
+	if (!match) openFaceplate();	
 }
 
 
@@ -2056,18 +1947,34 @@ function simVideoStream() {
 /*Ab hier Visu Bedienung:*/
 // When the user clicks anywhere outside of the Modal, close it
 window.onclick = function(event) {
-  var modals = Array.from(document.getElementsByClassName("modalVisu"));
+  var modals = Array.from(document.getElementsByClassName("modalVisuBg"));
   modals.forEach(function(el) {
-    if (el == event.target) el.style.display = "none";
+    if (el == event.target) {
+		if (el.id.includes('fp')) closeFaceplate();
+		if (el.id.includes('Pin')) closePinModal();
+	}
   });
 }
 
-function CloseVisuModals() {
-  var modals = Array.from(document.getElementsByClassName("modalVisu"));
-  modals.forEach(el => el.style.display = "none");
+function closeFaceplate() {
+	var modal = document.getElementById("fpBg");
+	modal.style.display = 'none';
+	destroyFaceplate();
 }
 
-function ToggleBtnsPinLock(id) {
+function destroyFaceplate() {
+	var modalBody = document.getElementById('fpBody');
+	while (modalBody.firstChild) {
+		modalBody.removeChild(modalBody.firstChild);
+	}	
+}
+
+function closePinModal() {
+	var modal = document.getElementById("modalPinBg");
+	modal.style.display = 'none';
+}
+
+function toggleBtnsPinLock(id) {
   var btn = document.getElementById(id);
   var relatedBtns = Array.from(document.getElementsByClassName(btn.className));
   
@@ -2075,19 +1982,19 @@ function ToggleBtnsPinLock(id) {
   btn.style.display = "none";
 }
 
-function PinLock(id) {
+function pinLock(id) {
   //console.log(id);
   //console.log("locked?", locked);
-  ToggleBtnsPinLock(id);
+  toggleBtnsPinLock(id);
 
   locked = true;
   handleConfirmBtn(locked);
 }
 
-function PinUnlock(id) {
+function pinUnlock(id) {
   //console.log(id);
   //console.log("locked?", locked);
-  var modal = document.getElementById("modalPin");
+  var modal = document.getElementById("modalPinBg");
   modal.style.display = "block";
   
   var cb = document.getElementById("cbHidePin");
@@ -2110,13 +2017,13 @@ function handlePinVisibility(checked) {
   checked ? txtPin.type = "password" : txtPin.type = "text";
 }
 
-function CheckPin() {
+function checkPin() {
   var txtPin = document.getElementById("txtPin");
   let hash = readFromTextFile(HASH_FILE);
   //console.log(txtPin.value, md5(txtPin.value), hash);
   if (md5(txtPin.value) == hash) {
     locked = false;
-    ToggleBtnsPinLock("btnUnlock");
+    toggleBtnsPinLock("btnUnlock");
   }
   else {
     locked = true;
@@ -2124,9 +2031,490 @@ function CheckPin() {
   }
 
   handleConfirmBtn(locked);
-  CloseVisuModals();
+  closePinModal();
 }
 
 function handleConfirmBtn(disable) {
-  //document.getElementById("btnFPConfirm").disabled = disable;
+  document.getElementById("btnFaceplateConfirm").disabled = disable;
+}
+
+function updateSliderValue(event) {
+	var slider;
+	(typeof event) == 'string' ? slider = document.getElementById(event) : slider = document.getElementById(event.target.id);
+	
+	//aktuellen SliderWert in lblUnit schreiben
+	(slider.nextSibling.textContent == 'mWs') ? slider.nextSibling.textContent = slider.value + ' mWs' : slider.nextSibling.textContent = slider.value + ' %';
+}
+
+function RadioBtnBehaviorByName(id) {
+  var btn = document.getElementById(id);  
+  var relatedBtns = document.getElementsByName(btn.name);
+  
+  relatedBtns.forEach(el => (el.id == id) ? el.disabled = true : el.disabled = false);
+}
+
+function BetriebsartBtnHanlder(event) {
+  //event darf auch ein ID-String sein!
+  var btn;
+  (typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
+  (typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
+
+  if(btn.id == "btnPmpHandAus") {		//Wenn Pumpe ausgeschaltet wird => HK aus!
+	btn = document.getElementById("btnHKHandAus");
+	RadioBtnBehaviorByName(btn.id);
+  }
+
+  if (btn.name == "btnHK") {    //BA HK geändert->Mi&Pu auf Auto
+    var relatedBtns = Array.from(document.getElementsByClassName("btnAuto"));
+    relatedBtns.forEach(function(el) {
+      if (el.name != "btnHK") RadioBtnBehaviorByName(el.id);
+    });
+  }
+  
+  if (btn.id == "btnHKAuto") {    //BtnBAPmp sperren
+    var name = document.getElementsByName("btnPmp");
+    name.forEach(function (el) {
+      el.disabled = true;
+      if (!(el.className.includes("NA"))) el.className += "NA";
+    });
+	
+	//geänderte Werte in beide inputWert-Elemente übernehmen
+	document.getElementById('inputWertBetriebsart').value = '0';
+  }
+  
+  if (btn.id == "btnHKHandAus") {    //BtnBAPmp sperren
+    var name = document.getElementsByName("btnPmp");
+    name.forEach(function (el) {
+      el.disabled = true;
+      if (!(el.className.includes("NA"))) el.className += "NA";
+    });
+	
+	//geänderte Werte in beide inputWert-Elemente übernehmen
+	document.getElementById('inputWertBetriebsart').value = '-1';
+  }
+
+  if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
+    var name = document.getElementsByName("btnPmp");
+    name.forEach(function (el) {
+      el.className = el.className.replace("NA","");
+      if (el.className != "btnAuto") el.disabled = false;
+    });
+	
+	//Wert aus 'Pumpen Handwert' nach inputWert-Betriebsart-Element übernehmen
+	document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertPumpen Handwert').value;
+  }
+}
+
+function sendValueFromVisuToRtos() {
+	//bla
+	var sendToRtosArray = [];
+	console.log(ClickableElement);
+	var faceplateBody = document.getElementById('fpBody');
+	var faceplateBodyList = Array.from(faceplateBody.children);	
+	faceplateBodyList.forEach(function(div) {
+		var idx = parseInt(div.id.slice(-3)) - 90;
+		div.childNodes.forEach(function(el) {
+			if (el.className == 'inputWert') {
+				if (idx == 0) {
+					ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
+				}
+				else {					
+					//Numerische Validierung
+					var value = parseFloat(el.value);
+					if (!isNaN(value) && el.value.trim() != '') {		//Wenn nicht leer und Fehlerfrei: neuen rtos-Wert prüfen & überschreiben
+						//Wertebereich prüfen und ggf. korrigieren
+						var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
+						var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
+						if (value < unterGrenze) el.value = unterGrenze.toString();//ClickableElement[idx].unterGrenze;
+						if (value > oberGrenze) el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
+					
+						var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
+						ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
+						if (returnValue.length > 1) {
+							ClickableElement[idx].wert += returnValue[1].padStart(4, '0').slice(0, 4);
+						}
+						else {
+							ClickableElement[idx].wert += '0000';
+						}
+					}
+				}
+			}
+		});
+	});
+			
+	for (var i=0; i<20 ; i++) {
+		(i == 0) ? sendToRtosArray[i] = (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ') :		//1.Zeile auffüllen auf 60 Zeichen
+		sendToRtosArray[i] = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
+		ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
+		console.log(sendToRtosArray[i], sendToRtosArray[i].length);
+	}
+	//console.log(sendToRtosArray, sendToRtosArray.length);
+	closeFaceplate();
+}
+
+function openFaceplate() {
+		/*SettingsFromVisualisierung*/
+	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
+
+	var n = ClickableElementList.length;
+	for (var i = 0; i < n; i++) {
+		var item = ClickableElementList[i];
+
+		//check bitmap referenz to avoid interferenz between layer
+		var currentBitmapIndex = bmpIndex;
+		//testing click event for HK (a cicle, radius is 18)
+		if ((item.Bezeichnung == "HK") && (item.bitmapIndex == currentBitmapIndex)) {
+			dx = mx - item.x;
+			dy = my - item.y;
+			if (dx * dx + dy * dy < item.radius * item.radius) {
+				match = true;
+				var matchItem = item;
+				var clickableElementUrl;
+
+				//search in the link list of clickable element base on unique id to find out the coresspondent link 
+				for (var j = 0; j < ClickableElementUrlList.length; j++) {
+					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
+						clickableElementUrl = ClickableElementUrlList[j];
+					}
+					//console.log(clickableElementUrl);
+				}
+
+				/*query the available adjustable params from RTOS in two step
+					1. tell the RTOS-Webserver, which elemente will be queried
+					2. wait "300ms" and get the information provided by RTOS-Webserver
+				*/
+				//var test = createEinstellbareObject(item.id);
+				getData(clickableElementUrl);
+
+				var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
+
+				
+				ClickableElement = [];
+				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+				for (var j = 70; j < 90; j++) {
+					var rtosVariable = "v0" + j;
+					var option = adjustmentOption[rtosVariable];
+					var item = new Object();
+					item['name'] = option.substr(0, 24);
+					if (j == 70) {
+						var modalId = item['name'].trim();
+						item['wert'] = option.substr(24,20)
+						item["oberGrenze"] = '';
+						item["unterGrenze"] = '';
+						item["nachKommaStellen"] = '';
+						item["einheit"] = '';
+						item["lastItem"] = option.substr(59, 1);
+					}
+					else {
+						item['wert'] = option.substr(24,10) ;
+						item["oberGrenze"] = option.substr(36,5);
+						item["unterGrenze"] = option.substr(42,5);
+						item["nachKommaStellen"] = option.substr(48,1);
+						item["einheit"] = option.substr(50,5);
+						item["lastItem"] = option.substr(59, 1);
+					}
+					//console.log(item);
+					ClickableElement.push(item);
+				}
+				
+				buildFaceplate();
+				
+			}	
+		}
+	
+		if (item.Bezeichnung == "PMP") {
+
+		}
+	
+	}
+	
+	if (match) showFaceplate(matchItem);//modal.style.display = "block";
+}
+
+function buildFaceplate() {
+	//render the modal
+	var modal = document.getElementById('fpBg');
+	var modalHeader = document.getElementById('txtFpHeader');
+	modalHeader.innerHTML = 'Einstellungen für ' + ClickableElement[0].name;
+	var modalBody = document.getElementById('fpBody');
+	
+
+	for (var j = 0; j < ClickableElement.length ; j++) {
+		
+		var div = document.createElement('div');
+		div.id = 'v' + (j+90).toString().padStart(3,'0');
+		modalBody.appendChild(div);
+		
+		if (ClickableElement[j].name.trim() == '') {						//Für leere Zeilen nur inputWert versteckt im Faceplate einfügen (enthält leeren 'Rohwert aus ClickableElement)
+			var inputWert = document.createElement('input');
+			inputWert.type = 'text';
+			inputWert.value = ClickableElement[j].wert;
+			inputWert.className = 'inputWert';
+			inputWert.style.display = 'none';
+			div.appendChild(inputWert);
+		}
+		else {
+			
+			
+			
+			var lblName = document.createElement('label');
+			lblName.className = 'lblName';
+			
+			//ggf. Zwischenüberschrift einfügen
+			var h5 = document.createElement('h5');
+			var h6 = document.createElement('h6');
+			if (j == 0) {
+				h5.innerHTML = "HK Parameter:";
+				lblName.innerHTML = "Name/Alias";
+			}
+			else {
+				lblName.innerHTML = ClickableElement[j].name.trim();
+			}			
+			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = "HK Mischer Betriebsart";
+			if (ClickableElement[j].name.includes('20 &degC')) {	//Startindikator Sektor Pumpenkennlinie
+				h5.innerHTML = "HK Pumpenparameter:";				
+				h6.innerHTML = "Kennlinie (Außentemperatur):";							
+			}
+			if (ClickableElement[j].name.includes('HK Wochenkalender') && ClickableElement[j].wert.includes('1')) {	//Startindikator Sektor Wochenkalender & 
+				h5.innerHTML = "Wochenkalender:";
+			}
+			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
+			if (h5.innerHTML != '') div.appendChild(h5);
+			if (h6.innerHTML != '') div.appendChild(h6);
+			
+			div.appendChild(lblName);
+			
+			var inputWert = document.createElement('input');
+			if (j == 0) {
+				inputWert.type = 'text';
+				inputWert.maxlength = 20;
+				//console.log(inputWert);*/
+			}
+			else if(ClickableElement[j].name.includes('Pumpen Handwert')) {
+				inputWert.type = 'range';
+				inputWert.min = 2;
+				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
+				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
+				inputWert.oninput = updateSliderValue;
+			}
+			else {
+				inputWert.type = 'number';
+				inputWert.maxlength = 10;
+				inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
+				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
+				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
+			}
+			inputWert.value = ClickableElement[j].wert.trim();
+			inputWert.className = 'inputWert';
+			inputWert.id = inputWert.className + ClickableElement[j].name.trim();
+			div.appendChild(inputWert);
+			
+			var lblUnit = document.createElement('label');
+			lblUnit.innerHTML = ClickableElement[j].einheit.trim();
+			lblUnit.className = 'lblUnit';
+			div.appendChild(lblUnit);
+			
+			
+			if (ClickableElement[j].name.includes('Betriebsart')) {		//Indikator HK Betriebsart;
+				//HK Betriebsart merken, um Btn zu setzen
+				var HKBetriebsart = ClickableElement[j].wert.trim();
+				//inputWert & lblUnit ausblenden
+				div.childNodes.forEach(function(el) {
+					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+				});			
+				
+				var btnAuto = document.createElement('input');
+				btnAuto.type = 'button';
+				btnAuto.id = 'btnHKAuto';
+				btnAuto.className = 'btnAuto';
+				btnAuto.name = 'btnHK';
+				btnAuto.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnAuto);
+				
+				var btnHandEin = document.createElement('input');
+				btnHandEin.type = 'button';
+				btnHandEin.id = 'btnHKHandEin';
+				btnHandEin.className = 'btnHandEin';
+				btnHandEin.name = 'btnHK';
+				btnHandEin.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnHandEin);
+				
+				var btnHandAus = document.createElement('input');
+				btnHandAus.type = 'button';
+				btnHandAus.id = 'btnHKHandAus';
+				btnHandAus.className = 'btnHandAus';
+				btnHandAus.name = 'btnHK';
+				btnHandAus.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnHandAus);
+			}			
+			
+				
+			var FORCE_ANALOGMISCHER = false;
+			if (ClickableElement[j].name.includes('Mischer')) {
+				//lblUnit ausblenden (enthält info über Mischertyp, nicht %)
+				div.childNodes.forEach(function(el) {
+					if (el.className == 'lblUnit') el.style.display = 'none';
+				});
+				//dafür Hilfslabel erzeugen & br einfügen:
+				var lblUnitFaceplate = document.createElement('label');
+				lblUnitFaceplate.innerHTML = '%';
+				lblUnitFaceplate.className = 'lblUnitFaceplate';
+				div.appendChild(lblUnitFaceplate);
+				div.appendChild(document.createElement('br'));
+				
+				var lblNameFaceplate = document.createElement('label');
+				lblNameFaceplate.innerHTML = ClickableElement[j].name.trim() + ' Betriebsart';
+				lblNameFaceplate.className = 'lblNameFaceplate';
+				div.appendChild(lblNameFaceplate);
+				
+				var btnAuto = document.createElement('input');
+				btnAuto.type = 'button';
+				btnAuto.id = 'btnMischerAuto';
+				btnAuto.className = 'btnAuto';
+				btnAuto.name = 'btnMischer';
+				btnAuto.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnAuto);
+				
+				if (ClickableElement[j].einheit.includes('Ana') || FORCE_ANALOGMISCHER) {					
+					//Bei Analogmischer nur btnHand erzeugen
+					var btnHand = document.createElement('input');
+					btnHand.type = 'button';
+					btnHand.id = 'btnMischerHand';
+					btnHand.className = 'btnHand';
+					btnHand.name = 'btnMischer';
+					btnHand.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnHand);
+				}
+				
+				if (ClickableElement[j].einheit.includes('3P') && !FORCE_ANALOGMISCHER) {
+					//lblName, inputWert & lblUnitFaceplate zusätzlich ausblenden
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnitFaceplate') el.style.display = 'none';
+					});
+					
+					var btnHandAuf = document.createElement('input');
+					btnHandAuf.type = 'button';
+					btnHandAuf.id = 'btnMischerHandAuf';
+					btnHandAuf.className = 'btnHandAuf';
+					btnHandAuf.name = 'btnMischer';
+					btnHandAuf.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnHandAuf);
+					
+					var btnHandZu = document.createElement('input');
+					btnHandZu.type = 'button';
+					btnHandZu.id = 'btnMischerHandZu';
+					btnHandZu.className = 'btnHandZu';
+					btnHandZu.name = 'btnMischer';
+					btnHandZu.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnHandZu);
+					
+					var btnStopp = document.createElement('input');
+					btnStopp.type = 'button';
+					btnStopp.id = 'btnMischerStopp';
+					btnStopp.className = 'btnStopp';
+					btnStopp.name = 'btnMischer';
+					btnStopp.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnStopp);
+				}				
+			}
+			
+			
+			if (ClickableElement[j].name.includes('Pumpen Handwert')) {
+				div.appendChild(document.createElement('br'));
+				
+				var lblNameFaceplate = document.createElement('label');
+				lblNameFaceplate.innerHTML = 'Pumpen Betriebsart';
+				lblNameFaceplate.className = 'lblNameFaceplate';
+				div.appendChild(lblNameFaceplate);
+				
+				var btnAuto = document.createElement('input');
+				btnAuto.type = 'button';
+				btnAuto.id = 'btnPmpAuto';
+				btnAuto.className = 'btnAuto';
+				btnAuto.name = 'btnPmp';
+				btnAuto.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnAuto);
+				
+				var btnHandEin = document.createElement('input');
+				btnHandEin.type = 'button';
+				btnHandEin.id = 'btnPmpHandEin';
+				btnHandEin.className = 'btnHandEin';
+				btnHandEin.name = 'btnPmp';
+				btnHandEin.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnHandEin);
+				
+				var btnHandAus = document.createElement('input');
+				btnHandAus.type = 'button';
+				btnHandAus.id = 'btnPmpHandAus';
+				btnHandAus.className = 'btnHandAus';
+				btnHandAus.name = 'btnPmp';
+				btnHandAus.onclick = BetriebsartBtnHanlder;
+				div.appendChild(btnHandAus);				
+			}
+			
+			
+			if (ClickableElement[j].name.includes('HK Wochenkalender')) { 
+				//inputWert & lblUnit ausblenden
+				div.childNodes.forEach(function(el) {
+					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+				});
+				
+				const FORCE_WOCHENKALENDER = true;
+				if (ClickableElement[j].wert.includes('0') && !FORCE_WOCHENKALENDER) {
+					//lblName zusätzlich ausblenden
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'lblName') el.style.display = 'none';
+					});
+				}
+				else {
+					//SprungButton statt textbox erzeugen
+					var btnWochenkalender = document.createElement('input');
+					btnWochenkalender.type = 'button';
+					btnWochenkalender.id = 'btnWochenkalender';
+					btnWochenkalender.value = 'zum Kalender';
+					//btnWochenkalender.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnWochenkalender);
+				}
+			}
+			
+			div.appendChild(document.createElement('br'));		//immer Zeile mit br abschließen!
+		}
+	}
+	
+	//Btn entsprechend aktueller Betriebsart setzen
+	var activeBtnHK;
+	switch (HKBetriebsart) {
+		case '-1':
+			activeBtnHK = document.getElementById('btnHKHandAus');
+			break;
+			
+		case '0':
+			activeBtnHK = document.getElementById('btnHKAuto');
+			break;
+			
+		default:
+			activeBtnHK = document.getElementById('btnHKHandEin');
+	}
+	
+	BetriebsartBtnHanlder(activeBtnHK.id);
+	updateSliderValue('inputWertPumpen Handwert');
+}
+
+function showFaceplate(matchItem) {
+	const OFFSET_ICON_2_FACEPLATE_PX = 80;
+	var faceplateBackground = document.getElementById('fpBg');
+	var faceplateContent = $('#fpContent');
+	//console.log(matchItem);
+	
+	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.width() < window.innerWidth) {
+		faceplateContent.css('left', matchItem.x + OFFSET_ICON_2_FACEPLATE_PX);
+	}
+	else if (matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.width() > 0) {
+		faceplateContent.css('left', matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.width());
+	}
+	else {
+		faceplateContent.css('left', 0);
+	}	
+	
+	faceplateBackground.style.display = "block";
 }

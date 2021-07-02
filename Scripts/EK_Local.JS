@@ -75,6 +75,7 @@ $(document).ready(function () {
 	
   /**********Visualization*/
 	initVisu();
+	handleConfirmBtn(true);		//Visubedienung verriegeln
   
   
   /*********Data evaluation********/
