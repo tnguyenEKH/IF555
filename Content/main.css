@@ -24,6 +24,21 @@ body {
 	margin: 1vh;
 }
 
+[type="text"]:focus,
+[type="password"]:focus {
+  outline: solid 2.5px #1F94B9;
+}
+
+button:hover,
+[type="button"]:hover {
+  cursor: pointer;
+}
+
+button:disabled,
+[type="button"]:disabled {
+  cursor: default;
+}
+
 
 
 /* Kopfzeile: Tab-Auswahl */

@@ -1,3 +1,7 @@
+h5, h6 {				/*Für Sektorüberschriften Faceplate*/
+	margin: 0px;
+}
+
 #visualisierungDisplay {
 	overflow-x: hidden; /*canvas ragt über png in x-richtung hinaus-> scroll-x unterdrücken*/
 }
@@ -26,6 +30,18 @@
 	#btnLock {
 	  display: none;
 	  color: #1F94B9;
+	}
+	
+	#lblPin {
+	  display: inline-block;
+	  width: 50px;
+	  text-align: right;
+	}
+	
+	#cbHidePin {
+	  width: auto;
+	  margin-left: 30px;
+	  margin-right: 20px;
 	}
 
 	.vinsideWrapper
@@ -175,7 +191,7 @@
 			
 			
 	/* Modal Pin/FP (background) */
-	.modalVisu {
+	.modalVisuBg {
 	  display: none; /* Hidden by default */
 	  position: fixed; /* Stay in place */
 	  z-index: 1; /* Sit on top */
@@ -209,13 +225,14 @@
 		  width: 330px;
 		}
 		
-		.modalVisu-content {
+		.modalVisuContent {
 		  position: absolute;
+		  top: 8vh;
 		  background-color: #fefefe;
 		  margin: auto;
 		  padding: 0;
 		  border: 1px solid #888;
-		  width: 400px;   /*550px*/
+		  width: 440px;   /*550px*/
 		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 		  -webkit-animation-name: animatetop;
 		  -webkit-animation-duration: 0.4s;
@@ -223,16 +240,16 @@
 		  animation-duration: 0.4s
 		}
 		
-			.modalVisu-content button:hover {
+			.modalVisuContent button:hover {
 			  cursor: pointer;
 			}
 
-			.modalVisu-content button:disabled {
+			.modalVisuContent button:disabled {
 			  cursor: default;
 			}
 
 		
-			.modalVisu-header {
+			.modalVisuHeader {
 			  text-align: center;
 			  padding: 2px 16px;
 			  background-color: #1F94B9/*#5cb85c*/;
@@ -256,36 +273,105 @@
 				}
 				
 				
-			.modalVisu-body {
+			.modalVisuBody {
 			  padding: 2px 13px;  
 			}
 
-				.modalVisu-body [for="id"] {
+				
+				
+				.modalVisuBody .lblName,
+				.modalVisuBody .lblNameFaceplate {
 				  display: inline-block;
-				  width: 152px;
+				  width: 195px;
 				  text-align: right;
-				  
+				  margin-right: 5px;
 				}
 
-				.modalVisu-body [for="unit"] {
+				.modalVisuBody .lblUnit,
+				.modalVisuBody .lblUnitFaceplate {
 				  display: inline-block;
-				  width: 52px;
+				  width: 55px;
 				  text-align: left;
+				  margin-left: 5px;
 				}
 
-				.modalVisu-body /*select,*/ input /*[type="text"]*/ {
+				.modalVisuBody /*select,*/ input /*[type="text"]*/ {
 				  width: 152px;
 				  margin: 1px 0px;
 				  background-color: #fefefe;
 				}
+				
+				#btnWochenkalender {
+					height: 24px;
+					width: 152px;
+					/*background-color: #fefefe;*/
+					color: #fefefe;
+					background-color: #1F94B9; /*EKH blau*/
+				}
 
-				.modalVisu-body button {
+				.modalVisuBody [type="button"] {
 				  height: 50px;
 				  width: 50px;
+				  margin: 1px;
+				  margin-left: 0px;
+				}
+				
+				.btnStopp:disabled,
+				.btnAuto:disabled,
+				.btnAutoNA:disabled,
+				.btnHand:disabled,
+				.btnHandEin:disabled,
+				.btnHandAus:disabled,
+				.btnHandAuf:disabled,
+				.btnHandZu:disabled {
+				  /*border-color: red;*/
+				  border-style: inset;
+				  background-color:  #E0E0E0;
+				}
+				
+				.btnStopp {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/Stopp.png);
+				}
+
+				.btnAuto {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/Auto.png);
+				}
+
+				.btnHand {
+				  background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inet.png);
+				}
+
+				.btnHandEin,
+				.btnHandAuf	{
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/On.png);
+				}
+				
+				.btnHandAus,
+				.btnHandZu {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
+				}
+
+				.btnAutoNA {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/AutoNA.png);
+				  border-style: outset;
+				}
+
+				.btnHandNA {
+				  background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inetNA.png);
+				}
+
+				.btnHandEinNA,
+				.btnHandAufNA {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/OnNA.png);
+				}
+
+				.btnHandAusNA,
+				.btnHandZuNA {
+				  background: no-repeat center/90% url(/Images/FaceplateBtns/OffNA.png);
 				}
 				
 				
-			.modalVisu-footer {
+			.modalVisuFooter {
 			  padding: 2px 16px;
 			  background-color: #1F94B9/*#5cb85c*/;
 			  color: #fefefe;/* white;*/

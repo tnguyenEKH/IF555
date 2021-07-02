@@ -19,7 +19,7 @@
 	
 </head>
 
-<body>
+<body lang="en">
 	<div class="tab">
 		<ul>
 			<li id="fernbedienung" class="tablink active" onclick="tabIdHanlder(event, id)">
@@ -88,26 +88,26 @@
 
 
 	<div id="visualisierungDisplay" class="tabcontent">
-		<button id="btnUnlock" class="btnToggleLock" onclick="PinUnlock(id)"><i class="fas fa-lock"></i></button>
-		<button id="btnLock" class="btnToggleLock" onclick="PinLock(id)"><i class="fa fa-unlock"></i></button>
+		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
+		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
 		<input id="vbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
 		<!-- Lock modal -->
-		<div id="modalPin" class="modalVisu" hidden>
-		  <div id="Pin-content" class="modalVisu-content">
-			<div class="modalVisu-header">
-			  <span id="xModalPin" class="close" onclick="CloseVisuModals()">&times;</span>
+		<div id="modalPinBg" class="modalVisuBg">
+		  <div id="Pin-content" class="modalVisuContent">
+			<div class="modalVisuHeader">
+			  <span id="xModalPin" class="close" onclick="closePinModal()">&times;</span>
 			  <h4>Freischaltung der Bedienung</h4>
 			</div>
-			<div class="modalVisu-body">
+			<div class="modalVisuBody">
 			  <label id="lblPin">Pin:</label>
 			  <input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
 
 			  <input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
 			  <label id="lblHidePin">Hide Pin</label></br>
 			</div>
-			<div class="modalVisu-footer">
-			  <button id="btnPinConfirm" class="modalVisuBtn" onclick="CheckPin()">OK</button>
-			  <button id="btnPinCancel" class="modalVisuBtn" onclick="CloseVisuModals()">Abbrechen</button>
+			<div class="modalVisuFooter">
+			  <button id="btnPinConfirm" class="modalVisuBtn" onclick="checkPin()">OK</button>
+			  <button id="btnPinCancel" class="modalVisuBtn" onclick="closePinModal()">Abbrechen</button>
 			</div>
 		  </div>
 		</div>
@@ -153,19 +153,18 @@
        <!--end modal zähler-->
 	   
 	   <!-- Modal für Einstellwerte-->
-		 <div id="FP_HK" class="modalVisu" hidden>
+		 <div id="fpBg" class="modalVisuBg" hidden>
 		  <!-- FP content -->
-		  <div id="FP-content" class="modalVisu-content">
-			<div class="modalVisu-header">
-			  <span class="close">&times;</span>
-			  <h4 id="FP_header"></h4>
+		  <div id="fpContent" class="modalVisuContent">
+			<div id="fpHeader" class="modalVisuHeader">
+			  <span class="close" onclick="closeFaceplate()">&times;</span>
+			  <h4 id="txtFpHeader"></h4>
 			</div>
-			<div id="modalVisuBody" class="modalVisu-body">
-
+			<div id="fpBody" class="modalVisuBody">
 			</div>
-			<div class="modalVisu-footer">
-			  <button id="btnSend" onclick ="sendValueFromVisuToRtos()">Übernehmen</button>
-			  <button id="btnCancel" onclick="closeVisuSettingsModal()">Abbrechen</button>
+			<div id="fpFooter" class="modalVisuFooter">
+			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendValueFromVisuToRtos()">Übernehmen</button>
+			  <button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
 			</div>
 		  </div>
 
