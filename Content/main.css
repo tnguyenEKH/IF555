@@ -108,12 +108,12 @@ button:disabled,
 	}
 
 	@keyframes floatText {
-		/*from {
+		from {
 			margin-left: 100%;
-		}*/
+		}
 		to {
-			/*margin-left: -70%;*/
-			transform: translateX(-100%);
+			margin-left: -70%;
+			/*transform: translateX(-100%);*/
 		}
 	}
 
