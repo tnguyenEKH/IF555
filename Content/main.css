@@ -160,7 +160,7 @@ button:disabled,
 	}
 
 	#DisplayCanvas {
-		display: none;			/*wird in EK_Local.js auf "block" gesetzt*/
+		display: block;			/*wird in EK_Local.js auf "block" gesetzt*/
 		border-radius: .5em;
 		background-color: inherit;
 	}
@@ -243,6 +243,60 @@ button:disabled,
 		left: 70px;
 	}
 	#btnEnter:hover {
+		background: url(/Images/Enter_hover.png);
+	}
+
+#buttonGroupVisu{
+	position:absolute;
+	bottom: 5vh;
+	right: 1.5vh;
+	height: 200px;
+	width: 200px;
+    border: none;	
+    transform: rotate(0deg);
+}
+
+	#btnUpVisu{
+		background: url(/Images/Up.png);
+		left: 70px;
+	}
+	#btnUpVisu:hover {
+		background: url(/Images/Up_hover.png);
+	}
+
+	#btnDownVisu {
+		background: url(/Images/Down.png);
+		bottom: 0px;
+		left: 70px;
+	}	
+	#btnDownVisu:hover {
+		background: url(/Images/Down_hover.png);
+	}
+	
+	#btnLeftVisu{
+		background: url(/Images/Left.png);
+		top: 70px;
+		left: 0px;
+	}	
+	#btnLeftVisu:hover {
+		background: url(/Images/Left_hover.png);
+	}
+	
+	#btnRightVisu{
+		background: url(/Images/Right.png);
+		top: 70px;
+		right:0px;	
+	}
+	#btnRightVisu:hover {
+		background: url(/Images/Right_hover.png);
+	}
+
+	#btnEnterVisu{
+		background: url(/Images/Enter.png);
+		top: 70px;
+		left: 70px;
+	}
+	#btnEnterVisu:hover {
 		background: url(/Images/Enter_hover.png);
 	}
 

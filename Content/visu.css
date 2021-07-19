@@ -119,6 +119,9 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 		font-size: 2vh;
 	}*/
 
+#settingFromVisuCanvas{
+	margin-left: 80px;
+}
 
 		/* The Modal (background) */
 	.modalEK {
