@@ -69,3 +69,50 @@ V062 YROT3:F(5):1:00000BF2           ;POS y ab der das Menue rot sein soll
 V063 ZROT3:F(5):1:00000BF4           ;Anzahl der roten Zeichen ab POS x,y
 #0004 ;Page Nummer
 V064 INFOTXT:A(120):8:00000BF6       ;Infotext fur Browser
+V065 IDPI:A(50):8:00000C6E           ;Name der Steuerung fuer PI
+V066 XXX1:A(50):8:00000CA0           ;                              
+V067 XXX2:A(50):8:00000CD2           ;                            
+V068 XXX3:A(50):8:00000D04           ;                            
+V069 XXX4:A(50):8:00000D36           ;                            
+#0005 ;Page Nummer
+V070 ZEILVIS1:A(60):8:00000D80       ;Textinhalt von Zeile1   (Offset+24 wegen Feldbescheibung in Pearl:   (DCL ZEILVIS(20)     CHAR(60)  GLOBAL;)   )
+V071 ZEILVIS2:A(60):8:00000DBC       ;                                                                                                                  
+V072 ZEILVIS3:A(60):8:00000DF8       ;                                                                                                                  
+V073 ZEILVIS4:A(60):8:00000E34       ;                                                                                                                  
+V074 ZEILVIS5:A(60):8:00000E70       ;                                                                                                                  
+V075 ZEILVIS6:A(60):8:00000EAC       ;                                                                                                                  
+V076 ZEILVIS7:A(60):8:00000EE8       ;                                                                                                                  
+V077 ZEILVIS8:A(60):8:00000F24       ;                                                                                                                  
+V078 ZEILVIS9:A(60):8:00000F60       ;                                                                                                                  
+V079 ZEILVIS10:A(60):8:00000F9C      ;                                                                                                                  
+V080 ZEILVIS11:A(60):8:00000FD8      ;                                                                                                                  
+V081 ZEILVIS12:A(60):8:00001014      ;                                                                                                                  
+V082 ZEILVIS13:A(60):8:00001050      ;                                                                                                                  
+V083 ZEILVIS14:A(60):8:0000108C      ;                                                                                                                  
+V084 ZEILVIS15:A(60):8:000010C8      ;                                                                                                                  
+V085 ZEILVIS16:A(60):8:00001104      ;                                                                                                                  
+V086 ZEILVIS17:A(60):8:00001140      ;                                                                                                                  
+V087 ZEILVIS18:A(60):8:0000117C      ;                                                                                                                  
+V088 ZEILVIS19:A(60):8:000011B8      ;                                                                                                                  
+V089 ZEILVIS20:A(60):8:000011F4      ;                                                                                                                  
+#0006 ;Page Nummer
+V090 ZEILRUECK1:A(60):8:00001248       ;Textinhalt von Zeile1   (Offset+24 wegen Feldbescheibung in Pearl:   (DCL ZEILRUECK(20)     CHAR(60)  GLOBAL;)   )
+V091 ZEILRUECK2:A(60):8:00001284       ;                                                                                                                  
+V092 ZEILRUECK3:A(60):8:000012C0       ;                                                                                                                  
+V093 ZEILRUECK4:A(60):8:000012FC       ;                                                                                                                  
+V094 ZEILRUECK5:A(60):8:00001338       ;                                                                                                                  
+V095 ZEILRUECK6:A(60):8:00001374       ;                                                                                                                  
+V096 ZEILRUECK7:A(60):8:000013B0       ;                                                                                                                  
+V097 ZEILRUECK8:A(60):8:000013EC       ;                                                                                                                  
+V098 ZEILRUECK9:A(60):8:00001428       ;                                                                                                                  
+V099 ZEILRUECK10:A(60):8:00001464      ;                                                                                                                  
+V100 ZEILRUECK11:A(60):8:000014A0      ;                                                                                                                  
+V101 ZEILRUECK12:A(60):8:000014DC      ;                                                                                                                  
+V102 ZEILRUECK13:A(60):8:00001518      ;                                                                                                                  
+V103 ZEILRUECK14:A(60):8:00001554      ;                                                                                                                  
+V104 ZEILRUECK15:A(60):8:00001590      ;                                                                                                                  
+V105 ZEILRUECK16:A(60):8:000015CC      ;                                                                                                                  
+V106 ZEILRUECK17:A(60):8:00001608      ;                                                                                                                  
+V107 ZEILRUECK18:A(60):8:00001644      ;                                                                                                                  
+V108 ZEILRUECK19:A(60):8:00001680      ;                                                                                                                  
+V109 ZEILRUECK20:A(60):8:000016BC      ;                                                                                                                  

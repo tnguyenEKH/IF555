@@ -178,35 +178,6 @@ function startVisu() {
 }
 
 
-function addClickableElementToList(visudata) {
-	for (var i = 0; i < visudata.DropList.length; i++) {
-		if (visudata.DropList[i].VCOItem.clickable == true) {
-			var item = new Object();
-			item["x"] = visudata.DropList[i].x;
-			item["y"] = visudata.DropList[i].y;
-			item["clickable"] = true;
-			item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
-			item["id"] = visudata.DropList[i].VCOItem.iD.trim();
-			item["h"] = visudata.DropList[i].BgHeight;
-			item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
-			if (item["Bezeichnung"] == "HK") {
-				item["radius"] = 18;
-
-			}
-			if (item["Bezeichnung"] == "PMP") {
-
-			}
-
-			if (item["Bezeichnung"] == "MI") {
-
-			}
-
-			createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
-			ClickableElementList.push(item);
-		}
-	}    
-}
-
 function createLinkForClickableElement(id) {
 	var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' +id ;
 	ClickableElementUrlList.push(link);
@@ -1238,7 +1209,7 @@ function globalTimer() {
 
 function Heizkreis(vDynCtx, x, y, scale) {
     vDynCtx.save();
-    vDynCtx.lineWidth = 1;
+    vDynCtx.lineWidth = 4;
     vDynCtx.translate(x, y);
     vDynCtx.beginPath();
     vDynCtx.arc(0, 0, 18, 0, 2 * Math.PI);
@@ -1493,28 +1464,6 @@ function handleMouseDown(e) {
 	if (!match) openFaceplate();	
 }
 
-
-
-function createEinstellbareObject(id) {
-	var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' + id;
-	getData(link);
-		
-	var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
-	var einstellbaresObjekt = new Object();
-	einstellbaresObjekt['id'] = adjustmentOption['v070'].substring(0, 5);
-	//create object for the setting
-	for (var i = 71; i < 90; i++) {
-
-		var rtosVariable = "v0" + i;
-		einstellbaresObjekt[adjustmentOption[rtosVariable].substr(0, 23)] = adjustmentOption[rtosVariable].substr(24, 10);
-		einstellbaresObjekt['einstellungWert'] = adjustmentOption[rtosVariable].substr(24, 10);
-		einstellbaresObjekt['einstellungOberGrenze'] = adjustmentOption[rtosVariable].substr(36, 5);
-		einstellbaresObjekt['einstellungUnterGrenze'] = adjustmentOption[rtosVariable].substr(42, 5);
-		einstellbaresObjekt['einstellungNachkommaStellen'] = adjustmentOption[rtosVariable].substr(48, 1);
-	}
-
-	return einstellbaresObjekt;
-}
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
 function DrawVisu(redrawStat = false) {
@@ -1905,44 +1854,6 @@ function UpdateLabelMouseOutHandler() {
 
 }
 
-/*
-function findLabelAnstehendeStoerung() {
-	//find the freitext "anstehende Störungen" and create this onlick function
-	var elem = document.getElementById('vStatCanvas');
-	elemLeft = elem.offsetLeft,
-	elemTop = elem.offsetTop,
-	context = elem.getContext('2d'),
-	elements = [];
-
-	elem.addEventListener('click', function (event) {
-		var x = event.pageX - elemLeft,
-			y = event.pageY - elemTop;
-
-		// Collision detection between clicked offset and element.
-		elements.forEach(function (element) {
-			if (y > element.top && y < element.top + element.height
-				&& x > element.left && x < element.left + element.width) {
-				alert('clicked an element');
-			}
-		});
-	})
-}//*/
-
-
-/*
-Image will be load every second to simulate video streaming
-No parameter was passed and no return value coz setInterval requirement
-*/
-function simVideoStream() {
-	var IpCamSnap = 'http://10.0.5.26:8880/action/snap?cam=0&user=admin&pwd=12345';
-	var imgBox1 = document.getElementById('ImgBox1');
-	var imgBox2 = document.getElementById('ImgBox2');
-	var image = 'data:image/png;base64,' + getImage(IpCamSnap);
-	var ImgBox1 = document.getElementById('ImgBox1');
-	var ImgBox2 = document.getElementById('ImgBox2');
-	ImgBox1.src = image;
-	ImgBox2.src = image;
-}
 
 /*Ab hier Visu Bedienung:*/
 // When the user clicks anywhere outside of the Modal, close it
@@ -1957,9 +1868,9 @@ window.onclick = function(event) {
 }
 
 function closeFaceplate() {
+	destroyFaceplate();
 	var modal = document.getElementById("fpBg");
 	modal.style.display = 'none';
-	destroyFaceplate();
 }
 
 function destroyFaceplate() {
@@ -2105,10 +2016,9 @@ function BetriebsartBtnHanlder(event) {
   }
 }
 
-function sendValueFromVisuToRtos() {
+function sendValueFromVisuToRtos(option) {
 	//bla
-	var sendToRtosArray = [];
-	console.log(ClickableElement);
+	var sendBackToRtosUrlList = [];
 	var faceplateBody = document.getElementById('fpBody');
 	var faceplateBodyList = Array.from(faceplateBody.children);	
 	faceplateBodyList.forEach(function(div) {
@@ -2141,15 +2051,75 @@ function sendValueFromVisuToRtos() {
 			}
 		});
 	});
-			
-	for (var i=0; i<20 ; i++) {
-		(i == 0) ? sendToRtosArray[i] = (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ') :		//1.Zeile auffüllen auf 60 Zeichen
-		sendToRtosArray[i] = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-		ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
-		console.log(sendToRtosArray[i], sendToRtosArray[i].length);
+	
+	//erzeugt Linkliste
+	
+	//normale Zurückübertragen, undefined kommt aus der onlickevent des html button (index.html)
+	if(option == undefined)
+	{
+		for (var i=0; i<20 ; i++) {
+			var sendBackData = '';
+			var link = ''
+			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
+			//1.Zeile auffüllen auf 60 Zeichen
+			if(i == 0) {
+				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
+				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+				sendBackToRtosUrlList.push(link);
+			}
+			else {		
+				sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
+				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
+				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+				sendBackToRtosUrlList.push(link);
+			}
+		}
 	}
-	//console.log(sendToRtosArray, sendToRtosArray.length);
+	
+	//Wenn die "Zum Wochekalender" getätigt wird, der Wert der "HK Wochenkalender" auf 1 umstellen und zurückübertragen
+	if(option == 'HKWochenKalender' )
+	{
+			for (var i=0; i<20 ; i++) {
+			var sendBackData = '';
+			var link = ''
+			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
+			//1.Zeile auffüllen auf 60 Zeichen
+			if(i == 0) {
+				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
+				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+				sendBackToRtosUrlList.push(link);
+			}
+			else {		
+				if(ClickableElement[i].name.trim() == 'HK Wochenkalender')
+				{
+					ClickableElement[i].wert = 1;
+					sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
+					ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
+					link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+					sendBackToRtosUrlList.push(link);
+				}
+				else
+				{
+					sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
+					ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
+					link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+					sendBackToRtosUrlList.push(link);
+				}
+			}
+		}
+	}
+	for (var j=0; j<sendBackToRtosUrlList.length; j++){
+		sendData(sendBackToRtosUrlList[j]);
+	}
+
 	closeFaceplate();
+}
+
+function sleep(miliseconds) {
+   var currentTime = new Date().getTime();
+
+   while (currentTime + miliseconds >= new Date().getTime()) {
+   }
 }
 
 function openFaceplate() {
@@ -2176,19 +2146,16 @@ function openFaceplate() {
 					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
 						clickableElementUrl = ClickableElementUrlList[j];
 					}
-					//console.log(clickableElementUrl);
 				}
 
 				/*query the available adjustable params from RTOS in two step
 					1. tell the RTOS-Webserver, which elemente will be queried
 					2. wait "300ms" and get the information provided by RTOS-Webserver
 				*/
-				//var test = createEinstellbareObject(item.id);
-				getData(clickableElementUrl);
-
-				var adjustmentOption = JSON.parse(getData(readParameterOfClickableElementUrl));
-
-				
+				sendData(clickableElementUrl);
+				sleep(600);
+				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+								
 				ClickableElement = [];
 				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
 				for (var j = 70; j < 90; j++) {
@@ -2245,7 +2212,8 @@ function buildFaceplate() {
 		div.id = 'v' + (j+90).toString().padStart(3,'0');
 		modalBody.appendChild(div);
 		
-		if (ClickableElement[j].name.trim() == '') {						//Für leere Zeilen nur inputWert versteckt im Faceplate einfügen (enthält leeren 'Rohwert aus ClickableElement)
+		//Für leere Zeilen nur inputWert versteckt im Faceplate einfügen (enthält leeren 'Rohwert aus ClickableElement)
+		if (ClickableElement[j].name.trim() == '') {						
 			var inputWert = document.createElement('input');
 			inputWert.type = 'text';
 			inputWert.value = ClickableElement[j].wert;
@@ -2254,9 +2222,7 @@ function buildFaceplate() {
 			div.appendChild(inputWert);
 		}
 		else {
-			
-			
-			
+		
 			var lblName = document.createElement('label');
 			lblName.className = 'lblName';
 			
@@ -2288,6 +2254,7 @@ function buildFaceplate() {
 			if (j == 0) {
 				inputWert.type = 'text';
 				inputWert.maxlength = 20;
+				inputWert.disabled = true;
 				//console.log(inputWert);*/
 			}
 			else if(ClickableElement[j].name.includes('Pumpen Handwert')) {
@@ -2472,12 +2439,10 @@ function buildFaceplate() {
 					btnWochenkalender.type = 'button';
 					btnWochenkalender.id = 'btnWochenkalender';
 					btnWochenkalender.value = 'zum Kalender';
-					//btnWochenkalender.onclick = BetriebsartBtnHanlder;
+					btnWochenkalender.onclick = jumpToWochenKalender;
 					div.appendChild(btnWochenkalender);
 				}
 			}
-			
-			div.appendChild(document.createElement('br'));		//immer Zeile mit br abschließen!
 		}
 	}
 	
@@ -2498,6 +2463,23 @@ function buildFaceplate() {
 	
 	BetriebsartBtnHanlder(activeBtnHK.id);
 	updateSliderValue('inputWertPumpen Handwert');
+}
+
+
+function jumpToWochenKalender(){
+	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
+	clearInterval(fernbedienungAutoReload);
+	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
+	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
+	sendValueFromVisuToRtos('HKWochenKalender');
+	//3.Modalfenster mit eingebettets Heizkreiswochenkalender einblenden oder Fernbedienung Tab im Iframe darstellen
+	showElemementById('wochenKalenderImVisu');
+	activeTabID = 'wochenKalenderImVisu';
+	wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50,wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
+}
+
+function closeModalWochenKalenderImVisu(){
+	hideElemementById('wochenKalenderImVisu');
 }
 
 function showFaceplate(matchItem) {

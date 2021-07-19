@@ -153,7 +153,7 @@
        <!--end modal zähler-->
 	   
 	   <!-- Modal für Einstellwerte-->
-		 <div id="fpBg" class="modalVisuBg" hidden>
+		 <div id="fpBg" class="modalVisuBg" >
 		  <!-- FP content -->
 		  <div id="fpContent" class="modalVisuContent">
 			<div id="fpHeader" class="modalVisuHeader">
@@ -167,9 +167,33 @@
 			  <button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
 			</div>
 		  </div>
-
 		</div>
 		<!--end modal einstellwerte-->
+		
+		<!-- Modal für eingebetten HK Wochenkalender-->
+		<div id="wochenKalenderImVisu" class="modalEK">
+			<!-- Modal content -->
+			<div class="modal-content">
+				<div class="modal-header">
+					<span id="" class="close">&times;</span>
+				</div>
+				<div class="modal-body" id="">
+				<canvas id="settingFromVisuCanvas"</canvas>
+				</div>
+				<div class="modal-footer">
+					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
+				</div>
+			</div>
+							<!-- Button Group -->
+			<div id="buttonGroupVisu">
+				<button id="btnUpVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+				<button id="btnDownVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+				<button id="btnLeftVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+				<button id="btnRightVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+				<button id="btnEnterVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+			</div>
+		</div>
+		<!--end modal Modal für eingebetten HK Wochenkalender-->
 	   
 	</div>
 
@@ -381,7 +405,7 @@
 	<script src="Scripts/popper.min.js"</script>
 	<script src="Scripts/bootstrap.min.js"</script>
 	<script src="Scripts/pdfReader.js"></script>	
-	<script src="Scripts/EK_Local.JS"></script>
+	
 	<script src="Scripts/sidebar.js"></script>
 	<script src="Scripts/QHView.js"></script>
 	<script src="Scripts/VisuView.js"></script>
@@ -393,6 +417,7 @@
 	<!-- script to manage pdf Viewer -->
 	<script src="Scripts/pdf.js"></script>
 	
+	<script src="Scripts/EK_Local.JS"></script>
 	
 	
 </body>
