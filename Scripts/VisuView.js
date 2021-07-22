@@ -47,6 +47,7 @@ var match;
 
 
 //Einstellungen Visualisierungen
+var locked = false;
 var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
@@ -1905,7 +1906,7 @@ function pinLock(id) {
   toggleBtnsPinLock(id);
 
   locked = true;
-  handleConfirmBtn(locked);
+  handleConfirmBtns(locked);
 }
 
 function pinUnlock(id) {
@@ -1947,11 +1948,13 @@ function checkPin() {
     alert("Pin Inkorrekt!");
   }
 
-  handleConfirmBtn(locked);
+  handleConfirmBtns(locked);
   closePinModal();
 }
 
-function handleConfirmBtn(disable) {
+function handleConfirmBtns(disable) {
+  var btnWochenkalender = document.getElementById("btnWochenkalender");
+  if (btnWochenkalender != null) btnWochenkalender.disabled = disable;
   document.getElementById("btnFaceplateConfirm").disabled = disable;
 }
 
@@ -2092,11 +2095,11 @@ function sendValueFromVisuToRtos(option) {
 	var sendBackToRtosUrlList = [];
 	var faceplateBody = document.getElementById('fpBody');
 	var faceplateBodyList = Array.from(faceplateBody.children);	
-	var checkInputValue = new Boolean('true');
+	var errorString = '';
 	faceplateBodyList.forEach(function(div) {
 		var idx = parseInt(div.id.slice(-3)) - 90;
 		div.childNodes.forEach(function(el) {
-			if (el.className == 'inputWert') {
+			if (el.id.includes('inputWert')/*el.className == 'inputWert'*/) {
 				if (idx == 0) {
 					ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
 				}
@@ -2107,18 +2110,26 @@ function sendValueFromVisuToRtos(option) {
 						//Wertebereich prüfen und ggf. korrigieren
 						var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
 						var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
-						if (value < unterGrenze){
-							el.style.backgroundColor = 'red';
-							checkInputValue = false;
-							el.value = unterGrenze.toString();
+						
+						el.style.color = 'black';
+						el.previousSibling.style.color = 'black';
+						el.nextSibling.style.color = 'black';
 							
+						if (value < unterGrenze){
+							errorString += el.previousSibling.textContent + ': ' + 'min = ' + unterGrenze + '\n';
+							el.style.color = '#C31D64';
+							el.previousSibling.style.color = '#C31D64';
+							el.nextSibling.style.color = '#C31D64';
+							//el.value = unterGrenze.toString();
 						}
 						if (value > oberGrenze){
-							el.style.backgroundColor = 'red';
-							checkInputValue = false;
-							el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
-
+							errorString += el.previousSibling.textContent + ': ' + 'max = ' + oberGrenze + '\n';
+							el.style.color = '#C31D64';
+							el.previousSibling.style.color = '#C31D64';
+							el.nextSibling.style.color = '#C31D64';
+							//el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
 						}
+						
 						var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
 						ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
 						if (returnValue.length > 1) {
@@ -2127,6 +2138,12 @@ function sendValueFromVisuToRtos(option) {
 						else {
 							ClickableElement[idx].wert += '0000';
 						}
+					}
+					else {	//isNaN || empty
+						el.style.color = '#C31D64';
+						el.previousSibling.style.color = '#C31D64';
+						el.nextSibling.style.color = '#C31D64';
+						errorString += el.previousSibling.textContent + ': ' + 'ungültige Zahl!' + '\n';
 					}
 				}
 			}
@@ -2187,14 +2204,16 @@ function sendValueFromVisuToRtos(option) {
 			}
 		}
 	}
-	if(checkInputValue){
-	for (var j=0; j<sendBackToRtosUrlList.length; j++){
-		sendData(sendBackToRtosUrlList[j]);
-	}
-	if (option == undefined) closeFaceplate();
+	if(errorString == ''){
+		for (var j=0; j<sendBackToRtosUrlList.length; j++){
+			sendData(sendBackToRtosUrlList[j]);
+		}
+		if (option == undefined) closeFaceplate();
+		return 0;
 	}
 	else{
-		alert('Bitte Angaben prüfen');
+		alert(errorString);
+		return -1;
 	}
 }
 
@@ -2349,7 +2368,7 @@ function buildFaceplate() {
 			}
 			
 			var nachKommaStelle = parseInt(ClickableElement[j].nachKommaStellen);
-			if(isNaN(nachKommaStelle)){
+			if(isNaN(nachKommaStelle) || nachKommaStelle == 0){
 				inputWert.value = ClickableElement[j].wert.trim();
 			}
 			else{
@@ -2569,11 +2588,11 @@ function buildFaceplate() {
 					});
 				}
 				else {
-					//SprungButton statt textbox erzeugen
+					//SprungButton erzeugen
 					var btnWochenkalender = document.createElement('input');
 					btnWochenkalender.type = 'button';
 					btnWochenkalender.id = 'btnWochenkalender';
-					btnWochenkalender.value = 'zum Kalender';
+					btnWochenkalender.value = 'Übernehmen & zum Kalender';
 					btnWochenkalender.onclick = jumpToWochenKalender;
 					div.appendChild(btnWochenkalender);
 				}
@@ -2581,7 +2600,9 @@ function buildFaceplate() {
 		}
 	}
 	
-	//Btn entsprechend aktueller Betriebsart setzen
+	//Btn entsprechend aktueller Betriebsart setzen und Verriegelung setzen
+	handleConfirmBtns(locked);
+	
 	var activeBtnHK;
 	var activeBtnPmp = document.getElementById('btnPmpAuto');
 	switch (HKBetriebsart) {
@@ -2624,12 +2645,14 @@ function jumpToWochenKalender(){
 	clearInterval(fernbedienungAutoReload);
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
 	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
-	sendValueFromVisuToRtos('HKWochenKalender');
-	//3.Modalfenster mit eingebettets Heizkreiswochenkalender einblenden oder Fernbedienung Tab im Iframe darstellen
-	//showElemementById('wochenKalenderImVisu');
-	showWochenKalenderVisu();
-	activeTabID = 'wochenKalenderImVisu';
-	wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50,wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
+	var sendError = sendValueFromVisuToRtos('HKWochenKalender');
+	if (!sendError) {
+		//3.Modalfenster mit eingebettets Heizkreiswochenkalender einblenden oder Fernbedienung Tab im Iframe darstellen
+		//showElemementById('wochenKalenderImVisu');
+		showWochenKalenderVisu();
+		activeTabID = 'wochenKalenderImVisu';
+		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50,wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
+	}
 }
 
 function closeModalWochenKalenderImVisu(){
