@@ -314,10 +314,14 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 				
 				#btnWochenkalender {
 					height: 24px;
-					width: 152px;
+					width: 203px;
 					/*background-color: #fefefe;*/
 					color: #fefefe;
 					background-color: #1F94B9; /*EKH blau*/
+				}
+				
+				#btnWochenkalender:disabled {
+					opacity: 0.6;
 				}
 
 				.modalVisuBody [type="button"] {

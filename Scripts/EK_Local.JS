@@ -79,7 +79,7 @@ $(document).ready(function () {
 	
   /**********Visualization*/
 	initVisu();
-	handleConfirmBtn(false);		//Visubedienung verriegeln
+	handleConfirmBtns(locked);		//Visubedienung verriegeln
    
   /*********Data evaluation********/
 	//jw startQH();
