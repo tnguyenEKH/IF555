@@ -2092,6 +2092,7 @@ function sendValueFromVisuToRtos(option) {
 	var sendBackToRtosUrlList = [];
 	var faceplateBody = document.getElementById('fpBody');
 	var faceplateBodyList = Array.from(faceplateBody.children);	
+	var checkInputValue = new Boolean('true');
 	faceplateBodyList.forEach(function(div) {
 		var idx = parseInt(div.id.slice(-3)) - 90;
 		div.childNodes.forEach(function(el) {
@@ -2106,13 +2107,22 @@ function sendValueFromVisuToRtos(option) {
 						//Wertebereich prüfen und ggf. korrigieren
 						var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
 						var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
-						if (value < unterGrenze) el.value = unterGrenze.toString();//ClickableElement[idx].unterGrenze;
-						if (value > oberGrenze) el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
-					
+						if (value < unterGrenze){
+							el.style.backgroundColor = 'red';
+							checkInputValue = false;
+							el.value = unterGrenze.toString();
+							
+						}
+						if (value > oberGrenze){
+							el.style.backgroundColor = 'red';
+							checkInputValue = false;
+							el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
+
+						}
 						var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
 						ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
 						if (returnValue.length > 1) {
-							ClickableElement[idx].wert += returnValue[1].padStart(4, '0').slice(0, 4);
+							ClickableElement[idx].wert += returnValue[1].padEnd(4, '0').slice(0, 4);
 						}
 						else {
 							ClickableElement[idx].wert += '0000';
@@ -2177,11 +2187,15 @@ function sendValueFromVisuToRtos(option) {
 			}
 		}
 	}
+	if(checkInputValue){
 	for (var j=0; j<sendBackToRtosUrlList.length; j++){
 		sendData(sendBackToRtosUrlList[j]);
 	}
-
 	if (option == undefined) closeFaceplate();
+	}
+	else{
+		alert('Bitte Angaben prüfen');
+	}
 }
 
 function sleep(miliseconds) {
@@ -2333,7 +2347,14 @@ function buildFaceplate() {
 				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
 				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
 			}
-			inputWert.value = ClickableElement[j].wert.trim();
+			
+			var nachKommaStelle = parseInt(ClickableElement[j].nachKommaStellen);
+			if(isNaN(nachKommaStelle)){
+				inputWert.value = ClickableElement[j].wert.trim();
+			}
+			else{
+				inputWert.value = ClickableElement[j].wert.trim().substring(0, (ClickableElement[j].wert.trim().indexOf('.') + nachKommaStelle + 1));
+			}
 			inputWert.className = 'inputWert';
 			inputWert.id = inputWert.className + ClickableElement[j].name.trim();
 			div.appendChild(inputWert);
