@@ -171,16 +171,17 @@
 		<!--end modal einstellwerte-->
 		
 		<!-- Modal für eingebetten HK Wochenkalender-->
-		<div id="wochenKalenderImVisu" class="modalEK">
+		<div id="wochenKalenderImVisu" class="modalVisuBg">
 			<!-- Modal content -->
-			<div class="modal-content">
-				<div class="modal-header">
-					<span id="" class="close">&times;</span>
+			<div class="modalVisuContent" id="wochenKalenderImVisuContent">
+				<div class="modalVisuHeader">
+					<span class="close" onclick="closeWochenkalender()">&times;</span>
+					<h4 id="txtWochenKalenderImVisuHeader">Wochenkalender </h4>
 				</div>
-				<div class="modal-body" id="">
+				<div class="modalVisuBody" id="wochenKalenderImVisuBody">
 				<canvas id="settingFromVisuCanvas"</canvas>
 				</div>
-				<div class="modal-footer">
+				<div class="modalVisuFooter">
 					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
 				</div>
 			</div>

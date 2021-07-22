@@ -196,13 +196,17 @@ function writeToTextFile(data) {
 
 /********************************Operating**************************************************************************/
 
-function initCanvas(cavasName, canvasContext){
-	var parent = document.getElementById('fernbedienungDisplay');
-	cavasName.width = parent.offsetWidth;
-	cavasName.height = parent.offsetHeight;
+function initCanvas(canvasName, canvasContext){
+	var parent = canvasName.parentNode;
+	canvasName.width = parent.width;
+	parent.offsetWidth > 0 ? canvasName.width = parent.offsetWidth : canvasName.width = 960;
+	parent.offsetHeight > 0 ? canvasName.height = parent.offsetHeight : canvasName.height = 520;
+	//var parent = document.getElementById('fernbedienungDisplay');
+	//canvasName.width = parent.offsetWidth;
+	//canvasName.height = parent.offsetHeight;
   
-  	cavasName.addEventListener("click", function (evt) {
-	  var rect = cavasName.getBoundingClientRect();
+  	canvasName.addEventListener("click", function (evt) {
+	  var rect = canvasName.getBoundingClientRect();
 
 	  if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
 		var x= evt.clientX - rect.left;
@@ -240,8 +244,8 @@ function initCanvas(cavasName, canvasContext){
 	}, false);
 	
 	
-	cavasName.addEventListener('mousemove', function (evt) {
-	  var rect = cavasName.getBoundingClientRect();
+	canvasName.addEventListener('mousemove', function (evt) {
+	  var rect = canvasName.getBoundingClientRect();
 	  var x= evt.clientX - rect.left;
 	  var y= evt.clientY - rect.top;
 	  var xr = Math.round(x/1) 

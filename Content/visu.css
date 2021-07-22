@@ -119,9 +119,9 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 		font-size: 2vh;
 	}*/
 
-#settingFromVisuCanvas{
+/*#settingFromVisuCanvas{
 	margin-left: 80px;
-}
+}*/
 
 		/* The Modal (background) */
 	.modalEK {
@@ -235,13 +235,18 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 		  margin: auto;
 		  padding: 0;
 		  border: 1px solid #888;
-		  width: 440px;   /*550px*/
+		  width: 445px;   /*550px*/
 		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 		  -webkit-animation-name: animatetop;
 		  -webkit-animation-duration: 0.4s;
 		  animation-name: animatetop;
 		  animation-duration: 0.4s
 		}
+		
+		#wochenKalenderImVisuContent {
+			width: auto;
+		}
+			
 		
 			.modalVisuContent button:hover {
 			  cursor: pointer;
@@ -279,8 +284,11 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 			.modalVisuBody {
 			  padding: 2px 13px;  
 			}
-
-				
+			
+			#wochenKalenderImVisuBody {
+				padding: 0px;
+				background-color: #E0E0E0;
+			}				
 				
 				.modalVisuBody .lblName,
 				.modalVisuBody .lblNameFaceplate {

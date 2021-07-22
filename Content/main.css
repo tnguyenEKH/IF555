@@ -138,7 +138,7 @@ button:disabled,
 .container {
     display: flex;
 	border-radius: inherit;
-	height: 85.6vh;
+	height: inherit;
 	width: inherit;
 	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
 	/*height: 100%;*/
@@ -156,14 +156,20 @@ button:disabled,
 	.hauptDisplay {
 		background-color: inherit;
 		border-radius: inherit;
-		/*height: 85vh;*/
+		height: inherit;
+		width: inherit;
 	}
+	
+		.panelContent {
+			height: inherit;
+			width: inherit;
+		}
 
-	#DisplayCanvas {
-		display: block;			/*wird in EK_Local.js auf "block" gesetzt*/
-		border-radius: .5em;
-		background-color: inherit;
-	}
+			#DisplayCanvas {
+				display: block;			/*wird in EK_Local.js auf "block" gesetzt*/
+				border-radius: .5em;
+				background-color: inherit;
+			}
 
 
 
