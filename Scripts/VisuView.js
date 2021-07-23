@@ -52,6 +52,7 @@ var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Va
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
+var clickableElementUrl;
 var currentID;
 function copyToClip() {
 	// Create new element
@@ -1864,14 +1865,9 @@ window.onclick = function(event) {
     if (el == event.target) {
 		if (el.id.includes('fp')) closeFaceplate();
 		if (el.id.includes('Pin')) closePinModal();
-		if (el.id.includes('Kalender')) closeWochenkalender();
+		if (el.id.includes('Kalender')) closeModalWochenKalenderImVisu();
 	}
   });
-}
-
-function closeWochenkalender() {
-	var modal = document.getElementById("wochenKalenderImVisu");
-	modal.style.display = 'none';
 }
 
 function closeFaceplate() {
@@ -1901,17 +1897,13 @@ function toggleBtnsPinLock(id) {
 }
 
 function pinLock(id) {
-  //console.log(id);
-  //console.log("locked?", locked);
   toggleBtnsPinLock(id);
 
   locked = true;
-  handleConfirmBtns(locked);
+  handleConfirmBtn(locked);
 }
 
 function pinUnlock(id) {
-  //console.log(id);
-  //console.log("locked?", locked);
   var modal = document.getElementById("modalPinBg");
   modal.style.display = "block";
   
@@ -1948,11 +1940,11 @@ function checkPin() {
     alert("Pin Inkorrekt!");
   }
 
-  handleConfirmBtns(locked);
+  handleConfirmBtn(locked);
   closePinModal();
 }
 
-function handleConfirmBtns(disable) {
+function handleConfirmBtn(disable) {
   var btnWochenkalender = document.getElementById("btnWochenkalender");
   if (btnWochenkalender != null) btnWochenkalender.disabled = disable;
   document.getElementById("btnFaceplateConfirm").disabled = disable;
@@ -2080,7 +2072,7 @@ function BetriebsartBtnHanlder(event) {
     });
 	
 	//Wenn PumpenBetriebsart == 'HandEin' => PumpenHandwert(slider-Element) in verstecktes Element 'inputWertPumpen Handwert' und 'inputWertBetriebsart' übernehmen; sonst 1 (HK=HandEin, Pumpe=Auto)
-	if (document.getElementById('btnPmpHandEin').disabled) {
+	if (document.getElementById('btnPmpHandEin').disabled && !document.getElementById('btnPmpHandEin').className.includes('NA')) {
 		document.getElementById('inputWertPumpen Handwert').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
 		document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
 	}
@@ -2096,64 +2088,80 @@ function sendValueFromVisuToRtos(option) {
 	var faceplateBody = document.getElementById('fpBody');
 	var faceplateBodyList = Array.from(faceplateBody.children);	
 	var errorString = '';
-	faceplateBodyList.forEach(function(div) {
-		var idx = parseInt(div.id.slice(-3)) - 90;
-		div.childNodes.forEach(function(el) {
-			if (el.id.includes('inputWert')/*el.className == 'inputWert'*/) {
-				if (idx == 0) {
-					ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
-				}
-				else {					
-					//Numerische Validierung
-					var value = parseFloat(el.value);
-					if (!isNaN(value) && el.value.trim() != '') {		//Wenn nicht leer und Fehlerfrei: neuen rtos-Wert prüfen & überschreiben
-						//Wertebereich prüfen und ggf. korrigieren
-						var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
-						var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
-						
-						el.style.color = 'black';
-						el.previousSibling.style.color = 'black';
-						el.nextSibling.style.color = 'black';
+	
+	//normale Zurückübertragen mit Validierung der Eingabe; undefined kommt aus der onlickevent des html button (index.html)
+	if (option == undefined) {	
+		faceplateBodyList.forEach(function(div) {
+			var idx = parseInt(div.id.slice(-3)) - 90;
+			div.childNodes.forEach(function(el) {
+				if (el.className == 'inputWert'/*el.id.includes('inputWert')*/) {
+					if (idx == 0) {
+						ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
+					}
+					else {					
+						//Numerische Validierung
+						var value = parseFloat(el.value);
+						if (!isNaN(value) && el.value.trim() != '') {		//Wenn nicht leer und Fehlerfrei: neuen rtos-Wert prüfen & überschreiben
+							//Wertebereich prüfen und ggf. korrigieren
+							var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
+							var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
 							
-						if (value < unterGrenze){
-							errorString += el.previousSibling.textContent + ': ' + 'min = ' + unterGrenze + '\n';
+							el.style.color = 'black';
+							el.previousSibling.style.color = 'black';
+							el.nextSibling.style.color = 'black';
+								
+							if (value < unterGrenze){
+								errorString += el.previousSibling.textContent + ': ' + 'min = ' + unterGrenze + '\n';
+								el.style.color = '#C31D64';
+								el.previousSibling.style.color = '#C31D64';
+								el.nextSibling.style.color = '#C31D64';
+								//el.value = unterGrenze.toString();
+							}
+							if (value > oberGrenze){
+								errorString += el.previousSibling.textContent + ': ' + 'max = ' + oberGrenze + '\n';
+								el.style.color = '#C31D64';
+								el.previousSibling.style.color = '#C31D64';
+								el.nextSibling.style.color = '#C31D64';
+								//el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
+							}
+							
+							var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
+							ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
+							if (returnValue.length > 1) {
+								ClickableElement[idx].wert += returnValue[1].padEnd(4, '0').slice(0, 4);
+							}
+							else {
+								ClickableElement[idx].wert += '0000';
+							}
+						}
+						else {	//isNaN || empty
 							el.style.color = '#C31D64';
-							el.previousSibling.style.color = '#C31D64';
-							el.nextSibling.style.color = '#C31D64';
-							//el.value = unterGrenze.toString();
+							if (el.previousSibling != null) el.previousSibling.style.color = '#C31D64';
+							if (el.nextSibling != null) el.nextSibling.style.color = '#C31D64';
+							if (el.previousSibling != null) errorString += el.previousSibling.textContent + ': ';
+							errorString += 'ungültige Zahl!' + '\n';
 						}
-						if (value > oberGrenze){
-							errorString += el.previousSibling.textContent + ': ' + 'max = ' + oberGrenze + '\n';
-							el.style.color = '#C31D64';
-							el.previousSibling.style.color = '#C31D64';
-							el.nextSibling.style.color = '#C31D64';
-							//el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
-						}
-						
-						var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
-						ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
-						if (returnValue.length > 1) {
-							ClickableElement[idx].wert += returnValue[1].padEnd(4, '0').slice(0, 4);
-						}
-						else {
-							ClickableElement[idx].wert += '0000';
-						}
-					}
-					else {	//isNaN || empty
-						el.style.color = '#C31D64';
-						el.previousSibling.style.color = '#C31D64';
-						el.nextSibling.style.color = '#C31D64';
-						errorString += el.previousSibling.textContent + ': ' + 'ungültige Zahl!' + '\n';
 					}
 				}
+			});
+		});
+	}
+	//Wenn "Zum Wochekalender" -> Wert "HK Wochenkalender" auf 1 umstellen und weitere Daten unverändert zurückübertragen
+	else { //if (option == 'openHKWochenKalender' || option == 'closeHKWochenKalender') {
+		ClickableElement.forEach(function(el) {
+			if (el.name.trim() == 'HK Wochenkalender') {
+				//console.log('+' + el.wert + '+');
+				//Kalender mit Schreibrechten öffnen
+				if (option == 'openHKWochenKalender' && !locked) el.wert = el.wert.replace('0', '1');
+				//Kalender OHNE Schreibrechte öffnen
+				if (option == 'openHKWochenKalender' && locked) el.wert = el.wert.replace('0', '2');
+				//if (option == 'closeHKWochenKalender') el.wert = el.wert.replace('1', '0');
+				//console.log('+' + el.wert + '+');
 			}
 		});
-	});
-	
-	//erzeugt Linkliste
-	
-	//normale Zurückübertragen, undefined kommt aus der onlickevent des html button (index.html)
-	if (option == undefined) {
+	}
+	if(errorString == ''){
+		//erzeugt Linkliste
 		for (var i=0; i<20 ; i++) {
 			var sendBackData = '';
 			var link = ''
@@ -2171,40 +2179,7 @@ function sendValueFromVisuToRtos(option) {
 				sendBackToRtosUrlList.push(link);
 			}
 		}
-	}
-	
-	//Wenn die "Zum Wochekalender" getätigt wird, der Wert der "HK Wochenkalender" auf 1 umstellen und zurückübertragen
-	if (option == 'HKWochenKalender' ) {
-			for (var i=0; i<20 ; i++) {
-			var sendBackData = '';
-			var link = ''
-			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
-			//1.Zeile auffüllen auf 60 Zeichen
-			if(i == 0) {
-				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
-				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
-				sendBackToRtosUrlList.push(link);
-			}
-			else {		
-				if(ClickableElement[i].name.trim() == 'HK Wochenkalender')
-				{
-					ClickableElement[i].wert = 1;
-					sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-					ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
-					link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
-					sendBackToRtosUrlList.push(link);
-				}
-				else
-				{
-					sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-					ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
-					link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
-					sendBackToRtosUrlList.push(link);
-				}
-			}
-		}
-	}
-	if(errorString == ''){
+		//Linkliste an Rtos senden
 		for (var j=0; j<sendBackToRtosUrlList.length; j++){
 			sendData(sendBackToRtosUrlList[j]);
 		}
@@ -2241,7 +2216,7 @@ function openFaceplate() {
 			if (dx * dx + dy * dy < item.radius * item.radius) {
 				match = true;
 				var matchItem = item;
-				var clickableElementUrl;
+				
 
 				//search in the link list of clickable element base on unique id to find out the coresspondent link 
 				for (var j = 0; j < ClickableElementUrlList.length; j++) {
@@ -2316,12 +2291,12 @@ function buildFaceplate() {
 		
 		//Für leere Zeilen nur inputWert versteckt im Faceplate einfügen (enthält leeren 'Rohwert aus ClickableElement)
 		if (ClickableElement[j].name.trim() == '') {						
-			var inputWert = document.createElement('input');
+			/*var inputWert = document.createElement('input');
 			inputWert.type = 'text';
 			inputWert.value = ClickableElement[j].wert;
 			inputWert.className = 'inputWert';
 			inputWert.style.display = 'none';
-			div.appendChild(inputWert);
+			div.appendChild(inputWert);*/
 		}
 		else {
 		
@@ -2580,31 +2555,21 @@ function buildFaceplate() {
 					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
 				});
 				
-				const FORCE_WOCHENKALENDER = true;
-				if (ClickableElement[j].wert.includes('0') && !FORCE_WOCHENKALENDER) {
-					//lblName zusätzlich ausblenden
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'lblName') el.style.display = 'none';
-					});
-				}
-				else {
-					//SprungButton erzeugen
-					var btnWochenkalender = document.createElement('input');
-					btnWochenkalender.type = 'button';
-					btnWochenkalender.id = 'btnWochenkalender';
-					btnWochenkalender.value = 'Übernehmen & zum Kalender';
-					btnWochenkalender.onclick = jumpToWochenKalender;
-					div.appendChild(btnWochenkalender);
-				}
+				//SprungButton erzeugen
+				var btnWochenkalender = document.createElement('input');
+				btnWochenkalender.type = 'button';
+				btnWochenkalender.id = 'btnWochenkalender';
+				btnWochenkalender.value = 'zum Kalender';
+				btnWochenkalender.onclick = jumpToWochenKalender;
+				div.appendChild(btnWochenkalender);
 			}
 		}
 	}
 	
 	//Btn entsprechend aktueller Betriebsart setzen und Verriegelung setzen
-	handleConfirmBtns(locked);
+	handleConfirmBtn(locked);
 	
 	var activeBtnHK;
-	var activeBtnPmp = document.getElementById('btnPmpAuto');
 	switch (HKBetriebsart) {
 		case '-1':
 			activeBtnHK = document.getElementById('btnHKHandAus');
@@ -2620,10 +2585,8 @@ function buildFaceplate() {
 			
 		default:
 			activeBtnHK = document.getElementById('btnHKHandEin');
-			activeBtnPmp = document.getElementById('btnPmpHandEin');
 	}
 	BetriebsartBtnHanlder(activeBtnHK.id);
-	BetriebsartBtnHanlder(activeBtnPmp.id);
 	updateSliderValue('inputWertFaceplatePumpen Handwert');
 	
 	
@@ -2645,7 +2608,7 @@ function jumpToWochenKalender(){
 	clearInterval(fernbedienungAutoReload);
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
 	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
-	var sendError = sendValueFromVisuToRtos('HKWochenKalender');
+	var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
 	if (!sendError) {
 		//3.Modalfenster mit eingebettets Heizkreiswochenkalender einblenden oder Fernbedienung Tab im Iframe darstellen
 		//showElemementById('wochenKalenderImVisu');
@@ -2657,6 +2620,9 @@ function jumpToWochenKalender(){
 
 function closeModalWochenKalenderImVisu(){
 	hideElemementById('wochenKalenderImVisu');
+	sendData(clickableElementUrl);
+	//sendValueFromVisuToRtos('closeHKWochenKalender');
+	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
 }
 
 function showFaceplate(matchItem) {
