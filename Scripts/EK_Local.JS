@@ -79,7 +79,8 @@ $(document).ready(function () {
 	
   /**********Visualization*/
 	initVisu();
-	handleConfirmBtns(locked);		//Visubedienung verriegeln
+	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
+	//handleConfirmBtn(locked);		//Visubedienung verriegeln
    
   /*********Data evaluation********/
 	//jw startQH();
