@@ -503,7 +503,7 @@ function requestData(DataRequestObject) {
 			emptyRecord.Datum = today.toLocaleString().split(',')[0];
 			emptyRecord.Index = i;
 			emptyRecord.nValues = numberOfDataTrack;
-			emptyRecord.Projektnumer = projektnummer;
+			emptyRecord.Projektnumer = projektNummer;
 			emptyRecord.Values = emmptyValues;
 			res.push(emptyRecord);
 		}
