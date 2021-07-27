@@ -60,7 +60,6 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 $(document).ready(function () {
   /*Initialize layout, static variable....*/
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
-	var test = getData(getSteuerungNameUrl);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
 	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
 	const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
