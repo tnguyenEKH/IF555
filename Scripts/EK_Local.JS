@@ -60,6 +60,7 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 $(document).ready(function () {
   /*Initialize layout, static variable....*/
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
+	var test = getData(getSteuerungNameUrl);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
 	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
 	const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
@@ -99,48 +100,73 @@ $(document).ready(function () {
 
 /***********************Kommunikation*************************************/
 function getData(url) {
+	var res;
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, false); 
-    xhr.send();
-    if (xhr.response == "{\"result\":\"OK\"}\r\n") {
-        xhr.open("GET", dataUrl, false);
-        xhr.send();
-        return xhr.response
-    }
-    else {
-        return xhr.response;
-    }
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+				if (xhr.response == "{\"result\":\"OK\"}\r\n"){
+					xhr.open("GET", dataUrl, false);
+					xhr.send();
+					res = xhr.response
+				}
+				else {
+					res = xhr.response;
+				}
+			}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
 }
 
 function sendData(url) {
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, false); 
-    xhr.send();
-    return xhr.response;
+	var res;
+	var xhr = new XMLHttpRequest();
+	xhr.open("GET", url, false); 
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+					res = xhr.response;
+				}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
 }
 
 /*Read Textfile aus dem Ordner */
 function readFromTextFile(fileName) {
-  var xhr = new XMLHttpRequest();
-  xhr.overrideMimeType('text/plain; charset=Windows-1252')
-  xhr.open("GET", fileName, false);
-  if (fileName != QHSettingFile)
-  {
-	    xhr.setRequestHeader('Cache-Control', 'no-cache');
-  }
-  //exception handling
-  try
-  {
-    xhr.send();
-  }
-  catch (e)
-  {
-    return null;
-  }
-  if (xhr.status == 500 || xhr.status == 404 || (xhr.status == 0 && xhr.responseText == ""))
-    return null;
-  else
-  return xhr.responseText;
+	var res;
+	var xhr = new XMLHttpRequest();
+	xhr.overrideMimeType('text/plain; charset=Windows-1252')
+	xhr.open("GET", fileName, false);
+	if (fileName != QHSettingFile)
+	{
+		xhr.setRequestHeader('Cache-Control', 'no-cache');
+	}
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+					res = xhr.responseText;
+				}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
 }
 /*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
 */
@@ -181,7 +207,6 @@ function readFromTextFile(fileName) {
       allQHDataRecords.push(record);
     }
   }
-
 } 
 
 function writeToTextFile(data) {
