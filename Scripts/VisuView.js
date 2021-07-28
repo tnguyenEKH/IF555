@@ -2167,7 +2167,7 @@ function openFaceplate() {
 					2. wait "300ms" and get the information provided by RTOS-Webserver
 				*/
 				sendData(clickableElementUrl);
-				sleep(600);
+				sleep(1000);
 				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
 								
 				ClickableElement = [];
