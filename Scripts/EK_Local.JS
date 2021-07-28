@@ -60,7 +60,6 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 $(document).ready(function () {
   /*Initialize layout, static variable....*/
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
-	var test = getData(getSteuerungNameUrl);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
 	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
 	const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
@@ -317,6 +316,14 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 	var ctx = canvasContext;
 	var Displaycanvas = canvasName;
 	DisplayCanvas = canvas
+
+
+ // ctx.fillStyle = "#E0E0E0";              // Testausgabe fuers Timing
+ // ctx.fillRect(900, 20, 60, 40);
+ // ctx.fillStyle = "#000000";
+ // ctx.fillText(zykzaehler, 910, 40); 
+
+
     if (tastzaehler > 0) {                  // <<< 
       tastzaehler=tastzaehler-1;
       if (tastzaehler < 1) {
@@ -364,7 +371,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
         zykzaehler=zyklus;
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
-     	ctx.fillStyle = "#E0E0E0";
+        ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
         ctx.fillStyle = "#000000";  
         ctx.font = "20px Arial";
@@ -471,7 +478,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
           ctx.fillStyle = "#000000";
           xpos=580;    
           ctx.fillText("Automatikbetrieb (nach Wochenkalender)", xpos, ypos);        
-          index = textToReplace.indexOf("0");               //  Automatikbetrieb
+          index = textToReplace.indexOf("1");               //  Automatikbetrieb
           if (index > 0) {
             ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
             ctx.setLineDash([5,  0]);
@@ -498,7 +505,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
           ctx.fillStyle = "#000000";
           xpos=580;    
           ctx.fillText("Dauertagbetrieb", xpos, ypos);        
-          index = textToReplace.indexOf("2");               //  Dauertagbetrieb
+          index = textToReplace.indexOf("3");               //  Dauertagbetrieb
           if (index > 0) {
             ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
             ctx.setLineDash([5,  0]);
@@ -513,6 +520,15 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
             ctx.beginPath();
             ctx.moveTo(xpos, ypos);
             ctx.lineTo(xpos+12, ypos+12);
+            ctx.stroke(); 
+            ctx.strokeStyle = "#606060";         // Kalender durchstreichen dunkelgrau
+            ctx.setLineDash([4, 10]);
+            ctx.lineWidth = 5;
+            xpos=50;    
+            ypos=305;    
+            ctx.beginPath();
+            ctx.moveTo(xpos, ypos);
+            ctx.lineTo(xpos+725, ypos-215);
             ctx.stroke(); 
           }          
 
@@ -525,7 +541,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
           ctx.fillStyle = "#000000";
           xpos=580;    
           ctx.fillText("Dauernachtbetrieb", xpos, ypos);        
-          index = textToReplace.indexOf("1");               //  Dauernachtbetrieb
+          index = textToReplace.indexOf("2");               //  Dauernachtbetrieb
           if (index > 0) {
             ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
             ctx.setLineDash([5,  0]);
@@ -540,6 +556,15 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
             ctx.beginPath();
             ctx.moveTo(xpos, ypos);
             ctx.lineTo(xpos+12, ypos+12);
+            ctx.stroke(); 
+            ctx.strokeStyle = "#606060";         // Kalender durchstreichen dunkelgrau
+            ctx.setLineDash([4, 10]);
+            ctx.lineWidth = 5;
+            xpos=50;    
+            ypos=305;    
+            ctx.beginPath();
+            ctx.moveTo(xpos, ypos);
+            ctx.lineTo(xpos+725, ypos-215);
             ctx.stroke(); 
           }          
         }
