@@ -1662,28 +1662,17 @@ function drawVCOItem(item) {
 
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
 				item.BgColor = "#fc1803";
-				if (item.VCOItem.Projektnummer.trim() == "P 676") {
-					svalue = "     ";
-					vco.sEinheit = "     ";
 				}
 
 			}
 
 			if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
 				item.BgColor = "#fcdf03";
-				if (item.VCOItem.Projektnummer.trim() == "P 676") {
-					svalue = "     ";
-					vco.sEinheit = "     ";
-				}
 			}
 
 			if (warnGrenze != null) {
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
 				item.BgColor = "#42f545";
-					if (item.VCOItem.Projektnummer.trim() == "P 676") {
-						svalue = "     ";
-						vco.sEinheit = "     ";
-					}
 				}
 			}
 
