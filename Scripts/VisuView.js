@@ -247,14 +247,16 @@ function addClickableElementToList(visudata) {
 				item["radius"] = 18;
 
 			}
-			if (item["Bezeichnung"] == "PMP") {
-
+			if (item["Bezeichnung"] == "KES") {
+				item["radius"] = 18;
 			}
 
-			if (item["Bezeichnung"] == "MI") {
-
+			if (item["Bezeichnung"] == "BHK") {
+				item["radius"] = 18;
 			}
-
+			if (item["Bezeichnung"] == "WWL") {
+				item["radius"] = 18;
+			}
 			createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
 			ClickableElementList.push(item);
 		}
@@ -1209,6 +1211,7 @@ function globalTimer() {
 
 // Diverse Zeichenfunktionen wie im Editor
 
+/*
 function Heizkreis(vDynCtx, x, y, scale) {
     vDynCtx.save();
     vDynCtx.lineWidth = 4;
@@ -1218,6 +1221,61 @@ function Heizkreis(vDynCtx, x, y, scale) {
     vDynCtx.stroke();
     vDynCtx.restore();
 }
+*/
+
+function Heizkreis(vDynCtx, x, y) {
+	var notches = 7,                      // num. of notches
+		radiusO = 12,                    // outer radius
+		radiusI = 9,                    // inner radius
+		radiusH = 5,                    // hole radius
+		taperO = 30,                     // outer taper %
+		taperI = 40,                     // inner taper %
+
+		// pre-calculate values for loop
+		pi2 = 2 * Math.PI,            // cache 2xPI (360deg)
+		angle = pi2 / (notches * 2),    // angle between notches
+		taperAI = angle * taperI * 0.005, // inner taper offset (100% = half notch)
+		taperAO = angle * taperO * 0.005, // outer taper offset
+		a = angle,                  // iterator (angle)
+		toggle = false;                  // notch radius level (i/o)
+
+	vDynCtx.save();
+	vDynCtx.fillStyle = '#000';
+	vDynCtx.lineWidth = 2.5;
+	vDynCtx.strokeStyle = '#000';
+	vDynCtx.beginPath()
+	vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
+
+	for (; a <= pi2; a += angle) {
+
+		// draw inner to outer line
+		if (toggle) {
+			vDynCtx.lineTo(x + radiusI * Math.cos(a - taperAI),
+				y + radiusI * Math.sin(a - taperAI));
+			vDynCtx.lineTo(x + radiusO * Math.cos(a + taperAO),
+				y + radiusO * Math.sin(a + taperAO));
+		}
+
+		// draw outer to inner line
+		else {
+			vDynCtx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
+				y + radiusO * Math.sin(a - taperAO));
+			vDynCtx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
+				y + radiusI * Math.sin(a + taperAI));
+		}
+
+		// switch level
+		toggle = !toggle;
+	}
+	// close the final line
+	vDynCtx.closePath();
+	vDynCtx.moveTo(x + radiusH, y);
+	vDynCtx.arc(x, y, radiusH, 0, pi2);
+	vDynCtx.stroke();
+	vDynCtx.restore();
+}
+
+
 
 function Absenkung(vDynCtx, x, y, scale, active) {
 	vDynCtx.save();
@@ -2209,7 +2267,8 @@ function openFaceplate() {
 
 		//check bitmap referenz to avoid interferenz between layer
 		var currentBitmapIndex = bmpIndex;
-		//testing click event for HK (a cicle, radius is 18)
+
+		/********************* Heizkreise *************************/
 		if ((item.Bezeichnung == "HK") && (item.bitmapIndex == currentBitmapIndex)) {
 			dx = mx - item.x;
 			dy = my - item.y;
@@ -2265,10 +2324,177 @@ function openFaceplate() {
 				
 			}	
 		}
-	
-		if (item.Bezeichnung == "PMP") {
+		
+		/********************* BHKW *************************/
+		if ((item.Bezeichnung == "BHK") && (item.bitmapIndex == currentBitmapIndex)) {
+			dx = mx - item.x;
+			dy = my - item.y;
+			if (dx * dx + dy * dy < item.radius * item.radius) {
+				match = true;
+				var matchItem = item;
+				var clickableElementUrl;
 
+				//search in the link list of clickable element base on unique id to find out the coresspondent link 
+				for (var j = 0; j < ClickableElementUrlList.length; j++) {
+					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
+						clickableElementUrl = ClickableElementUrlList[j];
+					}
+				}
+
+				/*query the available adjustable params from RTOS in two step
+					1. tell the RTOS-Webserver, which elemente will be queried
+					2. wait "300ms" and get the information provided by RTOS-Webserver
+				*/
+				sendData(clickableElementUrl);
+				sleep(1000);
+				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+								
+				ClickableElement = [];
+				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+				for (var j = 70; j < 90; j++) {
+					var rtosVariable = "v0" + j;
+					var option = adjustmentOption[rtosVariable];
+					var item = new Object();
+					item['name'] = option.substr(0, 24);
+					if (j == 70) {
+						var modalId = item['name'].trim();
+						item['wert'] = option.substr(24,20)
+						item["oberGrenze"] = '';
+						item["unterGrenze"] = '';
+						item["nachKommaStellen"] = '';
+						item["einheit"] = '';
+						item["lastItem"] = option.substr(59, 1);
+					}
+					else {
+						item['wert'] = option.substr(24,10) ;
+						item["oberGrenze"] = option.substr(36,5);
+						item["unterGrenze"] = option.substr(42,5);
+						item["nachKommaStellen"] = option.substr(48,1);
+						item["einheit"] = option.substr(50,5);
+						item["lastItem"] = option.substr(59, 1);
+					}
+					//console.log(item);
+					ClickableElement.push(item);
+				}
+				
+				buildFaceplate();
+				
+			}	
 		}
+		
+		/********************* Kessel *************************/
+		if ((item.Bezeichnung == "KES") && (item.bitmapIndex == currentBitmapIndex)) {
+			dx = mx - item.x;
+			dy = my - item.y;
+			if (dx * dx + dy * dy < item.radius * item.radius) {
+				match = true;
+				var matchItem = item;
+				var clickableElementUrl;
+
+				//search in the link list of clickable element base on unique id to find out the coresspondent link 
+				for (var j = 0; j < ClickableElementUrlList.length; j++) {
+					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
+						clickableElementUrl = ClickableElementUrlList[j];
+					}
+				}
+
+				/*query the available adjustable params from RTOS in two step
+					1. tell the RTOS-Webserver, which elemente will be queried
+					2. wait "300ms" and get the information provided by RTOS-Webserver
+				*/
+				sendData(clickableElementUrl);
+				sleep(1000);
+				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+								
+				ClickableElement = [];
+				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+				for (var j = 70; j < 90; j++) {
+					var rtosVariable = "v0" + j;
+					var option = adjustmentOption[rtosVariable];
+					var item = new Object();
+					item['name'] = option.substr(0, 24);
+					if (j == 70) {
+						var modalId = item['name'].trim();
+						item['wert'] = option.substr(24,20)
+						item["oberGrenze"] = '';
+						item["unterGrenze"] = '';
+						item["nachKommaStellen"] = '';
+						item["einheit"] = '';
+						item["lastItem"] = option.substr(59, 1);
+					}
+					else {
+						item['wert'] = option.substr(24,10) ;
+						item["oberGrenze"] = option.substr(36,5);
+						item["unterGrenze"] = option.substr(42,5);
+						item["nachKommaStellen"] = option.substr(48,1);
+						item["einheit"] = option.substr(50,5);
+						item["lastItem"] = option.substr(59, 1);
+					}
+					//console.log(item);
+					ClickableElement.push(item);
+				}
+				
+				buildFaceplate();
+				
+			}	
+		}
+
+		/********************* Warmwasser *************************/
+		if ((item.Bezeichnung == "WWL") && (item.bitmapIndex == currentBitmapIndex)) {
+			dx = mx - item.x;
+			dy = my - item.y;
+			if (dx * dx + dy * dy < item.radius * item.radius) {
+				match = true;
+				var matchItem = item;
+				var clickableElementUrl;
+
+				//search in the link list of clickable element base on unique id to find out the coresspondent link 
+				for (var j = 0; j < ClickableElementUrlList.length; j++) {
+					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
+						clickableElementUrl = ClickableElementUrlList[j];
+					}
+				}
+
+				/*query the available adjustable params from RTOS in two step
+					1. tell the RTOS-Webserver, which elemente will be queried
+					2. wait "300ms" and get the information provided by RTOS-Webserver
+				*/
+				sendData(clickableElementUrl);
+				sleep(1000);
+				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+								
+				ClickableElement = [];
+				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+				for (var j = 70; j < 90; j++) {
+					var rtosVariable = "v0" + j;
+					var option = adjustmentOption[rtosVariable];
+					var item = new Object();
+					item['name'] = option.substr(0, 24);
+					if (j == 70) {
+						var modalId = item['name'].trim();
+						item['wert'] = option.substr(24,20)
+						item["oberGrenze"] = '';
+						item["unterGrenze"] = '';
+						item["nachKommaStellen"] = '';
+						item["einheit"] = '';
+						item["lastItem"] = option.substr(59, 1);
+					}
+					else {
+						item['wert'] = option.substr(24,10) ;
+						item["oberGrenze"] = option.substr(36,5);
+						item["unterGrenze"] = option.substr(42,5);
+						item["nachKommaStellen"] = option.substr(48,1);
+						item["einheit"] = option.substr(50,5);
+						item["lastItem"] = option.substr(59, 1);
+					}
+					//console.log(item);
+					ClickableElement.push(item);
+				}
+				
+				buildFaceplate();
+				
+			}	
+		}		
 	
 	}
 	
