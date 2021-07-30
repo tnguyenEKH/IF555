@@ -131,10 +131,15 @@ function initVisu()
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
 	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
-	
-	addClickableElementToList(visudata);			/*SettingsFromVisualisierung*/
-	
-	prj = visudata.VCOData.Projektnumer;
+	if (visudata != ''){
+		prj = visudata.VCOData.Projektnumer;
+	}
+	else{
+		prj = '';
+	} 
+		
+	/*SettingsFromVisualisierung*/
+	addClickableElementToList(visudata);			
 
 	// Tooltips einlesen
 	initTooltips();
@@ -165,99 +170,111 @@ function startVisu() {
 		for (var i = 0; i < stoerungencount; i++) {
 			stoerungText += Stoerungen[i].BezNr + ". " + Stoerungen[i].StoerungText.trim() + "<br/>";
 		}
-		//alert(stoerungText);
-		var u = k;
 	}
 	catch (e) {
 		log(e.message);
 		log("Es konnten keine Visualisierungsdaten heruntergeladen werden von Steuerung " + prj);
 	}	
 	DrawVisu(true);
-	//findLabelAnstehendeStoerung();
-	//getCoordinateOfCanvasButton();
 }
 
 
 function createLinkForClickableElement(id) {
-	var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' +id ;
-	ClickableElementUrlList.push(link);
+	try{
+		var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' +id ;
+		ClickableElementUrlList.push(link);
+	}
+	catch(e){
+		var link = '' ;
+		ClickableElementUrlList.push(link);
+	}
 }
 
 function addLinkButtonToList(visudata) {
-	var FreitextList = visudata.FreitextList;
-	var n = FreitextList.length;
-	for (var i = 0; i < n; i++) {
-		var item = new Object();
-		var freiTextListItem = FreitextList[i];
-		var x = freiTextListItem.x;
-		var y = freiTextListItem.y;
-		var txt = freiTextListItem.Freitext;
-		var w = ctx.measureText(txt).width;
-		var h = freiTextListItem.BgHeight;
-		var orientation = freiTextListItem.VerweisAusrichtung;
-		var targetBmp = freiTextListItem.idxVerweisBitmap;
-		
-		item["x"] = freiTextListItem.x;
-		item["y"] = freiTextListItem.y;
+	try{
+		var FreitextList = visudata.FreitextList;
+		var n = FreitextList.length;
+		for (var i = 0; i < n; i++) {
+			var item = new Object();
+			var freiTextListItem = FreitextList[i];
+			var x = freiTextListItem.x;
+			var y = freiTextListItem.y;
+			var txt = freiTextListItem.Freitext;
+			var w = ctx.measureText(txt).width;
+			var h = freiTextListItem.BgHeight;
+			var orientation = freiTextListItem.VerweisAusrichtung;
+			var targetBmp = freiTextListItem.idxVerweisBitmap;
+			
+			item["x"] = freiTextListItem.x;
+			item["y"] = freiTextListItem.y;
 
-		if (orientation == "hor") {
-			item["x_min"] = x - 6;
-			item["y_min"] = y - h - 6;
-			item["x_max"] = x + w + 16;
-			item["y_max"] = y + 6;
-			item["bmp"] = targetBmp;
-			item["text"] = txt;
-		}
-		if (orientation == "up") {
-			item["x_min"] = x - h - 16;
-			item["y_min"] = y - w - 16;
-			item["x_max"] = x + 6;
-			item["y_max"] = y + 6;
-			item["bmp"] = targetBmp;
-			item["text"] = txt;
-		}
+			if (orientation == "hor") {
+				item["x_min"] = x - 6;
+				item["y_min"] = y - h - 6;
+				item["x_max"] = x + w + 16;
+				item["y_max"] = y + 6;
+				item["bmp"] = targetBmp;
+				item["text"] = txt;
+			}
+			if (orientation == "up") {
+				item["x_min"] = x - h - 16;
+				item["y_min"] = y - w - 16;
+				item["x_max"] = x + 6;
+				item["y_max"] = y + 6;
+				item["bmp"] = targetBmp;
+				item["text"] = txt;
+			}
 
-		if (orientation == "dn") {
-			item["x_min"] = x - 6;
-			item["y_min"] = y - 6;
-			item["x_max"] = x + h + 16;
-			item["y_max"] = y + w + 6;
-			item["bmp"] = targetBmp;
-			item["text"] = txt;
+			if (orientation == "dn") {
+				item["x_min"] = x - 6;
+				item["y_min"] = y - 6;
+				item["x_max"] = x + h + 16;
+				item["y_max"] = y + w + 6;
+				item["bmp"] = targetBmp;
+				item["text"] = txt;
+			}
+			LinkButtonList.push(item);
 		}
-		LinkButtonList.push(item);
+	}
+	catch(e){
+		log(e.message);
 	}
 }
 
 // Linkbutton in Liste eintragen
 function addClickableElementToList(visudata) {
-	for (var i = 0; i < visudata.DropList.length; i++) {
-		if (visudata.DropList[i].VCOItem.clickable == true) {
-			var item = new Object();
-			item["x"] = visudata.DropList[i].x;
-			item["y"] = visudata.DropList[i].y;
-			item["clickable"] = true;
-			item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
-			item["id"] = visudata.DropList[i].VCOItem.iD.trim();
-			item["h"] = visudata.DropList[i].BgHeight;
-			item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
-			if (item["Bezeichnung"] == "HK") {
-				item["radius"] = 18;
+	try{
+		for (var i = 0; i < visudata.DropList.length; i++) {
+			if (visudata.DropList[i].VCOItem.clickable == true) {
+				var item = new Object();
+				item["x"] = visudata.DropList[i].x;
+				item["y"] = visudata.DropList[i].y;
+				item["clickable"] = true;
+				item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
+				item["id"] = visudata.DropList[i].VCOItem.iD.trim();
+				item["h"] = visudata.DropList[i].BgHeight;
+				item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
+				if (item["Bezeichnung"] == "HK") {
+					item["radius"] = 18;
 
-			}
-			if (item["Bezeichnung"] == "KES") {
-				item["radius"] = 18;
-			}
+				}
+				if (item["Bezeichnung"] == "KES") {
+					item["radius"] = 18;
+				}
 
-			if (item["Bezeichnung"] == "BHK") {
-				item["radius"] = 18;
+				if (item["Bezeichnung"] == "BHK") {
+					item["radius"] = 18;
+				}
+				if (item["Bezeichnung"] == "WWL") {
+					item["radius"] = 18;
+				}
+				createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
+				ClickableElementList.push(item);
 			}
-			if (item["Bezeichnung"] == "WWL") {
-				item["radius"] = 18;
-			}
-			createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
-			ClickableElementList.push(item);
 		}
+	}
+	catch(e){
+		log(e.message);
 	}    
 }
 
