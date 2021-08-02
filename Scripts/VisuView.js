@@ -1260,7 +1260,11 @@ function Heizkreis(vDynCtx, x, y) {
 	vDynCtx.fillStyle = '#000';
 	vDynCtx.lineWidth = 2.5;
 	vDynCtx.strokeStyle = '#000';
-	vDynCtx.beginPath()
+	vDynCtx.beginPath();
+	vDynCtx.shadowColor = "black";
+	vDynCtx.shadowBlur = 3;
+	vDynCtx.shadowOffsetX = 3;
+	vDynCtx.shadowOffsetY = 3;
 	vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
 
 	for (; a <= pi2; a += angle) {
@@ -1679,17 +1683,28 @@ function drawVCOItem(item) {
 
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
 				item.BgColor = "#fc1803";
+				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+					svalue = "     ";
+					vco.sEinheit = "     ";
 				}
 
 			}
 
 			if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
 				item.BgColor = "#fcdf03";
+				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+					svalue = "     ";
+					vco.sEinheit = "     ";
+				}
 			}
 
 			if (warnGrenze != null) {
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
 				item.BgColor = "#42f545";
+					if (item.VCOItem.Projektnummer.trim() == "P 676") {
+						svalue = "     ";
+						vco.sEinheit = "     ";
+					}
 				}
 			}
 
