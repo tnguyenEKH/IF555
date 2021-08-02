@@ -290,672 +290,674 @@ Datastructure of Visudownload will be nested array + array of object
 */
 
 function createVisudata(sText){
-	var Stoerungen = [];
-	var Items = [];
-	var Projektnummer = sText.substring(0,5);
-	var index = 0;
-	
-	do
-	{
-		var stoerung = {};
-		idx = sText.indexOf("STOE");
-		if(idx >=0)
-		{
-		   // Für Picoli, nach STOE gibt nur 2 stellige Störungsnummer. Annahme: Picolinamen sind immer mit P1 anfangen
-			if (Projektnummer.indexOf("P1") >-1)
-			{
-				stoerung.BezNr = sText.substr((idx + 4), 2);
-				stoerung.StoerungText = sText.substr((idx + 6), 16);
-				Stoerungen.push(stoerung);
-				sText = sText.slice((idx+16), sText.length);                        
-			}
-
-			// Für MPC, nach STOE gibt 3 stellige Störungsnummer
-			else
-			{
-				stoerung.BezNr = sText.substr((idx + 4), 3);
-				stoerung.StoerungText = sText.substr((idx + 7), 20);
-				Stoerungen.push(stoerung);
-				sText = sText.slice((idx+20), sText.length);   
-			}
-		}
+	if (sText != undefined){
+		var Stoerungen = [];
+		var Items = [];
+		var Projektnummer = sText.substring(0,5);
+		var index = 0;
 		
-	}
-	while (idx >= 0);
-	
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("AI");
-		if(idx >=0)
+		do
 		{
-			item.Bezeichnung = "AI";
-			item.Kanal = sText.substr((idx + 2), 3);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var stoerung = {};
+			idx = sText.indexOf("STOE");
+			if(idx >=0)
+			{
+			   // Für Picoli, nach STOE gibt nur 2 stellige Störungsnummer. Annahme: Picolinamen sind immer mit P1 anfangen
+				if (Projektnummer.indexOf("P1") >-1)
+				{
+					stoerung.BezNr = sText.substr((idx + 4), 2);
+					stoerung.StoerungText = sText.substr((idx + 6), 16);
+					Stoerungen.push(stoerung);
+					sText = sText.slice((idx+16), sText.length);                        
+				}
+
+				// Für MPC, nach STOE gibt 3 stellige Störungsnummer
+				else
+				{
+					stoerung.BezNr = sText.substr((idx + 4), 3);
+					stoerung.StoerungText = sText.substr((idx + 7), 20);
+					Stoerungen.push(stoerung);
+					sText = sText.slice((idx+20), sText.length);   
+				}
+			}
+			
 		}
+		while (idx >= 0);
 		
-	}
-	while (idx >= 0);
+		
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("AI");
+			if(idx >=0)
+			{
+				item.Bezeichnung = "AI";
+				item.Kanal = sText.substr((idx + 2), 3);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
+			
+		}
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("TH");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "TH";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("TH");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "TH";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("GA");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "GA";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("GA");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "GA";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PKT");
-		if (idx >= 0)
+		while (idx >= 0);	
+		
+		do
 		{
-			item.Bezeichnung = "PKT";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PKT");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PKT";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PT");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PT";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PT");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PT";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("DF");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "DF";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("DF");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "DF";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("UDR");
-		if (idx >= 0)
+		while (idx >= 0);	
+		
+		do
 		{
-			item.Bezeichnung = "UDR";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("UDR");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "UDR";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PDI");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "PDI";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PDI");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PDI";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PGG");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PGG";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PGG");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PGG";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PGK");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PGK";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PGK");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PGK";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PGB");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PGB";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PGB");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PGB";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PBE");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "PBE";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PBE");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PBE";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PBH");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PBH";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PBH");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PBH";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PBZ");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "PBZ";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PBZ");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PBZ";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
+		while (idx >= 0);	
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PEI");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "PEI";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("PEI");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PEI";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
+		while (idx >= 0);	
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("AA");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "AA";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("AA");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "AA";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("MS");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "MS";
-			item.Kanal = sText.substr((idx + 2), 3);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("MS");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "MS";
+				item.Kanal = sText.substr((idx + 2), 3);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("PH");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "PH";
-			item.Kanal = sText.substr((idx + 2), 3);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert >0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("PH");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PH";
+				item.Kanal = sText.substr((idx + 2), 3);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert >0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("KPU");
-		if (idx >= 0)
+		while (idx >= 0);
+		
+		do
 		{
-			item.Bezeichnung = "KPU";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert >0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("KPU");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "KPU";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert >0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("KL");
-		if (idx >= 0)
+		while (idx >= 0);	
+		
+		do
 		{
-			item.Bezeichnung = "KL";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert >0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("KL");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "KL";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert >0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
-	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("BPU");
-		if (idx >= 0)
+		while (idx >= 0);	
+		
+		do
 		{
-			item.Bezeichnung = "BPU";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert > 0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("BPU");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "BPU";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert > 0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("BL");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "BL";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert>0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("BL");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "BL";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("LP");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "LP";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert>0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("LP");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "LP";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("ZP");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "ZP";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert>0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("ZP");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "ZP";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("SG");
-		if (idx >= 0)
+		while (idx >= 0);
+		do
 		{
-			item.Bezeichnung = "SG";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert>0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("SG");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "SG";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("BI");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "BI";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 8), 3);
-			//item.Wert *= 0.01;
-			item.isBool = true;
-			item.BoolVal = item.Wert>0;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+11), sText.length);
+			var item = {};
+			idx = sText.indexOf("BI");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "BI";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+11), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
+		while (idx >= 0);	
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("ZZ");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "ZZ";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("ZZ");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "ZZ";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);	
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("HKT");
-		if (idx >= 0)
+		while (idx >= 0);	
+		do
 		{
-			item.Bezeichnung = "HKT";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("HKT");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "HKT";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("BWT");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "BWT";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("BWT");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "BWT";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
-	}
-	while (idx >= 0);
+		while (idx >= 0);
 
-	do
-	{
-		var item = {};
-		idx = sText.indexOf("GR");
-		if (idx >= 0)
+		do
 		{
-			item.Bezeichnung = "GR";
-			item.Kanal = sText.substr((idx + 3), 2);
-			item.Nachkommastellen = sText.substr((idx + 6), 1);
-			item.iEinheit = sText.substr((idx + 8), 2);
-			item.Wert = sText.substr((idx + 10), 7);
-			//item.Wert *= 0.01;
-			item.isBool = false;
-			item.BoolVal = false;
-			item.EinheitText = getVisuItemEinheit(item.iEinheit);
-			Items.push(item);
-			sText= sText.slice((idx+17), sText.length);
+			var item = {};
+			idx = sText.indexOf("GR");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "GR";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
 		}
+		while (idx >= 0);
+		
+		VisuDownload.Items = Items;
+		VisuDownload.Projektnummer = Projektnummer;	
+		VisuDownload.Stoerungen = Stoerungen;
 	}
-	while (idx >= 0);
-	
-	VisuDownload.Items = Items;
-	VisuDownload.Projektnummer = Projektnummer;	
-	VisuDownload.Stoerungen = Stoerungen;
 }
 
 function getVisuItemEinheit(i)
@@ -1260,7 +1262,11 @@ function Heizkreis(vDynCtx, x, y) {
 	vDynCtx.fillStyle = '#000';
 	vDynCtx.lineWidth = 2.5;
 	vDynCtx.strokeStyle = '#000';
-	vDynCtx.beginPath()
+	vDynCtx.beginPath();
+	vDynCtx.shadowColor = "black";
+	vDynCtx.shadowBlur = 3;
+	vDynCtx.shadowOffsetX = 3;
+	vDynCtx.shadowOffsetY = 3;
 	vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
 
 	for (; a <= pi2; a += angle) {
@@ -1679,17 +1685,28 @@ function drawVCOItem(item) {
 
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
 				item.BgColor = "#fc1803";
+				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+					svalue = "     ";
+					vco.sEinheit = "     ";
 				}
 
 			}
 
 			if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
 				item.BgColor = "#fcdf03";
+				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+					svalue = "     ";
+					vco.sEinheit = "     ";
+				}
 			}
 
 			if (warnGrenze != null) {
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
 				item.BgColor = "#42f545";
+					if (item.VCOItem.Projektnummer.trim() == "P 676") {
+						svalue = "     ";
+						vco.sEinheit = "     ";
+					}
 				}
 			}
 
