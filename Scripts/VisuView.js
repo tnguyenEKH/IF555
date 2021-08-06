@@ -1,3 +1,6 @@
+var DEBUG = false;
+var FORCE_ANALOGMISCHER = false;
+
 var deployedVisuFile = "./Visu/Visu.txt";
 var visuDataFile = "./DATA/visdat.txt";
 var zahlerDataFile = "./DATA/zaehl.txt";
@@ -1953,8 +1956,8 @@ window.onclick = function(event) {
 
 function closeFaceplate() {
 	destroyFaceplate();
-	var modal = document.getElementById("fpBg");
-	modal.style.display = 'none';
+	hideElemementById('fpBg');
+	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
 }
 
 function destroyFaceplate() {
@@ -1965,8 +1968,7 @@ function destroyFaceplate() {
 }
 
 function closePinModal() {
-	var modal = document.getElementById("modalPinBg");
-	modal.style.display = 'none';
+	hideElemementById('modalPinBg');
 }
 
 function toggleBtnsPinLock(id) {
@@ -2026,8 +2028,6 @@ function checkPin() {
 }
 
 function handleConfirmBtn(disable) {
-  var btnWochenkalender = document.getElementById("btnWochenkalender");
-  if (btnWochenkalender != null) btnWochenkalender.disabled = disable;
   document.getElementById("btnFaceplateConfirm").disabled = disable;
 }
 
@@ -2070,98 +2070,128 @@ function updateSliderValue(event) {
 			if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = '-1';
 		}
 	}
+	return sliderValue;
+}
+
+
+function getRelatedInputWertForBtn(btn) {
+	var inputWert;
+	Array.from(btn.parentNode.children).forEach(function(el) {
+	  if (el.className == 'inputWert') inputWert = el;
+	});	
+	return inputWert;
+}
+
+
+function getBetriebsartValueForBtn(btn) {
+	var val;
+	
+	//Betriebsart & generic
+	if (btn.id.includes("Auto")) val = 0;
+	if (btn.id.includes("HandEin")) val = 1;
+	if (btn.id.includes("HandAus")) val = -1;
+	
+	//Mischer
+	if (btn.id.includes("HandAuf")) val = 1;
+	if (btn.id.includes("HandZu")) val = 2;
+	if (btn.id.includes("Stopp")) val = -1;
+	if (btn.id == "btnMischerHand") {	//bei Analogmischer SliderWert übernehmen, dabei Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
+		val = document.getElementById('inputWertFaceplateMischer').value;
+		if (val == 0) val = -1;
+	}
+	
+	//Pumpe
+	if (btn.id.includes("PmpAuto")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen
+	if (btn.id.includes("PmpHandEin")) val = updateSliderValue('inputWertFaceplatePumpen Handwert');	//Wert aus Slider Übernehmen, dabei Werte < 2 als 2 interpretieren!
+	//"PmpHandAus" s.o. (wird durch "if (btn.id.includes("HandAus")) val = -1;" abgedeckt!)
+
+	return val;
 }
 
 
 
-function RadioBtnBehaviorByName(id) {
-  var btn = document.getElementById(id);  
-  var relatedBtns = document.getElementsByName(btn.name);
-  
-  relatedBtns.forEach(el => (el.id == id) ? el.disabled = true : el.disabled = false);
-  
-  //Btn Zustand (Mischer) in verstecktes inputWert Element übernehmen
-  if (id == "btnMischerAuto") document.getElementById('inputWertMischer').value = '0';
-  if (id == "btnMischerHandAuf") document.getElementById('inputWertMischer').value = '1';
-  if (id == "btnMischerHandZu") document.getElementById('inputWertMischer').value = '2';
-  if (id == "btnMischerStopp") document.getElementById('inputWertMischer').value = '-1';
-  if (id == "btnMischerHand") {
-	document.getElementById('inputWertMischer').value = document.getElementById('inputWertFaceplateMischer').value;
-	//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-	if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = '-1';
-  }
+function RadioBtnBehaviorByName(event) {
+	if (event == null || event == undefined) return -1;
+	var btn;
+	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
+	//console.log(btn);
+	
+	var relatedBtns = document.getElementsByName(btn.name);
+	
+	//TriggerBtns
+	if (btn.id.includes('Trigger')) {	//Trigger btns have checkbox behavior too
+		if (btn.className.includes("Checked")) {	//uncheck btn
+			btn.className = btn.className.replace("Checked", "");
+			getRelatedInputWertForBtn(btn).value = 0;	//Wert in verstecktes inputWert-Element übernehmen
+		}
+		else {	//check btn & uncheck relatedBtns
+			relatedBtns.forEach(function(el) {
+				if (el.id == btn.id) {
+					el.className += "Checked";
+					getRelatedInputWertForBtn(el).value = 1;	//Wert in verstecktes inputWert-Element übernehmen
+				}
+				else {
+					el.className = el.className.replace("Checked", "");
+					getRelatedInputWertForBtn(el).value = 0;	//Wert in verstecktes inputWert-Element übernehmen
+				}
+			});
+		}
+	}
+	//All other Btns (Betriebsart, Mischer...)
+	else {
+		relatedBtns.forEach(function(el) {
+			if (el.id == btn.id) {
+				el.disabled = true;
+				getRelatedInputWertForBtn(el).value = getBetriebsartValueForBtn(el);//1;	//Wert in verstecktes inputWert-Element übernehmen
+			}
+			else {
+				el.disabled = false
+			}
+		});
+	}
 }
 
 function BetriebsartBtnHanlder(event) {
-  //event darf auch ein ID-String sein!
-  var btn;
-  (typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
-  (typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
-  
+	//event darf auch ein ID-String sein!
+	if (event == null || event == undefined) return -1;
+	var btn;
+	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
+	(typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
 
-  if (btn.id == "btnPmpHandAus") {		//Wenn Pumpe 'HandAus' => HK aus!
-	btn = document.getElementById("btnHKHandAus");
-	RadioBtnBehaviorByName(btn.id);
-  }
-  
-  if (btn.id == "btnPmpHandEin") {		//Wenn Pumpe 'HandEin' => PumpenHandwert(slider-Element) in verstecktes Element 'inputWertPumpen Handwert' und 'inputWertBetriebsart' übernehmen;
-	document.getElementById('inputWertPumpen Handwert').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
-	document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
-  }
-  
-  if (btn.id == "btnPmpAuto") {		//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto
-	document.getElementById('inputWertPumpen Handwert').value = '1';
-	document.getElementById('inputWertBetriebsart').value = '1';
-  }
 
-  if (btn.name == "btnHK") {    //BA HK geändert->Mi&Pu auf Auto
-    var relatedBtns = Array.from(document.getElementsByClassName("btnAuto"));
-    relatedBtns.forEach(function(el) {
-      if (el.name != "btnHK") RadioBtnBehaviorByName(el.id);
-    });
-  }
-  
-  if (btn.id == "btnHKAuto") {    //BtnBAPmp sperren
-    var name = document.getElementsByName("btnPmp");
-    name.forEach(function (el) {
-      el.disabled = true;
-      if (!(el.className.includes("NA"))) el.className += "NA";
-    });
-	
-	//geänderte Werte in beide inputWert-Elemente übernehmen
-	document.getElementById('inputWertBetriebsart').value = '0';
-	document.getElementById('inputWertPumpen Handwert').value = '0';
-  }
-  
-  if (btn.id == "btnHKHandAus") {    //BtnBAPmp sperren
-    var name = document.getElementsByName("btnPmp");
-    name.forEach(function (el) {
-      el.disabled = true;
-      if (!(el.className.includes("NA"))) el.className += "NA";
-    });
-	
-	//geänderte Werte in beide inputWert-Elemente übernehmen
-	document.getElementById('inputWertBetriebsart').value = '-1';
-	document.getElementById('inputWertPumpen Handwert').value = '-1';
-  }
-
-  if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
-    var name = document.getElementsByName("btnPmp");
-    name.forEach(function (el) {
-      el.className = el.className.replace("NA","");
-      if (el.className != "btnAuto") el.disabled = false;
-    });
-	
-	//Wenn PumpenBetriebsart == 'HandEin' => PumpenHandwert(slider-Element) in verstecktes Element 'inputWertPumpen Handwert' und 'inputWertBetriebsart' übernehmen; sonst 1 (HK=HandEin, Pumpe=Auto)
-	if (document.getElementById('btnPmpHandEin').disabled && !document.getElementById('btnPmpHandEin').className.includes('NA')) {
-		document.getElementById('inputWertPumpen Handwert').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
-		document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertFaceplatePumpen Handwert').value;
+	if (btn.id == "btnPmpHandAus") {		//Wenn Pumpe 'HandAus' => HK aus!
+		btn = document.getElementById("btnHKHandAus");
+		RadioBtnBehaviorByName(btn.id);
 	}
-	else {
-		document.getElementById('inputWertPumpen Handwert').value = '1';
-		document.getElementById('inputWertBetriebsart').value = '1';
+
+	if (btn.id == "btnPmpAuto") {			//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto [wert=1]
+		document.getElementById('inputWertBetriebsart').value = 1;
+		RadioBtnBehaviorByName(btn.id);//{		//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto
 	}
-  }
+
+	if (btn.name == "btnHK") {    //BA HK geändert->Mi&Pu auf Auto
+		var relatedBtns = Array.from(document.getElementsByClassName("btnAuto"));
+		relatedBtns.forEach(function(el) {
+			if (el.name != "btnHK") RadioBtnBehaviorByName(el.id);
+		});
+	}
+
+	if (btn.id == "btnHKAuto" || btn.id == "btnHKHandAus") {    //BtnPmp sperren (Pmp->Auto bereits oben gesetzt) 
+		var name = document.getElementsByName("btnPmp");
+		name.forEach(function (el) {
+			el.disabled = true;
+			if (!(el.className.includes("NA"))) el.className += "NA";
+		});
+	}
+
+	if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
+		var name = document.getElementsByName("btnPmp");
+		name.forEach(function (el) {
+			el.className = el.className.replace("NA","");
+		});
+		RadioBtnBehaviorByName("btnPmpAuto");
+	}
+	return 0;
 }
 
 function sendValueFromVisuToRtos(option) {
@@ -2230,7 +2260,8 @@ function sendValueFromVisuToRtos(option) {
 	//Wenn "Zum Wochekalender" -> Wert "HK Wochenkalender" auf 1 umstellen und weitere Daten unverändert zurückübertragen
 	else { //if (option == 'openHKWochenKalender' || option == 'closeHKWochenKalender') {
 		ClickableElement.forEach(function(el) {
-			if (el.name.trim() == 'HK Wochenkalender') {
+			//console.log(el.name.trim());
+			if (el.name.includes('Wochenk')) {
 				//console.log('+' + el.wert + '+');
 				//Kalender mit Schreibrechten öffnen
 				if (option == 'openHKWochenKalender' && !locked) el.wert = el.wert.replace('0', '1');
@@ -2263,6 +2294,7 @@ function sendValueFromVisuToRtos(option) {
 		//Linkliste an Rtos senden
 		for (var j=0; j<sendBackToRtosUrlList.length; j++){
 			sendData(sendBackToRtosUrlList[j]);
+			//console.log(sendBackToRtosUrlList[j]);
 		}
 		if (option == undefined) closeFaceplate();
 		return 0;
@@ -2348,62 +2380,6 @@ function openFaceplate() {
 			}	
 		}
 		
-		/********************* BHKW *************************/
-		if ((item.Bezeichnung == "BHK") && (item.bitmapIndex == currentBitmapIndex)) {
-			dx = mx - item.x;
-			dy = my - item.y;
-			if (dx * dx + dy * dy < item.radius * item.radius) {
-				match = true;
-				var matchItem = item;
-				var clickableElementUrl;
-
-				//search in the link list of clickable element base on unique id to find out the coresspondent link 
-				for (var j = 0; j < ClickableElementUrlList.length; j++) {
-					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
-						clickableElementUrl = ClickableElementUrlList[j];
-					}
-				}
-
-				/*query the available adjustable params from RTOS in two step
-					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait "300ms" and get the information provided by RTOS-Webserver
-				*/
-				sendData(clickableElementUrl);
-				sleep(1000);
-				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-								
-				ClickableElement = [];
-				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-				for (var j = 70; j < 90; j++) {
-					var rtosVariable = "v0" + j;
-					var option = adjustmentOption[rtosVariable];
-					var item = new Object();
-					item['name'] = option.substr(0, 24);
-					if (j == 70) {
-						var modalId = item['name'].trim();
-						item['wert'] = option.substr(24,20)
-						item["oberGrenze"] = '';
-						item["unterGrenze"] = '';
-						item["nachKommaStellen"] = '';
-						item["einheit"] = '';
-						item["lastItem"] = option.substr(59, 1);
-					}
-					else {
-						item['wert'] = option.substr(24,10) ;
-						item["oberGrenze"] = option.substr(36,5);
-						item["unterGrenze"] = option.substr(42,5);
-						item["nachKommaStellen"] = option.substr(48,1);
-						item["einheit"] = option.substr(50,5);
-						item["lastItem"] = option.substr(59, 1);
-					}
-					//console.log(item);
-					ClickableElement.push(item);
-				}
-				
-				buildFaceplate();
-				
-			}	
-		}
 		
 		/********************* Kessel *************************/
 		if ((item.Bezeichnung == "KES") && (item.bitmapIndex == currentBitmapIndex)) {
@@ -2461,6 +2437,66 @@ function openFaceplate() {
 				
 			}	
 		}
+		
+		
+		/********************* BHKW *************************/
+		if ((item.Bezeichnung == "BHK") && (item.bitmapIndex == currentBitmapIndex)) {
+			dx = mx - item.x;
+			dy = my - item.y;
+			if (dx * dx + dy * dy < item.radius * item.radius) {
+				match = true;
+				var matchItem = item;
+				var clickableElementUrl;
+
+				//search in the link list of clickable element base on unique id to find out the coresspondent link 
+				for (var j = 0; j < ClickableElementUrlList.length; j++) {
+					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
+						clickableElementUrl = ClickableElementUrlList[j];
+					}
+				}
+
+				/*query the available adjustable params from RTOS in two step
+					1. tell the RTOS-Webserver, which elemente will be queried
+					2. wait "300ms" and get the information provided by RTOS-Webserver
+				*/
+				sendData(clickableElementUrl);
+				sleep(1000);
+				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+								
+				ClickableElement = [];
+				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+				for (var j = 70; j < 90; j++) {
+					var rtosVariable = "v0" + j;
+					var option = adjustmentOption[rtosVariable];
+					var item = new Object();
+					item['name'] = option.substr(0, 24);
+					if (j == 70) {
+						var modalId = item['name'].trim();
+						item['wert'] = option.substr(24,20)
+						item["oberGrenze"] = '';
+						item["unterGrenze"] = '';
+						item["nachKommaStellen"] = '';
+						item["einheit"] = '';
+						item["lastItem"] = option.substr(59, 1);
+					}
+					else {
+						item['wert'] = option.substr(24,10) ;
+						item["oberGrenze"] = option.substr(36,5);
+						item["unterGrenze"] = option.substr(42,5);
+						item["nachKommaStellen"] = option.substr(48,1);
+						item["einheit"] = option.substr(50,5);
+						item["lastItem"] = option.substr(59, 1);
+					}
+					//console.log(item);
+					ClickableElement.push(item);
+				}
+				
+				buildFaceplate();
+				
+			}	
+		}
+		
+		
 
 		/********************* Warmwasser *************************/
 		if ((item.Bezeichnung == "WWL") && (item.bitmapIndex == currentBitmapIndex)) {
@@ -2525,10 +2561,20 @@ function openFaceplate() {
 }
 
 function buildFaceplate() {
-	//render the modal
+	var faceplateID = ClickableElement[0].name;
+	var faceplateTyp = faceplateID.slice(0,3).trim();
+	if (faceplateTyp == 'KES') {
+		faceplateTyp = 'Kessel';
+		faceplateID = 'Kessel' + faceplateID.trim().slice(-2);
+	}
+	if (faceplateTyp == 'BHK') {
+		faceplateTyp = 'BHKW';
+		faceplateID = 'BHKW' + faceplateID.trim().slice(-2);
+	}
+	
 	var modal = document.getElementById('fpBg');
 	var modalHeader = document.getElementById('txtFpHeader');
-	modalHeader.innerHTML = 'Einstellungen für ' + ClickableElement[0].name;
+	modalHeader.innerHTML = 'Einstellungen für ' + faceplateID;
 	var modalBody = document.getElementById('fpBody');
 	
 
@@ -2556,7 +2602,7 @@ function buildFaceplate() {
 			var h5 = document.createElement('h5');
 			var h6 = document.createElement('h6');
 			if (j == 0) {
-				h5.innerHTML = "HK Parameter:";
+				h5.innerHTML = faceplateTyp + " Parameter:";
 				lblName.innerHTML = "Name/Alias";
 			}
 			else {
@@ -2567,7 +2613,7 @@ function buildFaceplate() {
 				h5.innerHTML = "HK Pumpenparameter:";				
 				h6.innerHTML = "Kennlinie (Außentemperatur):";							
 			}
-			if (ClickableElement[j].name.includes('HK Wochenkalender') && ClickableElement[j].wert.includes('1')) {	//Startindikator Sektor Wochenkalender & 
+			if (ClickableElement[j].name.includes('Wochenk')) {	//Startindikator Sektor Wochenkalender & 
 				h5.innerHTML = "Wochenkalender:";
 			}
 			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
@@ -2608,50 +2654,54 @@ function buildFaceplate() {
 			div.appendChild(lblUnit);
 			
 			
-			if (ClickableElement[j].name.includes('Betriebsart')) {		//Indikator HK Betriebsart;
+			if (ClickableElement[j].name.includes('Betriebsart')) {		//Indikator Betriebsart;
 				//HK Betriebsart merken, um Btn zu setzen
-				var HKBetriebsart = ClickableElement[j].wert.trim();
+				var Betriebsart = ClickableElement[j].wert.trim();
+				
 				//inputWert & lblUnit ausblenden
-				div.childNodes.forEach(function(el) {
-					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-				});			
+				if (!DEBUG) {
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+					});
+				}
 				
 				var btnAuto = document.createElement('input');
 				btnAuto.type = 'button';
-				btnAuto.id = 'btnHKAuto';
+				btnAuto.id = 'btn' + faceplateTyp + 'Auto';
 				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btnHK';
+				btnAuto.name = 'btn' + faceplateTyp;
 				btnAuto.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnAuto);
 				
 				var btnHandEin = document.createElement('input');
 				btnHandEin.type = 'button';
-				btnHandEin.id = 'btnHKHandEin';
+				btnHandEin.id = 'btn' + faceplateTyp + 'HandEin';
 				btnHandEin.className = 'btnHandEin';
-				btnHandEin.name = 'btnHK';
+				btnHandEin.name = 'btn' + faceplateTyp;
 				btnHandEin.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnHandEin);
 				
 				var btnHandAus = document.createElement('input');
 				btnHandAus.type = 'button';
-				btnHandAus.id = 'btnHKHandAus';
+				btnHandAus.id = 'btn' + faceplateTyp + 'HandAus';
 				btnHandAus.className = 'btnHandAus';
-				btnHandAus.name = 'btnHK';
+				btnHandAus.name = 'btn' + faceplateTyp;
 				btnHandAus.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnHandAus);
 			}			
 			
 				
-			var FORCE_ANALOGMISCHER = false;
 			if (ClickableElement[j].name.includes('Mischer')) {
 				//Mischer Betriebsart & Typ merken, um Btn zu setzen
 				var mischerBetriebsart = ClickableElement[j].wert.trim();
 				var mischerTyp = ClickableElement[j].einheit.trim();
 				
 				//lblName, inputWert & lblUnit ausblenden (enthalten Daten zur Rückübertragung)
-				div.childNodes.forEach(function(el) {
-					if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-				});
+				if (!DEBUG) {
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+					});
+				}
 				//dafür Hilfslabel erzeugen & br einfügen:
 				var lblUnitFaceplate = document.createElement('label');
 				lblUnitFaceplate.innerHTML = '%';
@@ -2712,9 +2762,11 @@ function buildFaceplate() {
 				
 				if (ClickableElement[j].einheit.includes('3P') && !FORCE_ANALOGMISCHER) {
 					//lblName, inputWert & lblUnitFaceplate zusätzlich ausblenden
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnitFaceplate') el.style.display = 'none';
-					});
+					if (!DEBUG) {
+						div.childNodes.forEach(function(el) {
+							if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnitFaceplate') el.style.display = 'none';
+						});
+					}
 					
 					var btnHandAuf = document.createElement('input');
 					btnHandAuf.type = 'button';
@@ -2744,10 +2796,12 @@ function buildFaceplate() {
 			
 			
 			if (ClickableElement[j].name.includes('Pumpen Handwert')) {
-				//inputWert & lblUnit ausblenden (enthält info über HK Betriebsart)
-				div.childNodes.forEach(function(el) {
-					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-				});
+				if (!DEBUG) {
+					//inputWert & lblUnit ausblenden (enthält info über HK Betriebsart)
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+					});
+				}
 				//dafür Slider(range) erzeugen:
 				var inputWert = document.createElement('input');
 				inputWert.type = 'range';
@@ -2797,12 +2851,38 @@ function buildFaceplate() {
 				div.appendChild(btnHandAus);				
 			}
 			
-			
-			if (ClickableElement[j].name.includes('HK Wochenkalender')) { 
+			if (ClickableElement[j].name.includes('Einmalig')) {
+				var btnID;
+				if (ClickableElement[j].name.includes('EIN')) btnID = 'Ein';
+				if (ClickableElement[j].name.includes('AUS')) btnID = 'Aus';
+				if (ClickableElement[j].name.includes('Desinf.')) btnID = 'Desinf';
+				
 				//inputWert & lblUnit ausblenden
-				div.childNodes.forEach(function(el) {
-					if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-				});
+				if (!DEBUG) {
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+					});
+				}
+				
+				//TriggerButton erzeugen
+				var btnTrigger = document.createElement('input');
+				btnTrigger.type = 'button';
+				btnTrigger.id = 'btnTrigger' + btnID;
+				btnTrigger.className = 'btn' + btnID;
+				btnTrigger.name = 'btnTrigger';
+				//btnTrigger.value = btnID;
+				btnTrigger.onclick = RadioBtnBehaviorByName;
+				div.appendChild(btnTrigger);
+			}
+			
+			
+			if (ClickableElement[j].name.includes('Wochenk')) { 
+				//inputWert & lblUnit ausblenden
+				if (!DEBUG) {
+					div.childNodes.forEach(function(el) {
+						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+					});
+				}
 				
 				//SprungButton erzeugen
 				var btnWochenkalender = document.createElement('input');
@@ -2818,36 +2898,39 @@ function buildFaceplate() {
 	//Btn entsprechend aktueller Betriebsart setzen und Verriegelung setzen
 	handleConfirmBtn(locked);
 	
-	var activeBtnHK;
-	switch (HKBetriebsart) {
-		case '-1':
-			activeBtnHK = document.getElementById('btnHKHandAus');
-			break;
-			
-		case '0':
-			activeBtnHK = document.getElementById('btnHKAuto');
-			break;
-			
-		case '1':
-			activeBtnHK = document.getElementById('btnHKHandEin');
-			break;
-			
-		default:
-			activeBtnHK = document.getElementById('btnHKHandEin');
-	}
-	BetriebsartBtnHanlder(activeBtnHK.id);
-	updateSliderValue('inputWertFaceplatePumpen Handwert');
 	
-	
-	if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btnMischerAuto');
-	if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
-		if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btnMischerStopp');
-		if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btnMischerHandAuf');
-		if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btnMischerHandZu');
-	}
-	if (mischerTyp.includes('Ana') || FORCE_ANALOGMISCHER) {
-		if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btnMischerHand');
-		updateSliderValue('inputWertFaceplateMischer');
+		var activeBtn;
+		switch (Betriebsart) {
+			case '-1':
+				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandAus');
+				break;
+				
+			case '0':
+				activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto');
+				break;
+				
+			case '1':
+				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
+				break;
+				
+			default:
+				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
+		}
+		if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
+		
+	if (faceplateTyp == 'HK') {
+		updateSliderValue('inputWertFaceplatePumpen Handwert');
+		
+		if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btnMischerAuto');
+		if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
+			if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btnMischerStopp');
+			if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btnMischerHandAuf');
+			if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btnMischerHandZu');
+		}
+		if (mischerTyp.includes('Ana') || FORCE_ANALOGMISCHER) {
+			if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btnMischerHand');
+			updateSliderValue('inputWertFaceplateMischer');
+		}
 	}
 }
 
