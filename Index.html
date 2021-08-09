@@ -90,7 +90,8 @@
 	<div id="visualisierungDisplay" class="tabcontent">
 		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
 		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
-		<input id="vbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
+		<button id="vbtnVirtualKeyboard" class="btnOSK" onclick="EthernetButtonHanlder(id)">Tastatur</button>
+		
 		<!-- Lock modal -->
 		<div id="modalPinBg" class="modalVisuBg">
 		  <div id="Pin-content" class="modalVisuContent">
