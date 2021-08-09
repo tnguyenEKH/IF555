@@ -1,5 +1,11 @@
-h5, h6 {				/*Für Sektorüberschriften Faceplate*/
+h5 {				/*Für Sektorüberschriften Faceplate*/
 	margin: 0px;
+	margin-top: 5px;
+}
+
+h6 {				/*Für Sektorüberschriften Faceplate*/
+	margin: 0px;
+	margin-top: 2px;
 }
 
 #visualisierungDisplay {
@@ -9,18 +15,30 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 	#vbtnVirtualKeyboard {
 		position: absolute;
 		top: 10vh;
-		right: 6vh;
+		right: 10vh;
+		z-index: 1;
+		cursor: pointer;
+		height: 60px;
+		width: 120px;
+		border: 2px solid;
+		border-radius: 3px;
+		background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 	}
 	
 	.btnToggleLock {
-	  font-size: 3vh;
-	  position: absolute;
-	  top: 10vh;
-	  right: 2vh;
-	}
-	
-	.btnToggleLock:hover {
+		font-size: 3vh;
+		position: absolute;
+		top: 10vh;
+		right: 2vh;
+		z-index: 1;
 		cursor: pointer;
+		height: 60px;
+		width: 60px;
+		border: 2px solid;
+		border-radius: 3px;
+		background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 	}
 
 	#btnUnlock {
@@ -235,7 +253,7 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 		  margin: auto;
 		  padding: 0;
 		  border: 1px solid #888;
-		  width: 480px;   /*550px*/
+		  width: 490px;   /*550px*/
 		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 		  -webkit-animation-name: animatetop;
 		  -webkit-animation-duration: 0.4s;
@@ -301,7 +319,7 @@ h5, h6 {				/*Für Sektorüberschriften Faceplate*/
 				.modalVisuBody .lblUnit,
 				.modalVisuBody .lblUnitFaceplate {
 				  display: inline-block;
-				  width: 55px;
+				  width: 60px;
 				  text-align: left;
 				  margin-left: 5px;
 				}

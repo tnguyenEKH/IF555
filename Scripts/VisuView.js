@@ -50,7 +50,7 @@ var match;
 
 
 //Einstellungen Visualisierungen
-var locked = false;
+var locked = true;
 var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
@@ -2033,6 +2033,7 @@ function handleConfirmBtn(disable) {
 
 
 function updateSliderValue(event) {
+	var sliderValue;
 	var slider;
 	(typeof event) == 'string' ? slider = document.getElementById(event) : slider = document.getElementById(event.target.id);
 	
@@ -2049,16 +2050,28 @@ function updateSliderValue(event) {
 		if (slider.value < 1) slider.nextSibling.textContent = 'Zu';
 		if (slider.value >= 100) slider.nextSibling.textContent = 'Auf';
 	}
-	if (slider.id.includes('Pumpe') && slider.value <= 2) slider.nextSibling.textContent = 'Min';		
+	if (slider.id.includes('Pumpe') && slider.value <= 2) slider.nextSibling.textContent = 'Min';
+	if (slider.id.includes('Kesselpumpe') && slider.value <= 1) slider.nextSibling.textContent = 'Auto';
 	
-	//Wenn HK-Betriebsart && Pmp-Betriebsart == HandEin => SliderWert auch in versteckte Elemente 'inputWertPumpen Handwert' & 'inputWertBetriebsart' übernehmen; (minWert auf 2 begrenzen) 
-	if (document.getElementById('btnHKHandEin').disabled && document.getElementById('btnPmpHandEin').disabled) {
-		//(minWert auf 2 begrenzen)
-		var sliderValue;
-		document.getElementById('inputWertFaceplatePumpen Handwert').value > 2 ? sliderValue = document.getElementById('inputWertFaceplatePumpen Handwert').value : sliderValue = '2';
-		
-		document.getElementById('inputWertPumpen Handwert').value = sliderValue;
-		document.getElementById('inputWertBetriebsart').value = sliderValue;
+	if (slider.id.includes('Pumpe')) {
+		//Wenn HK-Betriebsart && Pmp-Betriebsart == HandEin => SliderWert auch in versteckte Elemente 'inputWertPumpen Handwert' & 'inputWertBetriebsart' übernehmen; (minWert auf 2 begrenzen) 
+		if (document.getElementById('btnHKHandEin').disabled && document.getElementById('btnHKPmpHandEin').disabled) {
+			//(minWert auf 2 begrenzen)
+			document.getElementById('inputWertFaceplatePumpen Handwert').value > 2 ? sliderValue = document.getElementById('inputWertFaceplatePumpen Handwert').value : sliderValue = 2;
+			
+			document.getElementById('inputWertPumpen Handwert').value = sliderValue;
+			document.getElementById('inputWertBetriebsart').value = sliderValue;
+		}
+	}
+	
+	//Wenn Betriebsart Kesselpumpe == Hand => SliderWert auch in verstecktes Element 'inputWertKesselpumpe' übernehmen; (Wert=0 [BETRIEBSARTKesselpumpeAuto] als 1 [HANDWERTKesselpumpeAuto] interpretieren)
+	var btnKesselPmpHandEin = document.getElementById('btnKesselPmpHandEin');
+	if (btnKesselPmpHandEin != null) {
+		if (btnKesselPmpHandEin.disabled) {
+			//Wert=0 [BETRIEBSARTKesselpumpeAuto] als 1 [HANDWERTKesselpumpeAuto] interpretieren!
+			document.getElementById('inputWertFaceplateKesselpumpe').value > 0 ? sliderValue = document.getElementById('inputWertFaceplateKesselpumpe').value : sliderValue = 1;
+			document.getElementById('inputWertKesselpumpe').value = sliderValue;
+		}
 	}
 	
 	//Wenn AnalogMischer-Betriebsart == Hand => SliderWert auch in verstecktes Element 'inputWertMischer' übernehmen; (Wert=0 [Auto] als -1 [Dauer Zu] interpretieren)
@@ -2067,7 +2080,7 @@ function updateSliderValue(event) {
 		if (btnMischerHand.disabled) {
 			document.getElementById('inputWertMischer').value = document.getElementById('inputWertFaceplateMischer').value;
 			//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-			if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = '-1';
+			if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = -1;
 		}
 	}
 	return sliderValue;
@@ -2100,10 +2113,13 @@ function getBetriebsartValueForBtn(btn) {
 		if (val == 0) val = -1;
 	}
 	
-	//Pumpe
-	if (btn.id.includes("PmpAuto")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen
-	if (btn.id.includes("PmpHandEin")) val = updateSliderValue('inputWertFaceplatePumpen Handwert');	//Wert aus Slider Übernehmen, dabei Werte < 2 als 2 interpretieren!
+	//HK-Pumpe
+	if (btn.id.includes("HKPmpAuto")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen
+	if (btn.id.includes("HKPmpHandEin")) val = updateSliderValue('inputWertFaceplatePumpen Handwert');	//Wert aus Slider Übernehmen, dabei Werte < 2 als 2 interpretieren!
 	//"PmpHandAus" s.o. (wird durch "if (btn.id.includes("HandAus")) val = -1;" abgedeckt!)
+		
+	//Kessel-Pumpe
+	if (btn.id.includes("KesselPmpHandEin")) val = updateSliderValue('inputWertFaceplateKesselpumpe');	//Wert aus Slider Übernehmen
 
 	return val;
 }
@@ -2159,12 +2175,12 @@ function BetriebsartBtnHanlder(event) {
 	(typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
 
 
-	if (btn.id == "btnPmpHandAus") {		//Wenn Pumpe 'HandAus' => HK aus!
+	if (btn.id == "btnHKPmpHandAus") {		//Wenn Pumpe 'HandAus' => HK aus!
 		btn = document.getElementById("btnHKHandAus");
 		RadioBtnBehaviorByName(btn.id);
 	}
 
-	if (btn.id == "btnPmpAuto") {			//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto [wert=1]
+	if (btn.id == "btnHKPmpAuto") {			//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto [wert=1]
 		document.getElementById('inputWertBetriebsart').value = 1;
 		RadioBtnBehaviorByName(btn.id);//{		//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto
 	}
@@ -2176,8 +2192,8 @@ function BetriebsartBtnHanlder(event) {
 		});
 	}
 
-	if (btn.id == "btnHKAuto" || btn.id == "btnHKHandAus") {    //BtnPmp sperren (Pmp->Auto bereits oben gesetzt) 
-		var name = document.getElementsByName("btnPmp");
+	if (btn.id == "btnHKAuto" || btn.id == "btnHKHandAus") {    //BtnHKPmp sperren (Pmp->Auto bereits oben gesetzt) 
+		var name = document.getElementsByName("btnHKPmp");
 		name.forEach(function (el) {
 			el.disabled = true;
 			if (!(el.className.includes("NA"))) el.className += "NA";
@@ -2185,11 +2201,11 @@ function BetriebsartBtnHanlder(event) {
 	}
 
 	if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
-		var name = document.getElementsByName("btnPmp");
+		var name = document.getElementsByName("btnHKPmp");
 		name.forEach(function (el) {
 			el.className = el.className.replace("NA","");
 		});
-		RadioBtnBehaviorByName("btnPmpAuto");
+		RadioBtnBehaviorByName("btnHKPmpAuto");
 	}
 	return 0;
 }
@@ -2324,7 +2340,7 @@ function openFaceplate() {
 		var currentBitmapIndex = bmpIndex;
 
 		/********************* Heizkreise *************************/
-		if ((item.Bezeichnung == "HK") && (item.bitmapIndex == currentBitmapIndex)) {
+		if ((item.bitmapIndex == currentBitmapIndex) && (item.Bezeichnung == "HK" || item.Bezeichnung == "KES" || item.Bezeichnung == "BHK" || item.Bezeichnung == "WWL")) {
 			dx = mx - item.x;
 			dy = my - item.y;
 			if (dx * dx + dy * dy < item.radius * item.radius) {
@@ -2378,183 +2394,7 @@ function openFaceplate() {
 				buildFaceplate();
 				
 			}	
-		}
-		
-		
-		/********************* Kessel *************************/
-		if ((item.Bezeichnung == "KES") && (item.bitmapIndex == currentBitmapIndex)) {
-			dx = mx - item.x;
-			dy = my - item.y;
-			if (dx * dx + dy * dy < item.radius * item.radius) {
-				match = true;
-				var matchItem = item;
-				var clickableElementUrl;
-
-				//search in the link list of clickable element base on unique id to find out the coresspondent link 
-				for (var j = 0; j < ClickableElementUrlList.length; j++) {
-					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
-						clickableElementUrl = ClickableElementUrlList[j];
-					}
-				}
-
-				/*query the available adjustable params from RTOS in two step
-					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait "300ms" and get the information provided by RTOS-Webserver
-				*/
-				sendData(clickableElementUrl);
-				sleep(1000);
-				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-								
-				ClickableElement = [];
-				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-				for (var j = 70; j < 90; j++) {
-					var rtosVariable = "v0" + j;
-					var option = adjustmentOption[rtosVariable];
-					var item = new Object();
-					item['name'] = option.substr(0, 24);
-					if (j == 70) {
-						var modalId = item['name'].trim();
-						item['wert'] = option.substr(24,20)
-						item["oberGrenze"] = '';
-						item["unterGrenze"] = '';
-						item["nachKommaStellen"] = '';
-						item["einheit"] = '';
-						item["lastItem"] = option.substr(59, 1);
-					}
-					else {
-						item['wert'] = option.substr(24,10) ;
-						item["oberGrenze"] = option.substr(36,5);
-						item["unterGrenze"] = option.substr(42,5);
-						item["nachKommaStellen"] = option.substr(48,1);
-						item["einheit"] = option.substr(50,5);
-						item["lastItem"] = option.substr(59, 1);
-					}
-					//console.log(item);
-					ClickableElement.push(item);
-				}
-				
-				buildFaceplate();
-				
-			}	
-		}
-		
-		
-		/********************* BHKW *************************/
-		if ((item.Bezeichnung == "BHK") && (item.bitmapIndex == currentBitmapIndex)) {
-			dx = mx - item.x;
-			dy = my - item.y;
-			if (dx * dx + dy * dy < item.radius * item.radius) {
-				match = true;
-				var matchItem = item;
-				var clickableElementUrl;
-
-				//search in the link list of clickable element base on unique id to find out the coresspondent link 
-				for (var j = 0; j < ClickableElementUrlList.length; j++) {
-					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
-						clickableElementUrl = ClickableElementUrlList[j];
-					}
-				}
-
-				/*query the available adjustable params from RTOS in two step
-					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait "300ms" and get the information provided by RTOS-Webserver
-				*/
-				sendData(clickableElementUrl);
-				sleep(1000);
-				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-								
-				ClickableElement = [];
-				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-				for (var j = 70; j < 90; j++) {
-					var rtosVariable = "v0" + j;
-					var option = adjustmentOption[rtosVariable];
-					var item = new Object();
-					item['name'] = option.substr(0, 24);
-					if (j == 70) {
-						var modalId = item['name'].trim();
-						item['wert'] = option.substr(24,20)
-						item["oberGrenze"] = '';
-						item["unterGrenze"] = '';
-						item["nachKommaStellen"] = '';
-						item["einheit"] = '';
-						item["lastItem"] = option.substr(59, 1);
-					}
-					else {
-						item['wert'] = option.substr(24,10) ;
-						item["oberGrenze"] = option.substr(36,5);
-						item["unterGrenze"] = option.substr(42,5);
-						item["nachKommaStellen"] = option.substr(48,1);
-						item["einheit"] = option.substr(50,5);
-						item["lastItem"] = option.substr(59, 1);
-					}
-					//console.log(item);
-					ClickableElement.push(item);
-				}
-				
-				buildFaceplate();
-				
-			}	
-		}
-		
-		
-
-		/********************* Warmwasser *************************/
-		if ((item.Bezeichnung == "WWL") && (item.bitmapIndex == currentBitmapIndex)) {
-			dx = mx - item.x;
-			dy = my - item.y;
-			if (dx * dx + dy * dy < item.radius * item.radius) {
-				match = true;
-				var matchItem = item;
-				var clickableElementUrl;
-
-				//search in the link list of clickable element base on unique id to find out the coresspondent link 
-				for (var j = 0; j < ClickableElementUrlList.length; j++) {
-					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
-						clickableElementUrl = ClickableElementUrlList[j];
-					}
-				}
-
-				/*query the available adjustable params from RTOS in two step
-					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait "300ms" and get the information provided by RTOS-Webserver
-				*/
-				sendData(clickableElementUrl);
-				sleep(1000);
-				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-								
-				ClickableElement = [];
-				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-				for (var j = 70; j < 90; j++) {
-					var rtosVariable = "v0" + j;
-					var option = adjustmentOption[rtosVariable];
-					var item = new Object();
-					item['name'] = option.substr(0, 24);
-					if (j == 70) {
-						var modalId = item['name'].trim();
-						item['wert'] = option.substr(24,20)
-						item["oberGrenze"] = '';
-						item["unterGrenze"] = '';
-						item["nachKommaStellen"] = '';
-						item["einheit"] = '';
-						item["lastItem"] = option.substr(59, 1);
-					}
-					else {
-						item['wert'] = option.substr(24,10) ;
-						item["oberGrenze"] = option.substr(36,5);
-						item["unterGrenze"] = option.substr(42,5);
-						item["nachKommaStellen"] = option.substr(48,1);
-						item["einheit"] = option.substr(50,5);
-						item["lastItem"] = option.substr(59, 1);
-					}
-					//console.log(item);
-					ClickableElement.push(item);
-				}
-				
-				buildFaceplate();
-				
-			}	
-		}		
-	
+		}	
 	}
 	
 	if (match) showFaceplate(matchItem);//modal.style.display = "block";
@@ -2607,16 +2447,20 @@ function buildFaceplate() {
 			}
 			else {
 				lblName.innerHTML = ClickableElement[j].name.trim();
-			}			
-			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = "HK Mischer Betriebsart";
+			}
+			
+			if (ClickableElement[j].name.includes('Kesselpumpe')) h5.innerHTML = "Kesselpumpenparameter:";
+			
+			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = "HK Mischer Betriebsart:";
 			if (ClickableElement[j].name.includes('20 &degC')) {	//Startindikator Sektor Pumpenkennlinie
 				h5.innerHTML = "HK Pumpenparameter:";				
 				h6.innerHTML = "Kennlinie (Außentemperatur):";							
 			}
+			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
+			
 			if (ClickableElement[j].name.includes('Wochenk')) {	//Startindikator Sektor Wochenkalender & 
 				h5.innerHTML = "Wochenkalender:";
 			}
-			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
 			if (h5.innerHTML != '') div.appendChild(h5);
 			if (h6.innerHTML != '') div.appendChild(h6);
 			
@@ -2795,7 +2639,9 @@ function buildFaceplate() {
 			}
 			
 			
-			if (ClickableElement[j].name.includes('Pumpen Handwert')) {
+			if (ClickableElement[j].name.includes('Pumpen Handwert') || ClickableElement[j].name.includes('Kesselpumpe')) {
+				var HandwertKesselpumpe;
+				if (ClickableElement[j].name.includes('Kesselpumpe')) HandwertKesselpumpe = ClickableElement[j].wert.trim();
 				if (!DEBUG) {
 					//inputWert & lblUnit ausblenden (enthält info über HK Betriebsart)
 					div.childNodes.forEach(function(el) {
@@ -2822,34 +2668,37 @@ function buildFaceplate() {
 				div.appendChild(document.createElement('br'));
 				
 				var lblNameFaceplate = document.createElement('label');
-				lblNameFaceplate.innerHTML = 'Pumpen Betriebsart';
+				lblNameFaceplate.innerHTML = 'Betriebsart ' + faceplateTyp + '-Pumpe';
 				lblNameFaceplate.className = 'lblNameFaceplate';
 				div.appendChild(lblNameFaceplate);
 				
 				var btnAuto = document.createElement('input');
 				btnAuto.type = 'button';
-				btnAuto.id = 'btnPmpAuto';
+				btnAuto.id = 'btn' + faceplateTyp + 'PmpAuto';
 				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btnPmp';
+				btnAuto.name = 'btn' + faceplateTyp + 'Pmp';
 				btnAuto.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnAuto);
 				
 				var btnHandEin = document.createElement('input');
 				btnHandEin.type = 'button';
-				btnHandEin.id = 'btnPmpHandEin';
+				btnHandEin.id = 'btn' + faceplateTyp + 'PmpHandEin';
 				btnHandEin.className = 'btnHandEin';
-				btnHandEin.name = 'btnPmp';
+				btnHandEin.name = 'btn' + faceplateTyp + 'Pmp';
 				btnHandEin.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnHandEin);
 				
-				var btnHandAus = document.createElement('input');
-				btnHandAus.type = 'button';
-				btnHandAus.id = 'btnPmpHandAus';
-				btnHandAus.className = 'btnHandAus';
-				btnHandAus.name = 'btnPmp';
-				btnHandAus.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnHandAus);				
+				if (faceplateTyp != 'Kessel') {		//HandAus bei Kesselpumpe nicht vorgesehen!
+					var btnHandAus = document.createElement('input');
+					btnHandAus.type = 'button';
+					btnHandAus.id = 'btn' + faceplateTyp + 'PmpHandAus';
+					btnHandAus.className = 'btnHandAus';
+					btnHandAus.name = 'btn' + faceplateTyp + 'Pmp';
+					btnHandAus.onclick = BetriebsartBtnHanlder;
+					div.appendChild(btnHandAus);
+				}					
 			}
+			
 			
 			if (ClickableElement[j].name.includes('Einmalig')) {
 				var btnID;
@@ -2899,25 +2748,32 @@ function buildFaceplate() {
 	handleConfirmBtn(locked);
 	
 	
-		var activeBtn;
-		switch (Betriebsart) {
-			case '-1':
-				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandAus');
-				break;
-				
-			case '0':
-				activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto');
-				break;
-				
-			case '1':
-				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
-				break;
-				
-			default:
-				activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
-		}
-		if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
-		
+	var activeBtn;
+	switch (Betriebsart) {
+		case '-1':
+			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandAus');
+			break;
+			
+		case '0':
+			activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto');
+			break;
+			
+		case '1':
+			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
+			break;
+			
+		default:
+			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
+	}
+	if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
+	
+	
+	if (faceplateTyp == 'Kessel') {
+		updateSliderValue('inputWertFaceplateKesselpumpe');
+		(HandwertKesselpumpe == 0) ? RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpAuto') : RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpHandEin');
+	}
+	
+	
 	if (faceplateTyp == 'HK') {
 		updateSliderValue('inputWertFaceplatePumpen Handwert');
 		
