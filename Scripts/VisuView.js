@@ -50,6 +50,7 @@ var match;
 
 
 //Einstellungen Visualisierungen
+const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = true;
 var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
@@ -2013,10 +2014,11 @@ function handlePinVisibility(checked) {
 function checkPin() {
   var txtPin = document.getElementById("txtPin");
   let hash = readFromTextFile(HASH_FILE);
-  //console.log(txtPin.value, md5(txtPin.value), hash);
+  if(DEBUG) console.log(txtPin.value, md5(txtPin.value), hash);
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");
+	if(!DEBUG) setTimeout(pinLock, AUTOLOCK_TIMEOUT, "btnLock");
   }
   else {
     locked = true;
@@ -2055,6 +2057,7 @@ function updateSliderValue(event) {
 	
 	if (slider.id.includes('Pumpe')) {
 		//Wenn HK-Betriebsart && Pmp-Betriebsart == HandEin => SliderWert auch in versteckte Elemente 'inputWertPumpen Handwert' & 'inputWertBetriebsart' übernehmen; (minWert auf 2 begrenzen) 
+		console.log(document.getElementById('btnHKHandEin').disabled, document.getElementById('btnHKPmpHandEin').disabled)
 		if (document.getElementById('btnHKHandEin').disabled && document.getElementById('btnHKPmpHandEin').disabled) {
 			//(minWert auf 2 begrenzen)
 			document.getElementById('inputWertFaceplatePumpen Handwert').value > 2 ? sliderValue = document.getElementById('inputWertFaceplatePumpen Handwert').value : sliderValue = 2;
@@ -2198,6 +2201,7 @@ function BetriebsartBtnHanlder(event) {
 			el.disabled = true;
 			if (!(el.className.includes("NA"))) el.className += "NA";
 		});
+		RadioBtnBehaviorByName("btnHKPmpAuto");
 	}
 
 	if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
@@ -2766,6 +2770,7 @@ function buildFaceplate() {
 			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
 	}
 	if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
+	if (faceplateTyp == 'HK' && Betriebsart > 1) BetriebsartBtnHanlder('btnHKPmpHandEin');
 	
 	
 	if (faceplateTyp == 'Kessel') {
