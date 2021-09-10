@@ -1095,7 +1095,7 @@ function getPosition(event) {
 		var gesamtZaehler = getOnlinegesamtZaehler()
 		
 		if (gesamtZaehler != "") {
-			document.getElementById("modalHeaderZaehler").innerHTML = '<h5> Zähler: ' + Projektname + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
+			document.getElementById("modalHeaderZaehler").innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
 			document.getElementById("modalContenZaehler").style.width = '80%';
 			document.getElementById("aktuelleZaehler").innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
 	
