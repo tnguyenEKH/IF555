@@ -2039,6 +2039,9 @@ function updateSliderValue(event) {
 	var slider;
 	(typeof event) == 'string' ? slider = document.getElementById(event) : slider = document.getElementById(event.target.id);
 	
+	//Fehlerausstieg bei nicht vorhandenem Slider
+	if (slider == null || slider == undefined) return -100;
+	
 	//Einheit ermitteln und zusammen mit aktuellem SliderWert in lblUnitFaceplate schreiben
 	var unit;
 	slider.id.includes('Pumpe') ? unit = document.getElementById('inputWertPumpen Handwert').nextSibling.textContent.trim() : unit = '%';
@@ -2048,7 +2051,7 @@ function updateSliderValue(event) {
 	(unit.includes('mWS')) ? slider.nextSibling.textContent = slider.value + ' mWS' : slider.nextSibling.textContent = slider.value + ' %';*/
 	
 	//Interpretation und Anzeige der Extremwerte
-	if (slider.id.includes('Mischer')) {
+	if (slider.id.includes('Mischer') || slider.id.includes('Ventil')) {
 		if (slider.value < 1) slider.nextSibling.textContent = 'Zu';
 		if (slider.value >= 100) slider.nextSibling.textContent = 'Auf';
 	}
@@ -2130,10 +2133,13 @@ function getBetriebsartValueForBtn(btn) {
 
 
 function RadioBtnBehaviorByName(event) {
-	if (event == null || event == undefined) return -1;
+	if (event == null || event == undefined) return -100;
+	
 	var btn;
 	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
 	//console.log(btn);
+	
+	if (btn == null || btn == undefined) return -100;
 	
 	var relatedBtns = document.getElementsByName(btn.name);
 	
@@ -2162,6 +2168,7 @@ function RadioBtnBehaviorByName(event) {
 			if (el.id == btn.id) {
 				el.disabled = true;
 				getRelatedInputWertForBtn(el).value = getBetriebsartValueForBtn(el);//1;	//Wert in verstecktes inputWert-Element übernehmen
+				//return von getBetriebsartValueForBtn bzw. updateSliderValue prüfen?!
 			}
 			else {
 				el.disabled = false
@@ -2172,7 +2179,7 @@ function RadioBtnBehaviorByName(event) {
 
 function BetriebsartBtnHanlder(event) {
 	//event darf auch ein ID-String sein!
-	if (event == null || event == undefined) return -1;
+	if (event == null || event == undefined) return -100;
 	var btn;
 	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
 	(typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
@@ -2321,7 +2328,7 @@ function sendValueFromVisuToRtos(option) {
 	}
 	else{
 		alert(errorString);
-		return -1;
+		return -100;
 	}
 }
 
@@ -2456,6 +2463,7 @@ function buildFaceplate() {
 			if (ClickableElement[j].name.includes('Kesselpumpe')) h5.innerHTML = "Kesselpumpenparameter:";
 			
 			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = "HK Mischer Betriebsart:";
+			if (ClickableElement[j].name.includes('Ventil')) h5.innerHTML = "HK Ventil Betriebsart:";
 			if (ClickableElement[j].name.includes('20 &degC')) {	//Startindikator Sektor Pumpenkennlinie
 				h5.innerHTML = "HK Pumpenparameter:";				
 				h6.innerHTML = "Kennlinie (Außentemperatur):";							
@@ -2539,7 +2547,7 @@ function buildFaceplate() {
 			}			
 			
 				
-			if (ClickableElement[j].name.includes('Mischer')) {
+			if (ClickableElement[j].name.includes('Mischer') || ClickableElement[j].name.includes('Ventil')) {
 				//Mischer Betriebsart & Typ merken, um Btn zu setzen
 				var mischerBetriebsart = ClickableElement[j].wert.trim();
 				var mischerTyp = ClickableElement[j].einheit.trim();
@@ -2550,14 +2558,14 @@ function buildFaceplate() {
 						if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
 					});
 				}
-				//dafür Hilfslabel erzeugen & br einfügen:
+				/*//dafür Hilfslabel erzeugen & br einfügen:
 				var lblUnitFaceplate = document.createElement('label');
 				lblUnitFaceplate.innerHTML = '%';
 				lblUnitFaceplate.className = 'lblUnitFaceplate';
 				div.appendChild(lblUnitFaceplate);
-				div.appendChild(document.createElement('br'));
+				div.appendChild(document.createElement('br'));*/
 				
-				if (ClickableElement[j].einheit.includes('Ana') || FORCE_ANALOGMISCHER) {
+				if (ClickableElement[j].einheit.includes('%') || FORCE_ANALOGMISCHER) {
 					var lblNameFaceplate = document.createElement('label');
 					lblNameFaceplate.innerHTML = ClickableElement[j].name.trim() + ' Öffnung';
 					lblNameFaceplate.className = 'lblNameFaceplate';
@@ -2597,7 +2605,7 @@ function buildFaceplate() {
 				btnAuto.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnAuto);
 				
-				if (ClickableElement[j].einheit.includes('Ana') || FORCE_ANALOGMISCHER) {					
+				if (ClickableElement[j].einheit.includes('%') || FORCE_ANALOGMISCHER) {					
 					//Bei Analogmischer nur btnHand erzeugen
 					var btnHand = document.createElement('input');
 					btnHand.type = 'button';
@@ -2788,7 +2796,7 @@ function buildFaceplate() {
 			if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btnMischerHandAuf');
 			if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btnMischerHandZu');
 		}
-		if (mischerTyp.includes('Ana') || FORCE_ANALOGMISCHER) {
+		if (mischerTyp.includes('%') || FORCE_ANALOGMISCHER) {
 			if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btnMischerHand');
 			updateSliderValue('inputWertFaceplateMischer');
 		}
