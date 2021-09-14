@@ -2051,6 +2051,9 @@ function updateSliderValue(event) {
 	(unit.includes('mWS')) ? slider.nextSibling.textContent = slider.value + ' mWS' : slider.nextSibling.textContent = slider.value + ' %';*/
 	
 	//Interpretation und Anzeige der Extremwerte
+	if (slider.id == 'inputWertFaceplateBetriebsart') {	//Sollwert Handbetrieb Kessel/BHKW
+		if (slider.value < 2) slider.nextSibling.textContent = 'Auto';
+	}	
 	if (slider.id.includes('Mischer') || slider.id.includes('Ventil')) {
 		if (slider.value < 1) slider.nextSibling.textContent = 'Zu';
 		if (slider.value >= 100) slider.nextSibling.textContent = 'Auf';
@@ -2067,6 +2070,16 @@ function updateSliderValue(event) {
 			
 			document.getElementById('inputWertPumpen Handwert').value = sliderValue;
 			document.getElementById('inputWertBetriebsart').value = sliderValue;
+		}
+	}
+	
+	//Wenn Kessel/BHKW-Betriebsart == HandEin => SliderWert auch in verstecktes Element 'inputWertBetriebsart' übernehmen; (Werte<2 als 1 [Auto Sollwert] interpretieren)
+	var btnKesselHandEin = document.getElementById('btnKesselHandEin');
+	if (btnKesselHandEin != null) {
+		if (btnKesselHandEin.disabled) {
+			document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertFaceplateBetriebsart').value;
+			//Werte<2 als 1 [Auto Sollwert] interpretieren!
+			if (document.getElementById('inputWertBetriebsart').value < 2) document.getElementById('inputWertBetriebsart').value = 1;
 		}
 	}
 	
@@ -2107,8 +2120,12 @@ function getBetriebsartValueForBtn(btn) {
 	
 	//Betriebsart & generic
 	if (btn.id.includes("Auto")) val = 0;
+	//if (btn.id.includes("Hand")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen;
 	if (btn.id.includes("HandEin")) val = 1;
 	if (btn.id.includes("HandAus")) val = -1;
+	
+	//Kessel & BHKW Betriebsart (Sollwert Handbetrieb)
+	if (btn.id.includes("btnKesselHandEin") || btn.id.includes("btnBHKWHandEin")) val = document.getElementById('inputWertFaceplateBetriebsart').value;	//Wert aus Betriebsart übernehmen;
 	
 	//Mischer
 	if (btn.id.includes("HandAuf")) val = 1;
@@ -2368,10 +2385,10 @@ function openFaceplate() {
 
 				/*query the available adjustable params from RTOS in two step
 					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait "300ms" and get the information provided by RTOS-Webserver
+					2. wait at least "700ms" and get the information provided by RTOS-Webserver
 				*/
 				sendData(clickableElementUrl);
-				sleep(1000);
+				sleep(700);
 				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
 								
 				ClickableElement = [];
@@ -2462,10 +2479,10 @@ function buildFaceplate() {
 			
 			if (ClickableElement[j].name.includes('Kesselpumpe')) h5.innerHTML = "Kesselpumpenparameter:";
 			
-			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = "HK Mischer Betriebsart:";
-			if (ClickableElement[j].name.includes('Ventil')) h5.innerHTML = "HK Ventil Betriebsart:";
+			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = faceplateTyp + ' Mischer Betriebsart:';
+			if (ClickableElement[j].name.includes('Ventil')) h5.innerHTML = faceplateTyp + ' Ventil Betriebsart:';
 			if (ClickableElement[j].name.includes('20 &degC')) {	//Startindikator Sektor Pumpenkennlinie
-				h5.innerHTML = "HK Pumpenparameter:";				
+				h5.innerHTML = faceplateTyp + ' Pumpenparameter:';				
 				h6.innerHTML = "Kennlinie (Außentemperatur):";							
 			}
 			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
@@ -2487,11 +2504,11 @@ function buildFaceplate() {
 			}
 			else {
 				inputWert.type = 'number';
-				inputWert.maxlength = 10;
+				//inputWert.maxlength = 10;
 				inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
 				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
 				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
-			}
+			}	
 			
 			var nachKommaStelle = parseInt(ClickableElement[j].nachKommaStellen);
 			if(isNaN(nachKommaStelle) || nachKommaStelle == 0){
@@ -2500,12 +2517,15 @@ function buildFaceplate() {
 			else{
 				inputWert.value = ClickableElement[j].wert.trim().substring(0, (ClickableElement[j].wert.trim().indexOf('.') + nachKommaStelle + 1));
 			}
+			
+			//inputWert.value = ClickableElement[j].wert.trim();
+			
 			inputWert.className = 'inputWert';
 			inputWert.id = inputWert.className + ClickableElement[j].name.trim();
 			div.appendChild(inputWert);
 			
 			var lblUnit = document.createElement('label');
-			lblUnit.innerHTML = ClickableElement[j].einheit.trim();
+			lblUnit.innerHTML = /*parseFloat(ClickableElement[j].wert.trim()) + ' ' +*/ ClickableElement[j].einheit.trim();
 			lblUnit.className = 'lblUnit';
 			div.appendChild(lblUnit);
 			
@@ -2514,12 +2534,50 @@ function buildFaceplate() {
 				//HK Betriebsart merken, um Btn zu setzen
 				var Betriebsart = ClickableElement[j].wert.trim();
 				
-				//inputWert & lblUnit ausblenden
+				//lblName, inputWert & lblUnit ausblenden
 				if (!DEBUG) {
 					div.childNodes.forEach(function(el) {
-						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
+						//if (!(faceplateTyp == 'HK' && el.className == 'lblName'))
+							el.style.display = 'none';
+						//if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
 					});
 				}
+				
+				if (faceplateTyp == 'Kessel' || faceplateTyp == 'BHKW') {
+					var lblNameFaceplate = document.createElement('label');
+					lblNameFaceplate.innerHTML = 'Sollwert Handbetrieb';
+					lblNameFaceplate.className = 'lblNameFaceplate';
+					div.appendChild(lblNameFaceplate);
+					
+					var inputWert = document.createElement('input');
+					inputWert.type = 'range';
+					inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
+					inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
+					inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
+					inputWert.oninput = updateSliderValue;
+					inputWert.value = ClickableElement[j].wert.trim();
+					inputWert.className = 'inputWertFaceplate';
+					inputWert.id = inputWert.className + ClickableElement[j].name.trim();
+					div.appendChild(inputWert);
+					
+					var lblUnitFaceplate = document.createElement('label');
+					lblUnitFaceplate.innerHTML = ClickableElement[j].einheit.trim();
+					lblUnitFaceplate.className = 'lblUnitFaceplate';
+					div.appendChild(lblUnitFaceplate);
+					div.appendChild(document.createElement('br')); 
+					
+					
+					/*var lblName.innerHTML = 'Sollwert Handbetrieb';
+					//lblUnit.innerHTML = parseFloat(ClickableElement[j].wert.trim()) + ' ' + ClickableElement[j].einheit.trim();
+					inputWert.type = 'range';
+					inputWert.oninput = updateSliderValue;
+					updateSliderValue(inputWert.id);*/
+				}
+				
+				var lblNameFaceplate = document.createElement('label');
+				lblNameFaceplate.innerHTML = ClickableElement[j].name.trim();
+				lblNameFaceplate.className = 'lblNameFaceplate';
+				div.appendChild(lblNameFaceplate);
 				
 				var btnAuto = document.createElement('input');
 				btnAuto.type = 'button';
@@ -2544,6 +2602,7 @@ function buildFaceplate() {
 				btnHandAus.name = 'btn' + faceplateTyp;
 				btnHandAus.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnHandAus);
+				
 			}			
 			
 				
@@ -2583,7 +2642,7 @@ function buildFaceplate() {
 					div.appendChild(inputWert);
 					
 					var lblUnitFaceplate = document.createElement('label');
-					lblUnitFaceplate.innerHTML = '%';
+					lblUnitFaceplate.innerHTML = ClickableElement[j].einheit.trim();
 					lblUnitFaceplate.className = 'lblUnitFaceplate';
 					div.appendChild(lblUnitFaceplate);
 					div.appendChild(document.createElement('br'));
@@ -2776,12 +2835,14 @@ function buildFaceplate() {
 			
 		default:
 			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
+			//activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto').nextSibling; //entspricht BtnHand oder BtnHandEin
 	}
 	if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
 	if (faceplateTyp == 'HK' && Betriebsart > 1) BetriebsartBtnHanlder('btnHKPmpHandEin');
 	
 	
 	if (faceplateTyp == 'Kessel') {
+		updateSliderValue('inputWertFaceplateBetriebsart');
 		updateSliderValue('inputWertFaceplateKesselpumpe');
 		(HandwertKesselpumpe == 0) ? RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpAuto') : RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpHandEin');
 	}
