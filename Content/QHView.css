@@ -148,7 +148,7 @@
     background: rgba(111,111,111,0.3);
     z-index: 888;
     opacity: 0;
-    transition: opacity 400ms ease-in;
+    /*transition: opacity 400ms ease-in;*/
     pointer-events: none;
 }
 
