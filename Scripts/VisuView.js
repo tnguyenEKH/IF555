@@ -1958,6 +1958,7 @@ window.onclick = function(event) {
 function closeFaceplate() {
 	destroyFaceplate();
 	hideElemementById('fpBg');
+	hideElemementById('osk');
 	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
 }
 
@@ -1970,6 +1971,7 @@ function destroyFaceplate() {
 
 function closePinModal() {
 	hideElemementById('modalPinBg');
+	hideElemementById('osk');
 }
 
 function toggleBtnsPinLock(id) {
@@ -1988,8 +1990,9 @@ function pinLock(id) {
 }
 
 function pinUnlock(id) {
-  var modal = document.getElementById("modalPinBg");
-  modal.style.display = "block";
+  const OFFSET_MODAL_2_OSK = 40;
+  showElemementById('modalPinBg');
+  var modal = document.getElementById("Pin-content");
   
   var cb = document.getElementById("cbHidePin");
   cb.checked = true;
@@ -1998,6 +2001,10 @@ function pinUnlock(id) {
   var txtPin = document.getElementById("txtPin");
   txtPin.value = "";  
   txtPin.focus();
+  showElemementById('osk');
+  console.log(modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK, modal.offsetTop, modal.offsetHeight, OFFSET_MODAL_2_OSK);
+  osk.style.top = modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK + 'px';
+  osk.style.left = modal.offsetLeft + modal.offsetWidth - osk.offsetWidth + 'px';  
 }
 
 function switchPinFocus(value) {
@@ -2885,25 +2892,51 @@ function closeModalWochenKalenderImVisu(){
 	sendData(clickableElementUrl);
 	//sendValueFromVisuToRtos('closeHKWochenKalender');
 	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
+	showElemementById('osk');	//osk für Faceplate öffnen
 }
 
 function showFaceplate(matchItem) {
 	const OFFSET_ICON_2_FACEPLATE_PX = 80;
+	const OFFSET_FP_2_OSK = 40;
 	var faceplateBackground = document.getElementById('fpBg');
-	var faceplateContent = $('#fpContent');
-	//console.log(faceplateContent.width());
-	
-	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.width() < window.innerWidth) {
-		faceplateContent.css('left', matchItem.x + OFFSET_ICON_2_FACEPLATE_PX);
-	}
-	else if (matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.width() > 0) {
-		faceplateContent.css('left', matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.width());
-	}
-	else {
-		faceplateContent.css('left', 0);
-	}	
+	var faceplateContent = document.getElementById('fpContent');
+	var osk = document.getElementById('osk');
+	//console.log(faceplateContent.offsetWidth, faceplateContent.offsetLeft, faceplateContent.style.left);
 	
 	faceplateBackground.style.display = "block";
+	showElemementById('osk');	//osk mit Faceplate öffnen
+	
+	//console.log(faceplateContent.offsetWidth, faceplateContent.offsetLeft, faceplateContent.style.left);
+	
+	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.offsetWidth < window.innerWidth) {
+		faceplateContent.style.left = matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + 'px';
+		faceplateContent.offsetLeft + osk.offsetWidth < window.innerWidth ? osk.style.left = faceplateContent.style.left : osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth - osk.offsetWidth + 'px';
+	}
+	else if (matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.offsetWidth > 0) {
+		faceplateContent.style.left = matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.offsetWidth + 'px';
+		faceplateContent.offsetLeft + osk.offsetWidth < window.innerWidth ? osk.style.left = faceplateContent.style.left : osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth - osk.offsetWidth + 'px';
+	}
+	else {
+		faceplateContent.style.left = '0px';
+		osk.style.left = '0px';
+	}
+	
+	if (faceplateContent.offsetTop + faceplateContent.offsetHeight + OFFSET_FP_2_OSK + osk.offsetHeight < window.innerHeight) {
+		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight + OFFSET_FP_2_OSK + 'px';
+	}
+	else if (faceplateContent.offsetLeft + faceplateContent.offsetWidth + OFFSET_FP_2_OSK + osk.offsetWidth < window.innerWidth) {
+		osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth + OFFSET_FP_2_OSK + 'px';
+		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight - osk.offsetHeight + 'px';
+	}
+	else {
+		osk.style.left = faceplateContent.offsetLeft - osk.offsetWidth - OFFSET_FP_2_OSK + 'px';
+		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight - osk.offsetHeight + 'px';
+		if (osk.offsetLeft < 0) {
+			osk.style.left = '0px';
+			faceplateContent.style.left = osk.offsetWidth + 'px';//faceplateContent.offsetLeft + Math.abs(osk.offsetLeft) + 'px';
+			//osk.style.top = osk.offsetTop - OFFSET_FP_2_OSK + 'px';
+		}
+	}
 }
 
 function showWochenKalenderVisu() {
@@ -2923,4 +2956,5 @@ function showWochenKalenderVisu() {
 	
 	wochenKalenderImVisuContent.css('left', kalenderLeft);
 	wochenKalenderImVisuContent.css('top', faceplate.offsetTop);
+	hideElemementById('osk');	//osk ausblenden wenn Kalender geöffnet wird
 }

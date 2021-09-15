@@ -598,7 +598,11 @@ function ConfirmModalMenu() {
         ConfirmColorMenu();
     if (inScaleMenue)
         YScaleMenuConfirm();
+}
 
+function CancelModalMenu() {
+    location.href = "#";
+	hideElemementById('osk');
 }
 
 function ConfirmColorMenu() {
@@ -1162,6 +1166,11 @@ function launchYScaleMenue() {
     $("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 	
+	var osk = showElemementById('osk');
+	var modal = document.getElementById('ModalMenuDiv');
+	osk.style.left = modal.offsetLeft + 'px';
+	osk.style.top = modal.offsetTop + modal.offsetHeight + 40 + 'px';
+	
 	//Set Focus to End of first Inputfield of ScaleMenue
 	var focusedInput = $('#inpYLMax');
 	var strLength = focusedInput.val().length * 2;
@@ -1176,8 +1185,6 @@ function isValidFloat(fString) {
 }
 
 function YScaleMenuConfirm() {
-
-
     var sf = $("#inpYLMax").val().trim().replace(",", "."); var fYLMax = parseFloat(sf);
     sf = $("#inpYLMin").val().trim().replace(",", "."); var fYLMin = parseFloat(sf);
     sf = $("#inpYLStep").val().trim().replace(",", "."); var fYLStep = parseFloat(sf);
@@ -1196,12 +1203,8 @@ function YScaleMenuConfirm() {
         drawData();
         location.href = "#";
     }
-    //InitSettings();
-    //drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
-    //drawData();
-    //var Spuren = UserSettings.qh_Spuren;
-
-    //location.href = "#";
+	
+    hideElemementById('osk');
 }
 
 function toggleDauerlinie() {

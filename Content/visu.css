@@ -227,7 +227,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 	}
 	
 	/* Add Animation */
-	@-webkit-keyframes animatetop {
+	/*@-webkit-keyframes animatetop {
 	  from {top:-300px; opacity:0} 
 	  to {top:0; opacity:1}
 	}
@@ -235,7 +235,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 	@keyframes animatetop {
 	  from {top:-300px; opacity:0}
 	  to {top:0; opacity:1}
-	}
+	}*/
 
 
 		/* Pin/FP Content */

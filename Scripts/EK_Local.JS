@@ -968,7 +968,7 @@ function tabIdHanlder(evt, id)
     evt.currentTarget.className += " active";
 
 	if (id == "fernbedienung") {
-		//resetNumlock();							//osk-Numpad-layout zurücksetzen
+		resetNumlock();							//osk-Numpad-layout zurücksetzen
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
@@ -978,7 +978,7 @@ function tabIdHanlder(evt, id)
 	}
   
     if (id == "visualisierung") {
-		//setNumlock();							//osk-layout auf Numpad wechseln
+		setNumlock();							//osk-layout auf Numpad wechseln
         startVisu();
 		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
@@ -989,7 +989,7 @@ function tabIdHanlder(evt, id)
 
     if (id == "datenauswertung") {
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
-		//setNumlock();							//osk-layout auf Numpad wechseln
+		setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
 		clearInterval(benachrichtigungAutoReload);
@@ -1023,7 +1023,11 @@ function EthernetButtonHanlder(id) {      /* <<< */
   if (id.includes("btnVirtualKeyboard")) {
 	  var osk = document.getElementById("osk");
 	  if (osk.style.display == "none") {
-		  showElemementById("osk");
+		  showElemementById('osk');
+		  osk.style.top = '';
+		  osk.style.left = '';
+		  osk.style.bottom = '220px';
+		  osk.style.right = '1.5vh';
 	  }
 	  else {
 		  hideElemementById("osk");		  
@@ -1127,16 +1131,16 @@ $(document).keydown(function (event) {
 
 function hideElemementById(id)
 {
-   var selectedElement = document.getElementById(id); 
-   selectedElement.style.display = "none";
-  
+   var selectedElement = document.getElementById(id);
+   if (selectedElement != null) selectedElement.style.display = "none";
+   return selectedElement;
 }
 
 function showElemementById(id)
 {
    var selectedElement = document.getElementById(id); 
-   selectedElement.style.display = "block";
-  
+   if (selectedElement != null) selectedElement.style.display = "block";
+   return selectedElement;
 }
 
 // return count of an object
