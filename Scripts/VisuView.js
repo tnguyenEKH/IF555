@@ -2100,13 +2100,21 @@ function updateSliderValue(event) {
 		}
 	}
 	
-	//Wenn AnalogMischer-Betriebsart == Hand => SliderWert auch in verstecktes Element 'inputWertMischer' übernehmen; (Wert=0 [Auto] als -1 [Dauer Zu] interpretieren)
+	//Wenn AnalogMischer/Ventil-Betriebsart == Hand => SliderWert auch in verstecktes Element 'inputWertMischer' übernehmen; (Wert=0 [Auto] als -1 [Dauer Zu] interpretieren)
 	var btnMischerHand = document.getElementById('btnMischerHand');
 	if (btnMischerHand != null) {
 		if (btnMischerHand.disabled) {
 			document.getElementById('inputWertMischer').value = document.getElementById('inputWertFaceplateMischer').value;
 			//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
 			if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = -1;
+		}
+	}
+	var btnVentilHand = document.getElementById('btnVentilHand');
+	if (btnVentilHand != null) {
+		if (btnVentilHand.disabled) {
+			document.getElementById('inputWertVentil').value = document.getElementById('inputWertFaceplateVentil').value;
+			//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
+			if (document.getElementById('inputWertVentil').value == 0) document.getElementById('inputWertVentil').value = -1;
 		}
 	}
 	return sliderValue;
@@ -2140,6 +2148,10 @@ function getBetriebsartValueForBtn(btn) {
 	if (btn.id.includes("Stopp")) val = -1;
 	if (btn.id == "btnMischerHand") {	//bei Analogmischer SliderWert übernehmen, dabei Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
 		val = document.getElementById('inputWertFaceplateMischer').value;
+		if (val == 0) val = -1;
+	}
+	if (btn.id == "btnVentilHand") {	//bei Analogventil SliderWert übernehmen, dabei Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
+		val = document.getElementById('inputWertFaceplateVentil').value;
 		if (val == 0) val = -1;
 	}
 	
@@ -2395,7 +2407,7 @@ function openFaceplate() {
 					2. wait at least "700ms" and get the information provided by RTOS-Webserver
 				*/
 				sendData(clickableElementUrl);
-				sleep(700);
+				sleep(1000);
 				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
 								
 				ClickableElement = [];
@@ -2515,6 +2527,7 @@ function buildFaceplate() {
 				inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
 				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
 				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
+				inputWert.onclick = showOSK; //osk bei Eingabe einblenden
 			}	
 			
 			var nachKommaStelle = parseInt(ClickableElement[j].nachKommaStellen);
@@ -2616,7 +2629,8 @@ function buildFaceplate() {
 			if (ClickableElement[j].name.includes('Mischer') || ClickableElement[j].name.includes('Ventil')) {
 				//Mischer Betriebsart & Typ merken, um Btn zu setzen
 				var mischerBetriebsart = ClickableElement[j].wert.trim();
-				var mischerTyp = ClickableElement[j].einheit.trim();
+				var mischerTyp = ClickableElement[j].einheit.trim();	//3P/Analog
+				var mischerName = ClickableElement[j].name.trim();		//Mischer oder Ventil
 				
 				//lblName, inputWert & lblUnit ausblenden (enthalten Daten zur Rückübertragung)
 				if (!DEBUG) {
@@ -2665,9 +2679,9 @@ function buildFaceplate() {
 				
 				var btnAuto = document.createElement('input');
 				btnAuto.type = 'button';
-				btnAuto.id = 'btnMischerAuto';
+				btnAuto.id = 'btn' + ClickableElement[j].name.trim() + 'Auto';
 				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btnMischer';
+				btnAuto.name = 'btn' + ClickableElement[j].name.trim();
 				btnAuto.onclick = BetriebsartBtnHanlder;
 				div.appendChild(btnAuto);
 				
@@ -2675,9 +2689,9 @@ function buildFaceplate() {
 					//Bei Analogmischer nur btnHand erzeugen
 					var btnHand = document.createElement('input');
 					btnHand.type = 'button';
-					btnHand.id = 'btnMischerHand';
+					btnHand.id = 'btn' + ClickableElement[j].name.trim() + 'Hand';
 					btnHand.className = 'btnHand';
-					btnHand.name = 'btnMischer';
+					btnHand.name = 'btn' + ClickableElement[j].name.trim();
 					btnHand.onclick = BetriebsartBtnHanlder;
 					div.appendChild(btnHand);
 				}
@@ -2692,25 +2706,25 @@ function buildFaceplate() {
 					
 					var btnHandAuf = document.createElement('input');
 					btnHandAuf.type = 'button';
-					btnHandAuf.id = 'btnMischerHandAuf';
+					btnHandAuf.id = 'btn' + ClickableElement[j].name.trim() + 'HandAuf';
 					btnHandAuf.className = 'btnHandAuf';
-					btnHandAuf.name = 'btnMischer';
+					btnHandAuf.name = 'btn' + ClickableElement[j].name.trim();
 					btnHandAuf.onclick = BetriebsartBtnHanlder;
 					div.appendChild(btnHandAuf);
 					
 					var btnHandZu = document.createElement('input');
 					btnHandZu.type = 'button';
-					btnHandZu.id = 'btnMischerHandZu';
+					btnHandZu.id = 'btn' + ClickableElement[j].name.trim() + 'HandZu';
 					btnHandZu.className = 'btnHandZu';
-					btnHandZu.name = 'btnMischer';
+					btnHandZu.name = 'btn' + ClickableElement[j].name.trim();
 					btnHandZu.onclick = BetriebsartBtnHanlder;
 					div.appendChild(btnHandZu);
 					
 					var btnStopp = document.createElement('input');
 					btnStopp.type = 'button';
-					btnStopp.id = 'btnMischerStopp';
+					btnStopp.id = 'btn' + ClickableElement[j].name.trim() + 'Stopp';
 					btnStopp.className = 'btnStopp';
-					btnStopp.name = 'btnMischer';
+					btnStopp.name = 'btn' + ClickableElement[j].name.trim();
 					btnStopp.onclick = BetriebsartBtnHanlder;
 					div.appendChild(btnStopp);
 				}				
@@ -2858,15 +2872,15 @@ function buildFaceplate() {
 	if (faceplateTyp == 'HK') {
 		updateSliderValue('inputWertFaceplatePumpen Handwert');
 		
-		if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btnMischerAuto');
+		if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btn' + mischerName + 'Auto');
 		if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
-			if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btnMischerStopp');
-			if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btnMischerHandAuf');
-			if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btnMischerHandZu');
+			if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btn' + mischerName + 'Stopp');
+			if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btn' + mischerName + 'HandAuf');
+			if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btn' + mischerName + 'HandZu');
 		}
 		if (mischerTyp.includes('%') || FORCE_ANALOGMISCHER) {
-			if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btnMischerHand');
-			updateSliderValue('inputWertFaceplateMischer');
+			if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btn' + mischerName + 'Hand');
+			updateSliderValue('inputWertFaceplate' + mischerName);
 		}
 	}
 }
@@ -2895,18 +2909,16 @@ function closeModalWochenKalenderImVisu(){
 	showElemementById('osk');	//osk für Faceplate öffnen
 }
 
+function showOSK(event) {
+	if (event.target.id.includes('inputWert')) showElemementById('osk');	
+}
+
 function showFaceplate(matchItem) {
 	const OFFSET_ICON_2_FACEPLATE_PX = 80;
 	const OFFSET_FP_2_OSK = 40;
-	var faceplateBackground = document.getElementById('fpBg');
+	var faceplateBackground = showElemementById('fpBg');
 	var faceplateContent = document.getElementById('fpContent');
-	var osk = document.getElementById('osk');
-	//console.log(faceplateContent.offsetWidth, faceplateContent.offsetLeft, faceplateContent.style.left);
-	
-	faceplateBackground.style.display = "block";
-	showElemementById('osk');	//osk mit Faceplate öffnen
-	
-	//console.log(faceplateContent.offsetWidth, faceplateContent.offsetLeft, faceplateContent.style.left);
+	var osk = showElemementById('osk');	//osk temporär zu Anordnungsberechnung öffnen; wird am Ende wieder geschlossen!
 	
 	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.offsetWidth < window.innerWidth) {
 		faceplateContent.style.left = matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + 'px';
@@ -2937,6 +2949,7 @@ function showFaceplate(matchItem) {
 			//osk.style.top = osk.offsetTop - OFFSET_FP_2_OSK + 'px';
 		}
 	}
+	hideElemementById('osk'); //Anordnungsberechnung abgeschlossen -> osk ausblenden!
 }
 
 function showWochenKalenderVisu() {
