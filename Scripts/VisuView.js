@@ -2873,14 +2873,16 @@ function buildFaceplate() {
 		updateSliderValue('inputWertFaceplatePumpen Handwert');
 		
 		if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btn' + mischerName + 'Auto');
-		if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
-			if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btn' + mischerName + 'Stopp');
-			if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btn' + mischerName + 'HandAuf');
-			if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btn' + mischerName + 'HandZu');
-		}
-		if (mischerTyp.includes('%') || FORCE_ANALOGMISCHER) {
-			if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btn' + mischerName + 'Hand');
-			updateSliderValue('inputWertFaceplate' + mischerName);
+		if (mischerTyp != undefined && mischerTyp != null) {			
+			if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
+				if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btn' + mischerName + 'Stopp');
+				if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btn' + mischerName + 'HandAuf');
+				if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btn' + mischerName + 'HandZu');
+			}
+			if (mischerTyp.includes('%') || FORCE_ANALOGMISCHER) {
+				if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btn' + mischerName + 'Hand');
+				updateSliderValue('inputWertFaceplate' + mischerName);
+			}
 		}
 	}
 }
