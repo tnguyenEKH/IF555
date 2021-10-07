@@ -2002,7 +2002,7 @@ function pinUnlock(id) {
   txtPin.value = "";  
   txtPin.focus();
   showElemementById('osk');
-  console.log(modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK, modal.offsetTop, modal.offsetHeight, OFFSET_MODAL_2_OSK);
+  //console.log(modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK, modal.offsetTop, modal.offsetHeight, OFFSET_MODAL_2_OSK);
   osk.style.top = modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK + 'px';
   osk.style.left = modal.offsetLeft + modal.offsetWidth - osk.offsetWidth + 'px';  
 }

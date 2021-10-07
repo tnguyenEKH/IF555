@@ -666,24 +666,25 @@ function setScaleSelection(idx, bLeft) {
 }
 
 function createSettingsItem(id, enable, color, text, left, avg, sum) {
-	var res = '<div style="float:left; height:14px">';
+	var res = '<div class="QHdivTrack">';// style="float:left; height:14px">';
 	var cb1val = left ? "checked" : "";
 	var cb2val = left ? "" : "checked";
 	var enableVal = enable ? "checked" : "";
-
-	res += '<div class = "" id="trackVisibleSettings" style="float: left; height: 14px; font-size: 1vh">'
-	res += '<input class = "QHcheckbox" id="enableTrack_' + id + '" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
+	
+	res += '<div id="trackVisibleSettings" class="">';// style="float: left; height: 14px; font-size: 1vh">'
+	res += '<input id="enableTrack_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
 	res += '</div>';
 	
-	res += '<div id="colpick_' + id + '" style="background-color: ' + color + '; width: 14px; height:14px; float:left;" onclick="SettingsColorHandler(id)">&nbsp</div>';
-	res += '<div class = "SettingsText" style="color:black; background-color: lightgrey; overflow: hidden; width: 200px; height:14px; float:left;">' + text + '</div>';
+	res += '<div id="colpick_' + id + '" class="colpick" style="background-color: ' + color + ';" onclick="SettingsColorHandler(id)">&nbsp</div>'; // width: 14px; height:14px; float:left;
+	res += '<div class="SettingsText">' + text + '</div>';
 
-	res += '<div style="float: left; height: 14px; font-size: 1vh">';
-	res += '<input class = "QHcheckbox" id ="cbSettingsL_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
-	res += '<input class = "QHcheckbox" id ="cbSettingsR_' + id + '" style="background-color:' + color + '" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<div class="QHdivCBscale">';
+	res += '<input id="cbSettingsL_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<input id="cbSettingsR_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
 	res += '</div>';
 
 	res += '</div></br>';
+	
 	return res;
 }
 
@@ -718,7 +719,6 @@ function InitSettings() {
     SettingsContent = "<div>" + SettingsContent + "</div>";
     $("#qSettings").append(SettingsContent);
     //$(".insideWrapper").css("background-color", bgColors[bmpIndex]);
-
 }
 
 
@@ -1208,19 +1208,19 @@ function YScaleMenuConfirm() {
 }
 
 function toggleDauerlinie() {
-    var className = $('#btnDauerlinie').attr('class');
-    if (className == "qcmdButtonMedium") {
-        $("#btnDauerlinie").removeClass(className).addClass("qcmdButtonMediumPressed");
-    }
-    else {
-        $("#btnDauerlinie").removeClass(className).addClass("qcmdButtonMedium");
-    }
+	var btn = isDauerlinie();
+	if (btn) {
+		btn.id = 'btnDauerlinie';
+	}
+	else {
+		btn = document.getElementById('btnDauerlinie');
+		btn.id += 'Checked';
+	}
 }
 
 function isDauerlinie() {
-    return $('#btnDauerlinie').attr('class') == "cmdButtonMediumPressed";
+	return document.getElementById('btnDauerlinieChecked');
 }
-
 
 function printCanvas() {
 
@@ -1391,7 +1391,7 @@ function ButtonHandler(id) {
         launchYScaleMenue();
     }
 
-    if (id == "btnDauerlinie") {
+    if (id.includes("btnDauerlinie")) {
         toggleDauerlinie();
     }
 
@@ -1415,80 +1415,90 @@ function ButtonHandler(id) {
 function DatenHolen() {
 	const MAX_CYCLE_TIMEOUT = 80;
 	var updated = false;
+	var error = false;
 	var date = InitialDatum();
 	
 	do {	//Schleife für Mehrtageabholung
 		var lastQHData = allQHDataRecords[allQHDataRecords.length - 1];
 		var lastQHDatum = lastQHData.Datum.split('.');
-		var lastQHdt = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), lastQHDatum[0]); //month index from 0-11
+		if (lastQHDatum[2] == undefined || lastQHDatum[1] == undefined || lastQHDatum[0] == undefined) error = true;
 		
-		getData(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));		//viertdat.txt auf MPC erzeugen lassen
-		//console.log(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));
-		var r_datum = lastQHdt;
-		var r_index = parseInt(lastQHData.Index) + 1;	//zu schreibenden Index generieren
-		
-		if (r_index > 96) {								//zu schreibenden Index verifizieren; ggf. Tagesüberlauf
-			r_index = 1;
-			r_datum = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), (parseInt(lastQHDatum[0]) + 1)); //month index from 0-11; +Tagesüberlauf
+		if (!error) {
+			const YEAR2020 = new Date(2020, 0, 1);
+			var date_ms = new Date();
+			date_ms = date_ms.getTime();
+			//console.log(date_ms);
+			var lastQHdt = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), lastQHDatum[0]); //month index from 0-11
+			//console.log(YEAR2020.getTime(), lastQHdt.getTime(), date_ms);
+			if ((lastQHdt.getTime() < YEAR2020.getTime()) || (lastQHdt.getTime() > date_ms)) error = true;
 		}
 		
-		var i = 0;
-		do {			//prüfen ob viertdat.txt verfügbar (Bit30 also 3.LSB [Wert==4] in V012)
-			var fb = getData(FBviertdatURL);
-			//console.log(fb);
-			fb = parseInt(fb.slice(18,19), 16);	//Antwort auf die letzten 4Bit (hex) reduzieren
-			fb &= 4;							//VerUndung mit Bitmaske (4==0100) 
-			i++;								//für notfallausstieg/Timeout
-			//console.log(fb);
-		} while (fb != 0 && i<MAX_CYCLE_TIMEOUT);				//wiederholen bis Bit30 == 0;
-		//console.log(i);
-		
-		var QHTrackNumber = loadDataTrackNumber(QHHeaderFile);	//Anz. Spuren aus vierttx.txt holen
-		if (QHTrackNumber == null) return null;
-		var QHData = readFromTextFile(QHUpdateFile);			//viertdat.txt auslesen
-		if (QHData == null) return null;
-		
-		
-		if (projektnummer == QHData.substring(0,5) &&			//Verifizierung viertdat.txt
-			r_datum.toLocaleString().split(',')[0] == QHData.substring(5,7).trim() + '.' + QHData.substring(7,9).trim() + '.20' + QHData.substring(9,11).padStart(2, '0') &&
-			r_index.toString() == QHData.substring(11,13).trim()) {
+		if (!error) {
+			getData(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));		//viertdat.txt auf MPC erzeugen lassen
+			//console.log(QHUpdateURL + lastQHDatum[2] + lastQHDatum[1].padStart(2, '0') + lastQHDatum[0].padStart(2, '0') + lastQHData.Index.padStart(2, '0'));
+			var r_datum = lastQHdt;
+			var r_index = parseInt(lastQHData.Index) + 1;	//zu schreibenden Index generieren
 			
-			updated = true;
-			//console.log('Update läuft...');
-			var QHBuffer = QHData.split(',');					//Spurdaten in Array laden
-			
-			for (var i=0; i<QHBuffer.length; i++) {				//Arraydaten auf Messwerte reduzieren(11 Zeichen)
-				QHBuffer[i] = QHBuffer[i].slice(-11);
-			}
-			for (var i=0; i<10; i++) {							//Array um Reservespuren erweitern (relevant für letzte Messwerte; s.u.)
-				QHBuffer.push(-999.00);
+			if (r_index > 96) {								//zu schreibenden Index verifizieren; ggf. Tagesüberlauf
+				r_index = 1;
+				r_datum = new Date(lastQHDatum[2], (parseInt(lastQHDatum[1]) - 1), (parseInt(lastQHDatum[0]) + 1)); //month index from 0-11; +Tagesüberlauf
 			}
 			
-			var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß allQHDataRecords)
+			var i = 0;
+			do {			//prüfen ob viertdat.txt verfügbar (Bit30 also 3.LSB [Wert==4] in V012)
+				var fb = getData(FBviertdatURL);
+				//console.log(fb);
+				fb = parseInt(fb.slice(18,19), 16);	//Antwort auf die letzten 4Bit (hex) reduzieren
+				fb &= 4;							//VerUndung mit Bitmaske (4==0100) 
+				i++;								//für notfallausstieg/Timeout
+				//console.log(fb);
+			} while (fb != 0 && i<MAX_CYCLE_TIMEOUT);				//wiederholen bis Bit30 == 0;
+			//console.log(i);
 			
-			while (recordArray.length > allQHDataRecords[0].nValues && r_index <= 96) {		//allQHDataRecords erweitern bis Ende erreicht
-				var record = {};
-				record.Datum = r_datum.toLocaleString().split(',')[0];
-				record.Index = r_index.toString();
-				record.nValues = allQHDataRecords[0].nValues;
-				record.Projektnumer = projektnummer;
-				record.Values = recordArray.slice(0, record.nValues);
-				record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
-				//console.log(record);
-				allQHDataRecords.push(record);
+			var QHTrackNumber = loadDataTrackNumber(QHHeaderFile);	//Anz. Spuren aus vierttx.txt holen
+			if (QHTrackNumber == null) return null;
+			var QHData = readFromTextFile(QHUpdateFile);			//viertdat.txt auslesen
+			if (QHData == null) return null;
+			
+			
+			if (projektNummer == QHData.substring(0,5) &&			//Verifizierung viertdat.txt
+				r_datum.toLocaleString().split(',')[0] == QHData.substring(5,7).trim() + '.' + QHData.substring(7,9).trim() + '.20' + QHData.substring(9,11).padStart(2, '0') &&
+				r_index.toString() == QHData.substring(11,13).trim()) {
 				
-				r_index++;
+				updated = true;
+				//console.log('Update läuft...');
+				var QHBuffer = QHData.split(',');					//Spurdaten in Array laden
 				
-				recordArray = recordArray.slice(QHTrackNumber);					//Float32Array beschneiden
-				//console.log(recordArray.length);
-			}				
-		
+				for (var i=0; i<QHBuffer.length; i++) {				//Arraydaten auf Messwerte reduzieren(11 Zeichen)
+					QHBuffer[i] = QHBuffer[i].slice(-11);
+				}
+				for (var i=0; i<10; i++) {							//Array um Reservespuren erweitern (relevant für letzte Messwerte; s.u.)
+					QHBuffer.push(-999.00);
+				}
+				
+				var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß allQHDataRecords)
+				
+				while (recordArray.length > allQHDataRecords[0].nValues && r_index <= 96) {		//allQHDataRecords erweitern bis Ende erreicht
+					var record = {};
+					record.Datum = r_datum.toLocaleString().split(',')[0];
+					record.Index = r_index.toString();
+					record.nValues = allQHDataRecords[0].nValues;
+					record.Projektnumer = projektNummer;
+					record.Values = recordArray.slice(0, record.nValues);
+					record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
+					//console.log(record);
+					allQHDataRecords.push(record);
+					
+					r_index++;
+					
+					recordArray = recordArray.slice(QHTrackNumber);					//Float32Array beschneiden
+					//console.log(recordArray.length);
+				}				
+			
+			}
 		}
-		/*else {
-			alert('inkonsitente Daten!');			
-		}*/
 		
-	} while (date.d != lastQHDatum[0] || date.m != lastQHDatum[1] || date.y != lastQHDatum[2]); 
-	//console.log(updated);
+	} while (!error && (date.d != lastQHDatum[0] || date.m != lastQHDatum[1] || date.y != lastQHDatum[2])); 
+	if (error) alert('inkonsitente Daten!');
 	return updated;
 }

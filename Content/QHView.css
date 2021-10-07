@@ -12,6 +12,8 @@
 	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
     padding: 0px;
     border-radius: .5em;
+	
+	font: 1.8vh Arial;
 }
 
 .qinsideWrapper {
@@ -38,36 +40,39 @@
 
 
 #controls {
-    top: 72.2vh;/*560px;*/
+    top: 70.7vh;/*560px;*/
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
     left: 1vh;/*0px;*/
     position: absolute;
-    width: 100%;
+    width: 85vh;
 	margin: 0;
 	padding: 0;
 }
 
-	#controls [type=button] {
+	[type=button] {
 		cursor: pointer;
 		padding: 2px;
 		height: 30px;/*20px;*/
 		background-color: #E0E0E0; /*rgb(224, 224, 224);*/
-		border: 1px solid;/* blue;*/
+		border: 1px solid #1F94B9; /*EKH blau*/
 		border-radius: 3px;
 		box-shadow: 1px 1px #666 /*rgb(102, 102, 102); dark gray*/;
 		/*margin-bottom: 5px;*/
-		margin: 3px 2px;
+		margin: 1px 2px;
 	}
 
-	#controls [type=button]:hover {
+	[type=button]:hover {
 		background-color: #1F94B9; /*EKH blau*/
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+		border: 1px solid #F1F1F1;
 	}
 
-	#controls [type=button]:active {
+	[type=button]:active {
 		background-color: #1F94B9; /*EKH blau*/
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
-		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
-		transform: translateY(2px);
+		/*box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/
+		/*transform: translateY(2px);*/
+		border: 1px inset #F1F1F1;
 	}
 
 	.qcmdButtonSmall {
@@ -76,21 +81,22 @@
 	}
 
 	.qcmdButtonMedium {
-		margin-left: 10px;
-		margin-right: 10px;
+		/*margin-left: 10px;
+		margin-right: 10px;*/
 		width: 85px;
 	}
 
-	.qcmdButtonMediumPressed {
-		margin-left: 10px;
-		margin-right: 10px;
+	#btnDauerlinieChecked {
+		/*margin-left: 10px;
+		margin-right: 10px;*/
 		width: 85px;
 		background-color: #C31D64; /*EKH rot*/
+		border: 1px inset #F1F1F1;
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 	}
 
 	.qcmdButtonLarge {
-		margin-left: 10px;
+		/*margin-left: 10px;*/
 		width: 150px;
 	}
 	
@@ -99,24 +105,24 @@
 	}
 
 	#cbForceQH {
-		/*margin: 0px;
-		padding: 0px;
-		font-size: 2.5vh;*/
+		height: auto;
+		margin: 0vh 1vh;
 	}
 
 	#bdiForceQH {
-		font-family: Arial;
-		font-size: 2.5vh;
+		/*font-family: Arial;
+		font-size: 2.5vh;*/
 	}
 	
 	
 
 #qSettings {
     top: 1.3vh;/*5px;*/
-    left: 92vh;
+    left: 85vh;
     position: absolute;
-    width: 300px;
-    height: 70.6vh;/*540px;*/
+	background-color: #C0C0C0;
+    /*width: 300px;width wird durch Inhalt festgelegt!*/
+    height: 88vh;/*70.6vh;/*540px;*/
     overflow-x: hidden;
     overflow-y: scroll;
     float: left;
@@ -124,16 +130,53 @@
 	margin: 0;
 }
 
-	.SettingsText {
-		padding-left: 8px;
-		font-family: Arial;
-		font-size: 12px;
+	.QHdivTrack {
+		float: left;
+		height: 3vh;/*1.56vh;/*14px;*/
+		/*font-size: 1.8vh;*/
+		margin-bottom: 1vh;
 	}
+	
+	/*.QHdivTrack:before {
+		content: "";
+		float: left;
+		padding-left: 100%;
+	}*/
+		
+		#trackVisibleSettings,
+		.QHdivCBscale {
+			float: inherit;
+			height: inherit;
+			font-size: inherit;
+			padding-left: 0.5vh;
+		}
 
-	.QHcheckbox {
-		margin: 0px 6px 0px 0px;
-	}
+		.QHcheckbox {
+			height: 100%;
+			transform: scale(1.8);
+			margin: 0vh 1.5vh 0vh 1vh;
+		}
+		
+		.colpick {
+			float: inherit;
+			height: inherit;
+			aspect-ratio: 1;	/*1:1->square*/
+		}
 
+		.SettingsText {
+			color: black;
+			background-color: lightgrey;
+			overflow: hidden;
+			width: 200px;
+			height: inherit;
+			float: inherit;
+			padding-left: 0.5vh;
+			font-family: Arial;
+			font-size: inherit;/*12px;*/
+			padding-top: 0.4vh;
+		}
+		
+		
 
 
 /* --- Modales Menue: ---*/
