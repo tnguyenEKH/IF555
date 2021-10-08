@@ -49,7 +49,7 @@
 	padding: 0;
 }
 
-	[type=button] {
+	#controls [type=button] {
 		cursor: pointer;
 		padding: 2px;
 		height: 30px;/*20px;*/
@@ -61,13 +61,13 @@
 		margin: 1px 2px;
 	}
 
-	[type=button]:hover {
+	#controls [type=button]:hover {
 		background-color: #1F94B9; /*EKH blau*/
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 		border: 1px solid #F1F1F1;
 	}
 
-	[type=button]:active {
+	#controls [type=button]:active {
 		background-color: #1F94B9; /*EKH blau*/
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 		/*box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/
@@ -86,7 +86,7 @@
 		width: 85px;
 	}
 
-	#btnDauerlinieChecked {
+	#controls #btnDauerlinieChecked {
 		/*margin-left: 10px;
 		margin-right: 10px;*/
 		width: 85px;
