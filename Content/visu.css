@@ -42,24 +42,24 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 	}
 
 	#btnUnlock {
-	  color: #C31D64;
+		color: #C31D64;
 	}
 
 	#btnLock {
-	  display: none;
-	  color: #1F94B9;
+		display: none;
+		color: #1F94B9;
 	}
 	
 	#lblPin {
-	  display: inline-block;
-	  width: 50px;
-	  text-align: right;
+		display: inline-block;
+		width: 50px;
+		text-align: right;
 	}
 	
 	#cbHidePin {
-	  width: auto;
-	  margin-left: 30px;
-	  margin-right: 20px;
+		width: auto;
+		margin-left: 30px;
+		margin-right: 20px;
 	}
 
 	.vinsideWrapper
@@ -213,17 +213,17 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 			
 	/* Modal Pin/FP (background) */
 	.modalVisuBg {
-	  display: none; /* Hidden by default */
-	  position: fixed; /* Stay in place */
-	  z-index: 1; /* Sit on top */
-	  /*padding-top: 100px; /* Location of the box */
-	  left: 0;
-	  top: 0;
-	  width: 100%; /* Full width */
-	  height: 100%; /* Full height */
-	  overflow: auto; /* Enable scroll if needed */
-	  background-color: rgb(0,0,0); /* Fallback color */
-	  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+		display: none; /* Hidden by default */
+		position: fixed; /* Stay in place */
+		z-index: 1; /* Sit on top */
+		/*padding-top: 100px; /* Location of the box */
+		left: 0;
+		top: 0;
+		width: 100%; /* Full width */
+		height: 100%; /* Full height */
+		overflow: auto; /* Enable scroll if needed */
+		background-color: rgb(0,0,0); /* Fallback color */
+		background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
 	}
 	
 	/* Add Animation */
@@ -240,25 +240,25 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 
 		/* Pin/FP Content */
 		#Pin-content {
-		  position: absolute;
-		  top: 1vh;
-		  right: 7vh;
-		  width: 330px;
+			position: absolute;
+			top: 1vh;
+			right: 7vh;
+			width: 330px;
 		}
 		
 		.modalVisuContent {
-		  position: absolute;
-		  top: 8vh;
-		  background-color: #fefefe;
-		  margin: auto;
-		  padding: 0;
-		  border: 1px solid #888;
-		  width: 490px;   /*550px*/
-		  box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
-		  -webkit-animation-name: animatetop;
-		  -webkit-animation-duration: 0.4s;
-		  animation-name: animatetop;
-		  animation-duration: 0.4s
+			position: absolute;
+			top: 8vh;
+			background-color: #fefefe;
+			margin: auto;
+			padding: 0;
+			border: 1px solid #888;
+			width: 490px;   /*550px*/
+			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+			-webkit-animation-name: animatetop;
+			-webkit-animation-duration: 0.4s;
+			animation-name: animatetop;
+			animation-duration: 0.4s
 		}
 		
 		#wochenKalenderImVisuContent {
@@ -267,40 +267,40 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 			
 		
 			.modalVisuContent button:hover {
-			  cursor: pointer;
+				cursor: pointer;
 			}
 
 			.modalVisuContent button:disabled {
-			  cursor: default;
+				cursor: default;
 			}
 
 		
 			.modalVisuHeader {
-			  text-align: center;
-			  padding: 2px 16px;
-			  background-color: #1F94B9/*#5cb85c*/;
-			  color: #fefefe;/* white;*/
+				text-align: center;
+				padding: 2px 16px;
+				background-color: #1F94B9/*#5cb85c*/;
+				color: #fefefe;/* white;*/
 			}
 			
 				/* The Close Button */
 				.close {
-				  color: #fefefe;/* white;*/
-				  float: right;
-				  font-size: 28px;
-				  font-weight: bold;
+					color: #fefefe;/* white;*/
+					float: right;
+					font-size: 28px;
+					font-weight: bold;
 				}
 
 				.close:hover,
 				.close:focus {
-				  /*color: black;*/
-				  color: #C31D64;
-				  text-decoration: none;
-				  cursor: pointer;
+					/*color: black;*/
+					color: #C31D64;
+					text-decoration: none;
+					cursor: pointer;
 				}
 				
 				
 			.modalVisuBody {
-			  padding: 2px 13px;  
+				padding: 2px 13px;  
 			}
 			
 			#wochenKalenderImVisuBody {
@@ -310,24 +310,24 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				
 				.modalVisuBody .lblName,
 				.modalVisuBody .lblNameFaceplate {
-				  display: inline-block;
-				  width: 235px;
-				  text-align: right;
-				  margin-right: 5px;
+					display: inline-block;
+					width: 235px;
+					text-align: right;
+					margin-right: 5px;
 				}
 
 				.modalVisuBody .lblUnit,
 				.modalVisuBody .lblUnitFaceplate {
-				  display: inline-block;
-				  width: 60px;
-				  text-align: left;
-				  margin-left: 5px;
+					display: inline-block;
+					width: 60px;
+					text-align: left;
+					margin-left: 5px;
 				}
 
 				.modalVisuBody /*select,*/ input /*[type="text"]*/ {
-				  width: 152px;
-				  margin: 1px 0px;
-				  /*background-color: #fefefe;*/
+					width: 152px;
+					margin: 1px 0px;
+					/*background-color: #fefefe;*/
 				}
 				
 				#btnWochenkalender {
@@ -339,10 +339,11 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				}
 
 				.modalVisuBody [type="button"] {
-				  height: 50px;
-				  width: 50px;
-				  margin: 1px;
-				  margin-left: 0px;
+					height: 50px;
+					width: 50px;
+					margin: 1px;
+					margin-left: 0px;
+					border-radius: 5px;
 				}
 				
 				.btnStopp:disabled,
@@ -353,80 +354,69 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				.btnHandAus:disabled,
 				.btnHandAuf:disabled,
 				.btnHandZu:disabled {
-				  /*border-color: red;*/
-				  border-style: inset;
-				  background-color:  #E0E0E0;
+					/*border-color: red;*/
+					border-style: inset;
+					background-color:  #E0E0E0;
 				}
 				
 				.btnEinChecked,
 				.btnDesinfChecked {
-				  border-style: inset;
-				  background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/On.png);
+					border-style: inset;
+					background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/On.png);
 				}
 				
 				.btnAusChecked {
-				  border-style: inset;
-				  background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
+					border-style: inset;
+					background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
 				}				
 				
 				.btnStopp {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/Stopp.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/Stopp.png);
 				}
 
 				.btnAuto {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/Auto.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/Auto.png);
 				}
 
 				.btnHand {
-				  background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inet.png);
+					background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inet.png);
 				}
 
 				.btnHandEin,
 				.btnHandAuf,
 				.btnEin,
 				.btnDesinf {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/On.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/On.png);
 				}
 				
 				.btnHandAus,
 				.btnHandZu,
 				.btnAus {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
 				}
 
 				.btnAutoNA {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/AutoNA.png);
-				  border-style: outset;
+					background: no-repeat center/90% url(/Images/FaceplateBtns/AutoNA.png);
+					border-style: outset;
 				}
 
 				.btnHandNA {
-				  background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inetNA.png);
+					background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inetNA.png);
 				}
 
 				.btnHandEinNA,
 				.btnHandAufNA {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/OnNA.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/OnNA.png);
 				}
 
 				.btnHandAusNA,
 				.btnHandZuNA {
-				  background: no-repeat center/90% url(/Images/FaceplateBtns/OffNA.png);
+					background: no-repeat center/90% url(/Images/FaceplateBtns/OffNA.png);
 				}
 				
 				
 			.modalVisuFooter {
-			  padding: 2px 16px;
-			  background-color: #1F94B9/*#5cb85c*/;
-			  color: #fefefe;/* white;*/
+				padding: 2px 16px;
+				background-color: #1F94B9/*#5cb85c*/;
+				color: #fefefe;/* white;*/
 			}
-
-		
-
-		
-		
-
-		
-
-		
-
-		
