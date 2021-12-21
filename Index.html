@@ -102,9 +102,12 @@
 			<div class="modalVisuBody">
 			  <label id="lblPin">Pin:</label>
 			  <input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
-
-			  <input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
-			  <label id="lblHidePin">Hide Pin</label></br>
+			  <div class="modalVisuBodyLine">
+				  <label id="lblHidePin">Hide Pin
+					<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
+					<span class="checkmark"></span>
+				  </label>
+			  </div>
 			</div>
 			<div class="modalVisuFooter">
 			  <button id="btnPinConfirm" class="modalVisuBtn" onclick="checkPin()">OK</button>
@@ -155,16 +158,17 @@
 	   
 	   <!-- Modal für Einstellwerte-->
 		 <div id="fpBg" class="modalVisuBg" >
+		  <!-- <div id="visLoader" class="loader"></div>-->
 		  <!-- FP content -->
 		  <div id="fpContent" class="modalVisuContent">
 			<div id="fpHeader" class="modalVisuHeader">
 			  <span class="close" onclick="closeFaceplate()">&times;</span>
-			  <h4 id="txtFpHeader"></h4>
+			  <h4 id="h4FpHeader"></h4>
 			</div>
 			<div id="fpBody" class="modalVisuBody">
 			</div>
 			<div id="fpFooter" class="modalVisuFooter">
-			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendValueFromVisuToRtos()">Übernehmen</button>
+			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosNEW(event)">Übernehmen</button>
 			  <button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
 			</div>
 		  </div>
@@ -182,7 +186,7 @@
 				<div class="modalVisuBody" id="wochenKalenderImVisuBody">
 				<canvas id="settingFromVisuCanvas"</canvas>
 				</div>
-				<div class="modalVisuFooter">
+				<div class="modalVisuFooter" id="wochenKalenderImVisuFooter">
 					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
 				</div>
 			</div>

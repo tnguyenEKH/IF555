@@ -68,6 +68,8 @@
        
 function startQH() {
         
+		//defaultColors = generateDefaultColors();
+		
         canvas = document.getElementById('myqCanvas');
         canvas.width = 1120;
         canvas.height =630;
@@ -546,6 +548,7 @@ function SettingsColorHandler(id) {
     $("#LabelConfirm").text("Entfernen");
     var cont = '<div style="float:left;">';
     var i = 0;
+	//console.log(defaultColors);
     var nc = defaultColors.length;
     for (var i = 0; i < nc; i++) {
         color = defaultColors[i];
@@ -671,16 +674,33 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
 	var cb2val = left ? "" : "checked";
 	var enableVal = enable ? "checked" : "";
 	
+	/*
+				<label id="lblHidePin">Hide Pin
+					<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
+					<span class="checkmark"></span>
+				 </label>
+	
+	*/
+	
 	res += '<div id="trackVisibleSettings" class="">';// style="float: left; height: 14px; font-size: 1vh">'
+	res += '<label class="lblcb">';
 	res += '<input id="enableTrack_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
+	res += '<span class="checkmark"></span>';
+	res += '</label>';
 	res += '</div>';
 	
 	res += '<div id="colpick_' + id + '" class="colpick" style="background-color: ' + color + ';" onclick="SettingsColorHandler(id)">&nbsp</div>'; // width: 14px; height:14px; float:left;
 	res += '<div class="SettingsText">' + text + '</div>';
 
 	res += '<div class="QHdivCBscale">';
+	res += '<label class="lblcb">';
 	res += '<input id="cbSettingsL_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<span class="checkmark"></span>';
+	res += '</label>';
+	res += '<label class="lblcb">';
 	res += '<input id="cbSettingsR_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
+	res += '<span class="checkmark"></span>';
+	res += '</label>';
 	res += '</div>';
 
 	res += '</div></br>';
@@ -688,13 +708,33 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
 	return res;
 }
 
-var defaultColors = ["#931414", "#920000", "#4c5660", "#39444f", "#485663", "#315172", "#920000",
+var defaultColors =
+	["#C31D64", "#B4286C", "#A53373", "#963D7B", "#874883", "#78538B",
+	 "#6A5E92", "#5B699A", "#4C74A2", "#3D7EAA", "#2E89B1", "#1F94B9",	 
+	
+	 "#000000", "#0D0D0D", "#1A1A1A", "#262626", "#333333", "#404040",
+	 "#4D4D4D", "#595959", "#666666", "#737373", "#808080", "#8C8C8C",
+	 "#969696", "#9F9F9F", "#A9A9A9", "#B2B2B2", "#BCBCBC", "#C6C6C6",
+	 "#CFCFCF", "#D9D9D9", "#E2E2E2", "#ECECEC", "#F5F5F5", "#FFFFFF",	 
+	 
+	 "#FF0000", "#FF4000", "#FF8000", "#FFBF00", "#FFFF00", "#BFFF00",
+	 "#80FF00", "#40FF00", "#00FF00", "#00FF40", "#00FF80", "#00FFBF",
+	 "#FF0040", "#FF0080", "#FF00BF", "#FF00FF", "#BF00FF", "#8000FF",
+	 "#4000FF", "#0000FF", "#0040FF", "#0080FF", "#00BFFF", "#00FFFF",
+	 
+	 "#800000", "#802000", "#804000", "#806000", "#808000", "#608000",
+	 "#408000", "#208000", "#008000", "#008020", "#008040", "#008060",
+	 "#800020", "#800040", "#800060", "#800080", "#600080", "#400080", 
+	 "#200080", "#000080", "#002080", "#004080", "#006080", "#008080"];//*/
+	 
+
+/*var defaultColors = ["#931414", "#920000", "#4c5660", "#39444f", "#485663", "#315172", "#920000",
     "#540000", "#2d2d2d", "#bbbaba", "#aaa9a9", "#4b6d8e", "#385d82", "#6ca6cd",
     "#38d6e0", "#4dffff", "#4da6ff", "#0080ff", "#0000ff", "#0099cc", "#ff4444",
     "#4775a3", "#dadada", "#cbcbcb", "#336699", "#669999", "#ada59c", "#ede1d1",
     "#e6e4e1", "#ada59c", "#e7e5d9", "#ffa500", "#cc474b", "#ffa500", "#000000",
     "#008000", "#ffff00", "#ff0000", "#ffc0cb", "#CCFF33", "#B88A00", "#CC33FF"
-];
+];*/
 
 function InitSettings() {
     var x = diagramData;
