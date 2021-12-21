@@ -80,7 +80,7 @@ $(document).ready(function () {
   /**********Visualization*/
 	initVisu();
 	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
-	//handleConfirmBtn(locked);		//Visubedienung verriegeln
+	handleConfirmBtn(locked);		//Visubedienung verriegeln
    
   /*********Data evaluation********/
 	//jw startQH();

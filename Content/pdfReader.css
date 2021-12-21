@@ -18,15 +18,6 @@
   border-radius: .5em .5em 0em 0em;
 }
 
-.pdf-btn {
-  position: static;
-  width: 100px;
-  opacity: 0.8;
-  border: 1px solid;
-  box-shadow: 1px 1px #666 /*rgb(102, 102, 102); dark gray*/;
-}
-
-
 .page-info {
   margin-left: 1rem;
 }

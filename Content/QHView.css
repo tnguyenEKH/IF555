@@ -53,26 +53,24 @@
 		cursor: pointer;
 		padding: 2px;
 		height: 30px;/*20px;*/
-		background-color: #E0E0E0; /*rgb(224, 224, 224);*/
-		border: 1px solid #1F94B9; /*EKH blau*/
+		background-color: #F1F1F1; /*rgb(224, 224, 224);*/
+		border: 1px solid; /*1px solid #1F94B9; /*EKH blau*/
 		border-radius: 3px;
-		box-shadow: 1px 1px #666 /*rgb(102, 102, 102); dark gray*/;
+		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 		/*margin-bottom: 5px;*/
 		margin: 1px 2px;
 	}
 
-	#controls [type=button]:hover {
+	#controls [type=button]:hover,
+	#controls [type=button]:active	{
 		background-color: #1F94B9; /*EKH blau*/
 		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 		border: 1px solid #F1F1F1;
 	}
 
 	#controls [type=button]:active {
-		background-color: #1F94B9; /*EKH blau*/
-		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
-		/*box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/
-		/*transform: translateY(2px);*/
-		border: 1px inset #F1F1F1;
+		box-shadow: 4px 4px #666;
+		transform: translateY(2px);
 	}
 
 	.qcmdButtonSmall {
@@ -151,11 +149,93 @@
 			padding-left: 0.5vh;
 		}
 
-		.QHcheckbox {
+		/*.QHcheckbox {
 			height: 100%;
 			transform: scale(1.8);
 			margin: 0vh 1.5vh 0vh 1vh;
+		}*/
+		
+		/* Hiding the initial checkbox */
+		.QHcheckbox {
+			visibility: hidden;
+			width: auto;
+			/*margin-left: 30px;
+			margin-right: 20px;
+			transform: scale(1.8);*/
 		}
+		
+			.lblcb {
+				display: inline-block;
+				position: relative;
+				padding-left: 7px;
+				margin-top: 2px;
+				cursor: pointer;
+			}			
+		  
+			/* Creating a custom checkbox based on demand */
+			.checkmark {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 23px;
+				width: 23px;
+				font-size: 2.5vh;
+			}
+			
+			.lblcb input ~ .checkmark {
+				border: 3px solid #939393;
+				border-radius: 4px;
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when hovering over checkbox */
+			.lblcb:hover input ~ .checkmark {
+				border: 3px solid #666;
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when checkbox is active */
+			.lblcb input:active ~ .checkmark {
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when checkbox is checked */
+			.lblcb input:checked ~ .checkmark {
+				background-color: #1F94B9;
+				border: none;
+			}
+			
+			/* Checkmark to be shown in checkbox */
+			/* It is not be shown when not checked */
+			.checkmark:after {
+				content: "\2713";
+				display: none;
+				position: absolute;
+				color: white;
+				font-weight: bold;
+				left: 3px;
+				/*top: -2px;*/
+			}
+			
+			/* Display checkmark when checked */
+				.lblcb input:checked ~ .checkmark:after {
+				display: block;
+			}
+			
+			/* Styling the checkmark using webkit */
+			/* Rotated the rectangle by 45 degree and showing only two border to make it look like a tickmark */
+			.lblcb .checkmark:after {
+				/*left: 10px;
+				bottom: 5px;
+				width: 8px;
+				height: 12px;
+				border: solid white;
+				border-width: 0 4px 4px 0;
+				/*-webkit-transform: rotate(45deg);
+				-ms-transform: rotate(45deg);
+				transform: rotate(45deg);*/
+			}
+		
 		
 		.colpick {
 			float: inherit;
@@ -202,7 +282,7 @@
 
 
     #ModalMenu > div {
-        width: 300px;
+        width: 380px;
         left: 400px;
         top: 0px;
         position: absolute;
@@ -239,21 +319,6 @@
 		left: 45%;
 		transform: translate(-50%, -50%) !important;
 		text-align: center;
-	}
-
-	/*SpinIcon while downloading newest quarterly hour data*/
-	.loader {
-		position: relative;
-		top: 45%;
-		left: 45%;
-		border: 16px solid #f3f3f3;
-		border-radius: 50%;
-		border-top: 16px solid blue;
-		border-bottom: 16px solid blue;
-		width: 120px;
-		height: 120px;
-		-webkit-animation: spin 2s linear infinite;
-		animation: spin 2s linear infinite;
 	}
 
 	@-webkit-keyframes spin {

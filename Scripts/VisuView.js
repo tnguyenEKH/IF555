@@ -1,3 +1,4 @@
+var DEVMODE = false; //no Lock/AutoLock
 var DEBUG = false;
 var FORCE_ANALOGMISCHER = false;
 
@@ -51,7 +52,7 @@ var match;
 
 //Einstellungen Visualisierungen
 const AUTOLOCK_TIMEOUT = 1200000; //20min
-var locked = true;
+var locked = !DEVMODE;
 var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
@@ -295,10 +296,78 @@ Datastructure of Visudownload will be nested array + array of object
 
 function createVisudata(sText){
 	if (sText != undefined){
+		//console.log(sText);
 		var Stoerungen = [];
 		var Items = [];
 		var Projektnummer = sText.substring(0,5);
 		var index = 0;
+		
+		//HK-Namen
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("HKNA");
+			if(idx >=0)
+			{
+				item.Bezeichnung = "HKNA";
+				item.Kanal = sText.substr((idx + 4), 2);
+				item.Nachkommastellen = 0;
+				item.iEinheit = 0;
+				item.Wert = sText.substr((idx + 6), 20).trim();
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = '';
+				Items.push(item);
+				sText= sText.slice((idx+26), sText.length);
+				//console.log(sText);
+			}
+		}
+		while (idx >= 0);
+		
+		//Nennleistung Erzeuger
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("PMK");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PMK";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
+		}
+		while (idx >= 0);
+		
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("PMB");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "PMB";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 10), 7);
+				//item.Wert *= 0.01;
+				item.isBool = false;
+				item.BoolVal = false;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				sText= sText.slice((idx+17), sText.length);
+			}
+		}
+		while (idx >= 0);
+		
 		
 		do
 		{
@@ -2025,7 +2094,7 @@ function checkPin() {
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");
-	if(!DEBUG) setTimeout(pinLock, AUTOLOCK_TIMEOUT, "btnLock");
+	if(!DEBUG && !DEVMODE) setTimeout(pinLock, AUTOLOCK_TIMEOUT, "btnLock");
   }
   else {
     locked = true;
@@ -2040,227 +2109,33 @@ function handleConfirmBtn(disable) {
   document.getElementById("btnFaceplateConfirm").disabled = disable;
 }
 
+function sleep(miliseconds) {
+   var currentTime = new Date().getTime();
 
-function updateSliderValue(event) {
-	var sliderValue;
-	var slider;
-	(typeof event) == 'string' ? slider = document.getElementById(event) : slider = document.getElementById(event.target.id);
-	
-	//Fehlerausstieg bei nicht vorhandenem Slider
-	if (slider == null || slider == undefined) return -100;
-	
-	//Einheit ermitteln und zusammen mit aktuellem SliderWert in lblUnitFaceplate schreiben
-	var unit;
-	slider.id.includes('Pumpe') ? unit = document.getElementById('inputWertPumpen Handwert').nextSibling.textContent.trim() : unit = '%';
-	slider.nextSibling.textContent = slider.value + ' ' + unit;
-	/*
-	//aktuellen SliderWert in lblUnitFaceplate schreiben
-	(unit.includes('mWS')) ? slider.nextSibling.textContent = slider.value + ' mWS' : slider.nextSibling.textContent = slider.value + ' %';*/
-	
-	//Interpretation und Anzeige der Extremwerte
-	if (slider.id == 'inputWertFaceplateBetriebsart') {	//Sollwert Handbetrieb Kessel/BHKW
-		if (slider.value < 2) slider.nextSibling.textContent = 'Auto';
-	}	
-	if (slider.id.includes('Mischer') || slider.id.includes('Ventil')) {
-		if (slider.value < 1) slider.nextSibling.textContent = 'Zu';
-		if (slider.value >= 100) slider.nextSibling.textContent = 'Auf';
-	}
-	if (slider.id.includes('Pumpe') && slider.value <= 2) slider.nextSibling.textContent = 'Min';
-	if (slider.id.includes('Kesselpumpe') && slider.value <= 1) slider.nextSibling.textContent = 'Auto';
-	
-	if (slider.id.includes('Pumpe')) {
-		//Wenn HK-Betriebsart && Pmp-Betriebsart == HandEin => SliderWert auch in versteckte Elemente 'inputWertPumpen Handwert' & 'inputWertBetriebsart' übernehmen; (minWert auf 2 begrenzen) 
-		console.log(document.getElementById('btnHKHandEin').disabled, document.getElementById('btnHKPmpHandEin').disabled)
-		if (document.getElementById('btnHKHandEin').disabled && document.getElementById('btnHKPmpHandEin').disabled) {
-			//(minWert auf 2 begrenzen)
-			document.getElementById('inputWertFaceplatePumpen Handwert').value > 2 ? sliderValue = document.getElementById('inputWertFaceplatePumpen Handwert').value : sliderValue = 2;
-			
-			document.getElementById('inputWertPumpen Handwert').value = sliderValue;
-			document.getElementById('inputWertBetriebsart').value = sliderValue;
-		}
-	}
-	
-	//Wenn Kessel/BHKW-Betriebsart == HandEin => SliderWert auch in verstecktes Element 'inputWertBetriebsart' übernehmen; (Werte<2 als 1 [Auto Sollwert] interpretieren)
-	var btnKesselHandEin = document.getElementById('btnKesselHandEin');
-	if (btnKesselHandEin != null) {
-		if (btnKesselHandEin.disabled) {
-			document.getElementById('inputWertBetriebsart').value = document.getElementById('inputWertFaceplateBetriebsart').value;
-			//Werte<2 als 1 [Auto Sollwert] interpretieren!
-			if (document.getElementById('inputWertBetriebsart').value < 2) document.getElementById('inputWertBetriebsart').value = 1;
-		}
-	}
-	
-	//Wenn Betriebsart Kesselpumpe == Hand => SliderWert auch in verstecktes Element 'inputWertKesselpumpe' übernehmen; (Wert=0 [BETRIEBSARTKesselpumpeAuto] als 1 [HANDWERTKesselpumpeAuto] interpretieren)
-	var btnKesselPmpHandEin = document.getElementById('btnKesselPmpHandEin');
-	if (btnKesselPmpHandEin != null) {
-		if (btnKesselPmpHandEin.disabled) {
-			//Wert=0 [BETRIEBSARTKesselpumpeAuto] als 1 [HANDWERTKesselpumpeAuto] interpretieren!
-			document.getElementById('inputWertFaceplateKesselpumpe').value > 0 ? sliderValue = document.getElementById('inputWertFaceplateKesselpumpe').value : sliderValue = 1;
-			document.getElementById('inputWertKesselpumpe').value = sliderValue;
-		}
-	}
-	
-	//Wenn AnalogMischer/Ventil-Betriebsart == Hand => SliderWert auch in verstecktes Element 'inputWertMischer' übernehmen; (Wert=0 [Auto] als -1 [Dauer Zu] interpretieren)
-	var btnMischerHand = document.getElementById('btnMischerHand');
-	if (btnMischerHand != null) {
-		if (btnMischerHand.disabled) {
-			document.getElementById('inputWertMischer').value = document.getElementById('inputWertFaceplateMischer').value;
-			//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-			if (document.getElementById('inputWertMischer').value == 0) document.getElementById('inputWertMischer').value = -1;
-		}
-	}
-	var btnVentilHand = document.getElementById('btnVentilHand');
-	if (btnVentilHand != null) {
-		if (btnVentilHand.disabled) {
-			document.getElementById('inputWertVentil').value = document.getElementById('inputWertFaceplateVentil').value;
-			//Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-			if (document.getElementById('inputWertVentil').value == 0) document.getElementById('inputWertVentil').value = -1;
-		}
-	}
-	return sliderValue;
-}
-
-
-function getRelatedInputWertForBtn(btn) {
-	var inputWert;
-	Array.from(btn.parentNode.children).forEach(function(el) {
-	  if (el.className == 'inputWert') inputWert = el;
-	});	
-	return inputWert;
-}
-
-
-function getBetriebsartValueForBtn(btn) {
-	var val;
-	
-	//Betriebsart & generic
-	if (btn.id.includes("Auto")) val = 0;
-	//if (btn.id.includes("Hand")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen;
-	if (btn.id.includes("HandEin")) val = 1;
-	if (btn.id.includes("HandAus")) val = -1;
-	
-	//Kessel & BHKW Betriebsart (Sollwert Handbetrieb)
-	if (btn.id.includes("btnKesselHandEin") || btn.id.includes("btnBHKWHandEin")) val = document.getElementById('inputWertFaceplateBetriebsart').value;	//Wert aus Betriebsart übernehmen;
-	
-	//Mischer
-	if (btn.id.includes("HandAuf")) val = 1;
-	if (btn.id.includes("HandZu")) val = 2;
-	if (btn.id.includes("Stopp")) val = -1;
-	if (btn.id == "btnMischerHand") {	//bei Analogmischer SliderWert übernehmen, dabei Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-		val = document.getElementById('inputWertFaceplateMischer').value;
-		if (val == 0) val = -1;
-	}
-	if (btn.id == "btnVentilHand") {	//bei Analogventil SliderWert übernehmen, dabei Wert=0 [Auto] als -1 [Dauer Zu] interpretieren!
-		val = document.getElementById('inputWertFaceplateVentil').value;
-		if (val == 0) val = -1;
-	}
-	
-	//HK-Pumpe
-	if (btn.id.includes("HKPmpAuto")) val = document.getElementById('inputWertBetriebsart').value;	//Wert aus Betriebsart übernehmen
-	if (btn.id.includes("HKPmpHandEin")) val = updateSliderValue('inputWertFaceplatePumpen Handwert');	//Wert aus Slider Übernehmen, dabei Werte < 2 als 2 interpretieren!
-	//"PmpHandAus" s.o. (wird durch "if (btn.id.includes("HandAus")) val = -1;" abgedeckt!)
-		
-	//Kessel-Pumpe
-	if (btn.id.includes("KesselPmpHandEin")) val = updateSliderValue('inputWertFaceplateKesselpumpe');	//Wert aus Slider Übernehmen
-
-	return val;
+   while (currentTime + miliseconds >= new Date().getTime()) {
+   }
 }
 
 
 
-function RadioBtnBehaviorByName(event) {
-	if (event == null || event == undefined) return -100;
-	
-	var btn;
-	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
-	//console.log(btn);
-	
-	if (btn == null || btn == undefined) return -100;
-	
-	var relatedBtns = document.getElementsByName(btn.name);
-	
-	//TriggerBtns
-	if (btn.id.includes('Trigger')) {	//Trigger btns have checkbox behavior too
-		if (btn.className.includes("Checked")) {	//uncheck btn
-			btn.className = btn.className.replace("Checked", "");
-			getRelatedInputWertForBtn(btn).value = 0;	//Wert in verstecktes inputWert-Element übernehmen
-		}
-		else {	//check btn & uncheck relatedBtns
-			relatedBtns.forEach(function(el) {
-				if (el.id == btn.id) {
-					el.className += "Checked";
-					getRelatedInputWertForBtn(el).value = 1;	//Wert in verstecktes inputWert-Element übernehmen
-				}
-				else {
-					el.className = el.className.replace("Checked", "");
-					getRelatedInputWertForBtn(el).value = 0;	//Wert in verstecktes inputWert-Element übernehmen
-				}
-			});
-		}
-	}
-	//All other Btns (Betriebsart, Mischer...)
-	else {
-		relatedBtns.forEach(function(el) {
-			if (el.id == btn.id) {
-				el.disabled = true;
-				getRelatedInputWertForBtn(el).value = getBetriebsartValueForBtn(el);//1;	//Wert in verstecktes inputWert-Element übernehmen
-				//return von getBetriebsartValueForBtn bzw. updateSliderValue prüfen?!
-			}
-			else {
-				el.disabled = false
-			}
-		});
-	}
-}
-
-function BetriebsartBtnHanlder(event) {
-	//event darf auch ein ID-String sein!
-	if (event == null || event == undefined) return -100;
-	var btn;
-	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = document.getElementById(event.target.id);
-	(typeof event) == 'string' ? RadioBtnBehaviorByName(event) : RadioBtnBehaviorByName(event.target.id);
 
 
-	if (btn.id == "btnHKPmpHandAus") {		//Wenn Pumpe 'HandAus' => HK aus!
-		btn = document.getElementById("btnHKHandAus");
-		RadioBtnBehaviorByName(btn.id);
-	}
 
-	if (btn.id == "btnHKPmpAuto") {			//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto [wert=1]
-		document.getElementById('inputWertBetriebsart').value = 1;
-		RadioBtnBehaviorByName(btn.id);//{		//Wenn Pumpe 'Auto' => HK=HandEin, Pumpe=Auto
-	}
 
-	if (btn.name == "btnHK") {    //BA HK geändert->Mi&Pu auf Auto
-		var relatedBtns = Array.from(document.getElementsByClassName("btnAuto"));
-		relatedBtns.forEach(function(el) {
-			if (el.name != "btnHK") RadioBtnBehaviorByName(el.id);
-		});
-	}
 
-	if (btn.id == "btnHKAuto" || btn.id == "btnHKHandAus") {    //BtnHKPmp sperren (Pmp->Auto bereits oben gesetzt) 
-		var name = document.getElementsByName("btnHKPmp");
-		name.forEach(function (el) {
-			el.disabled = true;
-			if (!(el.className.includes("NA"))) el.className += "NA";
-		});
-		RadioBtnBehaviorByName("btnHKPmpAuto");
-	}
 
-	if (btn.id == "btnHKHandEin") {                          //BtnBAPmp entsperren
-		var name = document.getElementsByName("btnHKPmp");
-		name.forEach(function (el) {
-			el.className = el.className.replace("NA","");
-		});
-		RadioBtnBehaviorByName("btnHKPmpAuto");
-	}
-	return 0;
-}
+
 
 function sendValueFromVisuToRtos(option) {
 	var sendBackToRtosUrlList = [];
 	var faceplateBody = document.getElementById('fpBody');
-	var faceplateBodyList = Array.from(faceplateBody.children);	
+	var faceplateBodyList = Array.from(faceplateBody.children);
+	faceplateBodyList.forEach(el => el.childNodes.forEach(function (ele) {
+		if (ele.id.includes('v')) console.log(ele);
+		
+	}));	
+		
+	console.log(faceplateBodyList);
 	var errorString = '';
 	
 	//normale Zurückübertragen mit Validierung der Eingabe; undefined kommt aus der onlickevent des html button (index.html)
@@ -2349,7 +2224,7 @@ function sendValueFromVisuToRtos(option) {
 			}
 			else {		
 				sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].lastItem;
+				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].sectionIndicator;
 				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
 				sendBackToRtosUrlList.push(link);
 			}
@@ -2368,11 +2243,70 @@ function sendValueFromVisuToRtos(option) {
 	}
 }
 
-function sleep(miliseconds) {
-   var currentTime = new Date().getTime();
-
-   while (currentTime + miliseconds >= new Date().getTime()) {
-   }
+function sendDataToRtosNEW(event) {
+	if (event == null || event == undefined) return event;
+	
+	var btn;
+	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
+	if (btn == null || btn == undefined) return btn;
+	
+	var errorString = '';
+	
+	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
+	if (btn.id.toUpperCase().includes('CALENDER')) {
+		ClickableElement.forEach(function (el) {
+			if (btn.idx == el.idx) el.wert = el.wert.replace('0', btn.wert);
+		});		
+	}
+	else {
+		var rtosVars = Array.from(document.getElementsByClassName('divRtosVar'));
+		var changedRtosVars = [];
+		rtosVars.forEach(function (el) {
+			if(el.wert != undefined) changedRtosVars.push(el);
+		});
+		
+		changedRtosVars.forEach(function (changedEl) {
+			ClickableElement.forEach(function (el) {
+				if (changedEl.idx == el.idx) {
+					var changedVal = parseFloat(changedEl.wert);
+					//console.log(typeof changedEl.wert);
+					if (isNaN(changedVal) || changedEl.wert.toString().trim() == '') {
+						changedEl.style.color = '#C31D64';
+						errorString += changedEl.firstElementChild.textContent + ': ' + 'ungültige Zahl!' + '\n';
+					}
+					else if (changedVal > parseFloat(el.oberGrenze)) {
+						changedEl.style.color = '#C31D64';
+						errorString += changedEl.firstElementChild.textContent + ': ' + 'max = ' + el.oberGrenze + '\n';
+					}
+					else if (changedVal < parseFloat(el.unterGrenze)) {
+						changedEl.style.color = '#C31D64';
+						errorString += changedEl.firstElementChild.textContent + ': ' + 'min = ' + el.unterGrenze + '\n';
+					}
+					else {
+						el.wert = changedVal.toFixed(4).padStart(10).padEnd(12);
+					}
+				}
+			});
+		});
+	}
+	
+	if (errorString != '') {
+		alert(errorString);
+	}
+	else {
+		var sendErrors = '';
+		ClickableElement.forEach(function (el) {
+			var	rtosVar = '"' + el.name + el.wert + el.oberGrenze + el.unterGrenze + el.nachKommaStellen + el.einheit + el.sectionIndicator + '"';
+			//console.log(rtosVar);
+			var url = 'http://172.16.0.102/JSONADD/PUT?v' + el.idx.toString().padStart(3, '0') + '=' + encodeURIComponent(rtosVar);
+			var ans = sendData(url);
+			//console.log(url);
+			if (!ans.includes('OK')) sendErrors += ans;
+		});
+		if (sendErrors != '') console.log(sendErrors);
+	}
+	
+	if (btn.id.toUpperCase().includes('CONFIRM') || btn.id.toUpperCase().includes('SEND')) closeFaceplate();
 }
 
 function openFaceplate() {
@@ -2394,6 +2328,10 @@ function openFaceplate() {
 				match = true;
 				var matchItem = item;
 				
+				showElemementById('fpBg');
+				hideElemementById('fpContent');
+				showElemementById('visLoader');
+				
 
 				//search in the link list of clickable element base on unique id to find out the coresspondent link 
 				for (var j = 0; j < ClickableElementUrlList.length; j++) {
@@ -2402,513 +2340,743 @@ function openFaceplate() {
 					}
 				}
 
-				/*query the available adjustable params from RTOS in two step
+				/*query the available adjustable params from RTOS in three steps
 					1. tell the RTOS-Webserver, which elemente will be queried
-					2. wait at least "700ms" and get the information provided by RTOS-Webserver
+					2. read RTOS-Vars until they are empty (Strings)
+					3. read RTOS-Vars until identifiers are equal (Strings)
 				*/
 				sendData(clickableElementUrl);
-				sleep(1000);
-				var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+				//sleep(1000);
+				var c = 0;
+				do {
+					var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+					c++;
+				} while (adjustmentOption.v070.trim() != '' && c < 50);
+				c = 0;
+				do {
+					var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
+					c++;
+				} while (adjustmentOption.v070.slice(0,5) != clickableElementUrl.slice(-5) && c < 50);
+				
+				if (c < 50) {
+					ClickableElement = [];
+					//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
+					for (var j = 70; j < 90; j++) {
+						var rtosVariable = "v0" + j;
+						var option = adjustmentOption[rtosVariable];
+						
+						/*if (option.trim() == '' || option.trim().toUpperCase() == 'X') {
+							//leere rtos-Variablen ignorieren
+						}
+						else {*/
+													
+							var item = new Object();
+
+							item['idx'] = j + 20;
+							item['name'] = '';
+							item['wert'] = '';
+							item["oberGrenze"] = '';
+							item["unterGrenze"] = '';
+							item["nachKommaStellen"] = '';
+							item["einheit"] = '';
+							item["sectionIndicator"] = option.substr(59, 1);
+							
+	/*					if (j == 70) item["sectionIndicator"] = 'H';*/
+							switch (item["sectionIndicator"]) {
+								case 'H':
+									item['name'] = option.substr(0, 24);
+									item['wert'] = option.substr(24,35)
+									break;
+								case 'S':
+									item['name'] = option.substr(0, 59);
+									break;
+								default:
+									item['name'] = option.substr(0, 24);
+									item['wert'] = option.substr(24,12);
+									item["oberGrenze"] = option.substr(36,6);
+									item["unterGrenze"] = option.substr(42,6);
+									item["nachKommaStellen"] = option.substr(48,2);
+									item["einheit"] = option.substr(50,9);
+							}
+							/*if (item.name.includes('Betriebsart')) {
+								item.name = ('Handwert&#10' + item.name.trim()).padEnd(24);
 								
-				ClickableElement = [];
-				//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-				for (var j = 70; j < 90; j++) {
-					var rtosVariable = "v0" + j;
-					var option = adjustmentOption[rtosVariable];
-					var item = new Object();
-					item['name'] = option.substr(0, 24);
-					if (j == 70) {
-						var modalId = item['name'].trim();
-						item['wert'] = option.substr(24,20)
-						item["oberGrenze"] = '';
-						item["unterGrenze"] = '';
-						item["nachKommaStellen"] = '';
-						item["einheit"] = '';
-						item["lastItem"] = option.substr(59, 1);
+								console.log(item.name);
+							}*/
+							ClickableElement.push(item);
+						//}
 					}
-					else {
-						item['wert'] = option.substr(24,10) ;
-						item["oberGrenze"] = option.substr(36,5);
-						item["unterGrenze"] = option.substr(42,5);
-						item["nachKommaStellen"] = option.substr(48,1);
-						item["einheit"] = option.substr(50,5);
-						item["lastItem"] = option.substr(59, 1);
-					}
-					//console.log(item);
-					ClickableElement.push(item);
+					
+					//buildFaceplate();
+					/*document.getElementById('btnKesselAuto').wert = 0;
+					console.log(document.getElementById('btnKesselAuto'));//*/
+					buildFaceplateNEW();
 				}
-				
-				buildFaceplate();
-				
+				else {
+					console.log('Error: openFaceplate');
+				}				
 			}	
 		}	
 	}
 	
-	if (match) showFaceplate(matchItem);//modal.style.display = "block";
+	if (match) showFaceplate(matchItem);
 }
 
-function buildFaceplate() {
-	var faceplateID = ClickableElement[0].name;
-	var faceplateTyp = faceplateID.slice(0,3).trim();
-	if (faceplateTyp == 'KES') {
-		faceplateTyp = 'Kessel';
-		faceplateID = 'Kessel' + faceplateID.trim().slice(-2);
-	}
-	if (faceplateTyp == 'BHK') {
-		faceplateTyp = 'BHKW';
-		faceplateID = 'BHKW' + faceplateID.trim().slice(-2);
-	}
+/*function getElementsByClassNameDisjunctionNEW(classNames) {
+	if (classNames == null || classNames == undefined) return classNames;
 	
-	var modal = document.getElementById('fpBg');
-	var modalHeader = document.getElementById('txtFpHeader');
-	modalHeader.innerHTML = 'Einstellungen für ' + faceplateID;
-	var modalBody = document.getElementById('fpBody');
+	var returnList = [];
+	var classNameList = classNames.trim().split(' ');
+	classNameList.forEach(function(className) {
+		returnList.push(document.getElementsByClassName(className));
+	});
 	
+	return returnList;
+}*/
 
-	for (var j = 0; j < ClickableElement.length ; j++) {
+/*function returnDivRtosVarForElement(el) {
+	if (el == null || el == undefined) return el;
+	
+	var ret;
+	do {
+		ret = el.parentNode;
+		if (ret == null) return null;
+		el = ret;
+	} while(ret.className != 'divRtosVar')
+	
+	return ret;
+}*/
+function convertHexToRGBArray(hex) {
+	if (hex == undefined) return hex;
+	if (hex.startsWith('#')) hex = hex.slice(1);
+	if (hex.length == 3) {
+		var rgb = [	parseInt(hex[0] + hex[0], 16),
+					parseInt(hex[1] + hex[1], 16),
+					parseInt(hex[2] + hex[2], 16)
+				  ];		
+	}
+	if (hex.length == 6) {
+		var rgb = [	parseInt(hex[0] + hex[1], 16),
+					parseInt(hex[2] + hex[3], 16),
+					parseInt(hex[4] + hex[5], 16)
+				  ];		
+	}
+	return rgb;
+}
+
+function convertRGBArrayToHex(rgb) {
+	if (!Array.isArray(rgb)) return undefined;
+	if (rgb.length != 3) return undefined;
+	
+	var hex = '#';
+	rgb.forEach(function (el) {
+		(Math.abs(el) < 256) ? hex += Math.round(el).toString(16).toUpperCase().padStart(2, '0') : hex += '00';
+		//console.log(hex);	
+	});
+	return hex;
+}
+
+
+function calcColor(percentVal, minColorHex, maxColorHex) {
+	//console.log(percentVal, minColorHex, maxColorHex);
+	if (percentVal == undefined) return percentVal;
+	if (percentVal < 0) percentVal = 0;
+	if (percentVal > 100) percentVal = 100;
+	if (minColorHex == undefined) minColorHex = '#1F94B9';
+	if (maxColorHex == undefined) maxColorHex = '#C31D64';
+	
+	var minColorRGB = convertHexToRGBArray(minColorHex);
+	var maxColorRGB = convertHexToRGBArray(maxColorHex);
+	var retColorRGB = [	Math.round(percentVal/100 * (maxColorRGB[0] - minColorRGB[0]) + minColorRGB[0]),
+						Math.round(percentVal/100 * (maxColorRGB[1] - minColorRGB[1]) + minColorRGB[1]),
+						Math.round(percentVal/100 * (maxColorRGB[2] - minColorRGB[2]) + minColorRGB[2])
+					  ];
+	//console.log(retColorRGB);
+	var retColorHex = convertRGBArrayToHex(retColorRGB);
+	//console.log(retColorHex);
+	return retColorHex;
+}
+
+function sliderStyling(event) {
+	if (event == null || event == undefined) return event;
+	//console.log(event);
+	var slider = event.target;
+	var percentVal = (slider.value-slider.min)/(slider.max-slider.min)*100;
+	var minColor, currentColor;
+	//console.log(slider);
+	if (slider.disabled) {
+		minColor = '#C0C0C0';
+		currentColor = minColor;
+	}
+	else {
+		minColor = slider.minColor;
+		currentColor = calcColor(percentVal, slider.minColor, slider.maxColor);
 		
-		var div = document.createElement('div');
-		div.id = 'v' + (j+90).toString().padStart(3,'0');
-		modalBody.appendChild(div);
+		if (slider.maxColor == '#C31D64') {
+			slider.classList.remove('quarter');
+			slider.classList.remove('half');
+			slider.classList.remove('threequarter');
+			slider.classList.remove('full');
+			if (percentVal > 80) {
+				slider.classList.add('full');
+			} else if (percentVal > 60) {
+				slider.classList.add('threequarter');
+			} else if (percentVal > 40) {
+				slider.classList.add('half');
+			} else if (percentVal > 20) {
+				slider.classList.add('quarter');
+			}
+		}		
+	}
+	
+	//console.log(currentColor);
+	slider.style.background = 'linear-gradient(to right, ' + minColor + ' 0%, ' + currentColor + ' ' + percentVal + '%, #E0E0E0 ' + percentVal + '%, #E0E0E0 100%)';
+	
+	//convertHexToRGBArray('#1F94B9');
+	//calcColor(100);
+}
+
+function sliderHandler(event) {	//sliderHandler
+	if (event == null || event == undefined) return event;
+	
+	sliderStyling(event);
+	var slider;
+	(typeof event) == 'string' ? slider = document.getElementById(event) : slider = event.target;
+	if (slider == null || slider == undefined) return slider;
+	
+	var divRtosVar = document.getElementById('v' + slider.idx.toString().padStart(3,'0'));
+	var btnHand = document.getElementById('btnHand' + slider.idx);
+	
+	//Due to wrapping the slider in a container-div (.divInpWert), the aimed target (.lblUnit) is
+	//actually the parentsNextSibling...
+	var parentsNextSibling = slider.parentElement.nextElementSibling;
+	//return parentsNextSibling if null || undefined
+	if (parentsNextSibling == null || parentsNextSibling == undefined) return parentsNextSibling;
+	
+	if (slider.unit != parentsNextSibling.unit) console.log('updateNextSiblingOfSlider: Diskrepanz "unit"');
+	if (slider.unit != parentsNextSibling.unit) return null;
+	//console.log(slider, parentsNextSibling);
+	
+	if (slider.max - slider.min == 101 && slider.value <= 0) slider.value = -1;
+	slider.wert = slider.value;
+	divRtosVar.wert = slider.wert;
+	if (btnHand != null) btnHand.wert = slider.wert;
+	parentsNextSibling.wert = slider.wert;
+	parentsNextSibling.value = slider.value;
+	
+	//slider.min <= 0 
+	(slider.max - slider.min == 101 && slider.value <= 0) ?  parentsNextSibling.innerHTML = 'Zu' : parentsNextSibling.innerHTML = parentsNextSibling.value + ' ' + parentsNextSibling.unit;
+	
+	return parentsNextSibling;
+}
+
+function decrementSliderValue(event) {
+	if (event == null || event == undefined) return event;
+	
+	var slider = event.target.nextElementSibling;
+	//console.log(slider);
+	slider.value -= slider.step;
+	var pseudoEvent = {};
+	pseudoEvent.target = slider;
+	sliderHandler(pseudoEvent);	
+}
+
+function incrementSliderValue(event) {
+	if (event == null || event == undefined) return event;
+	
+	//console.log(event.target);
+	var slider = event.target.previousElementSibling;
+	slider.value = parseFloat(slider.value) + parseFloat(slider.step);
+	//Sonderfall Analogmischer
+	if (slider.unit == '%' && slider.value == 0) slider.value = parseFloat(slider.value) + parseFloat(slider.step);
+	//console.log(slider.value);
+	var pseudoEvent = {};
+	pseudoEvent.target = slider;
+	sliderHandler(pseudoEvent);
+}
+
+function radioBtnByNameNEW(event) {
+	if (event == null || event == undefined) return event;
+	
+	var btn;
+	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
+	if (btn == null || btn == undefined) return btn;
 		
-		//Für leere Zeilen nur inputWert versteckt im Faceplate einfügen (enthält leeren 'Rohwert aus ClickableElement)
-		if (ClickableElement[j].name.trim() == '') {						
-			/*var inputWert = document.createElement('input');
-			inputWert.type = 'text';
-			inputWert.value = ClickableElement[j].wert;
-			inputWert.className = 'inputWert';
-			inputWert.style.display = 'none';
-			div.appendChild(inputWert);*/
+	var divRtosVar = document.getElementById('v' + btn.idx.toString().padStart(3,'0'));
+	if (btn.wert.toString() == '') {
+		var slider = document.getElementById('inpWert' + btn.idx);
+		btn.wert = slider.wert;
+	}
+	divRtosVar.wert = btn.wert;
+		
+	//var changedBtns = [];
+	var relatedBtns = document.getElementsByName(btn.name);
+	relatedBtns.forEach(function(el) {
+		//console.log(el);
+		if (el.id == btn.id) {
+			if (!el.className.includes('checked')) {
+				//changedBtns.push(el);
+				el.className += " checked";
+			}
+			else {
+				if (el.className.includes('uncheckable')) el.className = el.className.replace("checked", "").trim();				
+			}
 		}
 		else {
-		
-			var lblName = document.createElement('label');
-			lblName.className = 'lblName';
-			
-			//ggf. Zwischenüberschrift einfügen
-			var h5 = document.createElement('h5');
-			var h6 = document.createElement('h6');
-			if (j == 0) {
-				h5.innerHTML = faceplateTyp + " Parameter:";
-				lblName.innerHTML = "Name/Alias";
-			}
-			else {
-				lblName.innerHTML = ClickableElement[j].name.trim();
-			}
-			
-			if (ClickableElement[j].name.includes('Kesselpumpe')) h5.innerHTML = "Kesselpumpenparameter:";
-			
-			if (ClickableElement[j].name.includes('Mischer')) h5.innerHTML = faceplateTyp + ' Mischer Betriebsart:';
-			if (ClickableElement[j].name.includes('Ventil')) h5.innerHTML = faceplateTyp + ' Ventil Betriebsart:';
-			if (ClickableElement[j].name.includes('20 &degC')) {	//Startindikator Sektor Pumpenkennlinie
-				h5.innerHTML = faceplateTyp + ' Pumpenparameter:';				
-				h6.innerHTML = "Kennlinie (Außentemperatur):";							
-			}
-			if (ClickableElement[j].name.includes('Pumpen Handwert')) h6.innerHTML = "Pumpen Betriebsart:";
-			
-			if (ClickableElement[j].name.includes('Wochenk')) {	//Startindikator Sektor Wochenkalender & 
-				h5.innerHTML = "Wochenkalender:";
-			}
-			if (h5.innerHTML != '') div.appendChild(h5);
-			if (h6.innerHTML != '') div.appendChild(h6);
-			
-			div.appendChild(lblName);
-			
-			var inputWert = document.createElement('input');
-			if (j == 0) {
-				inputWert.type = 'text';
-				inputWert.maxlength = 20;
-				inputWert.disabled = true;
-				//console.log(inputWert);*/
-			}
-			else {
-				inputWert.type = 'number';
-				//inputWert.maxlength = 10;
-				inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
-				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
-				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
-				inputWert.onclick = showOSK; //osk bei Eingabe einblenden
-			}	
-			
-			var nachKommaStelle = parseInt(ClickableElement[j].nachKommaStellen);
-			if(isNaN(nachKommaStelle) || nachKommaStelle == 0){
-				inputWert.value = ClickableElement[j].wert.trim();
-			}
-			else{
-				inputWert.value = ClickableElement[j].wert.trim().substring(0, (ClickableElement[j].wert.trim().indexOf('.') + nachKommaStelle + 1));
-			}
-			
-			//inputWert.value = ClickableElement[j].wert.trim();
-			
-			inputWert.className = 'inputWert';
-			inputWert.id = inputWert.className + ClickableElement[j].name.trim();
-			div.appendChild(inputWert);
-			
-			var lblUnit = document.createElement('label');
-			lblUnit.innerHTML = /*parseFloat(ClickableElement[j].wert.trim()) + ' ' +*/ ClickableElement[j].einheit.trim();
-			lblUnit.className = 'lblUnit';
-			div.appendChild(lblUnit);
-			
-			
-			if (ClickableElement[j].name.includes('Betriebsart')) {		//Indikator Betriebsart;
-				//HK Betriebsart merken, um Btn zu setzen
-				var Betriebsart = ClickableElement[j].wert.trim();
-				
-				//lblName, inputWert & lblUnit ausblenden
-				if (!DEBUG) {
-					div.childNodes.forEach(function(el) {
-						//if (!(faceplateTyp == 'HK' && el.className == 'lblName'))
-							el.style.display = 'none';
-						//if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-					});
-				}
-				
-				if (faceplateTyp == 'Kessel' || faceplateTyp == 'BHKW') {
-					var lblNameFaceplate = document.createElement('label');
-					lblNameFaceplate.innerHTML = 'Sollwert Handbetrieb';
-					lblNameFaceplate.className = 'lblNameFaceplate';
-					div.appendChild(lblNameFaceplate);
-					
-					var inputWert = document.createElement('input');
-					inputWert.type = 'range';
-					inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
-					inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
-					inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
-					inputWert.oninput = updateSliderValue;
-					inputWert.value = ClickableElement[j].wert.trim();
-					inputWert.className = 'inputWertFaceplate';
-					inputWert.id = inputWert.className + ClickableElement[j].name.trim();
-					div.appendChild(inputWert);
-					
-					var lblUnitFaceplate = document.createElement('label');
-					lblUnitFaceplate.innerHTML = ClickableElement[j].einheit.trim();
-					lblUnitFaceplate.className = 'lblUnitFaceplate';
-					div.appendChild(lblUnitFaceplate);
-					div.appendChild(document.createElement('br')); 
-					
-					
-					/*var lblName.innerHTML = 'Sollwert Handbetrieb';
-					//lblUnit.innerHTML = parseFloat(ClickableElement[j].wert.trim()) + ' ' + ClickableElement[j].einheit.trim();
-					inputWert.type = 'range';
-					inputWert.oninput = updateSliderValue;
-					updateSliderValue(inputWert.id);*/
-				}
-				
-				var lblNameFaceplate = document.createElement('label');
-				lblNameFaceplate.innerHTML = ClickableElement[j].name.trim();
-				lblNameFaceplate.className = 'lblNameFaceplate';
-				div.appendChild(lblNameFaceplate);
-				
-				var btnAuto = document.createElement('input');
-				btnAuto.type = 'button';
-				btnAuto.id = 'btn' + faceplateTyp + 'Auto';
-				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btn' + faceplateTyp;
-				btnAuto.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnAuto);
-				
-				var btnHandEin = document.createElement('input');
-				btnHandEin.type = 'button';
-				btnHandEin.id = 'btn' + faceplateTyp + 'HandEin';
-				btnHandEin.className = 'btnHandEin';
-				btnHandEin.name = 'btn' + faceplateTyp;
-				btnHandEin.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnHandEin);
-				
-				var btnHandAus = document.createElement('input');
-				btnHandAus.type = 'button';
-				btnHandAus.id = 'btn' + faceplateTyp + 'HandAus';
-				btnHandAus.className = 'btnHandAus';
-				btnHandAus.name = 'btn' + faceplateTyp;
-				btnHandAus.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnHandAus);
-				
-			}			
-			
-				
-			if (ClickableElement[j].name.includes('Mischer') || ClickableElement[j].name.includes('Ventil')) {
-				//Mischer Betriebsart & Typ merken, um Btn zu setzen
-				var mischerBetriebsart = ClickableElement[j].wert.trim();
-				var mischerTyp = ClickableElement[j].einheit.trim();	//3P/Analog
-				var mischerName = ClickableElement[j].name.trim();		//Mischer oder Ventil
-				
-				//lblName, inputWert & lblUnit ausblenden (enthalten Daten zur Rückübertragung)
-				if (!DEBUG) {
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-					});
-				}
-				/*//dafür Hilfslabel erzeugen & br einfügen:
-				var lblUnitFaceplate = document.createElement('label');
-				lblUnitFaceplate.innerHTML = '%';
-				lblUnitFaceplate.className = 'lblUnitFaceplate';
-				div.appendChild(lblUnitFaceplate);
-				div.appendChild(document.createElement('br'));*/
-				
-				if (ClickableElement[j].einheit.includes('%') || FORCE_ANALOGMISCHER) {
-					var lblNameFaceplate = document.createElement('label');
-					lblNameFaceplate.innerHTML = ClickableElement[j].name.trim() + ' Öffnung';
-					lblNameFaceplate.className = 'lblNameFaceplate';
-					div.appendChild(lblNameFaceplate);
-					
-					var inputWert = document.createElement('input');
-					inputWert.type = 'range';
-					inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
-					inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
-					inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
-					inputWert.oninput = updateSliderValue;
-					inputWert.value = ClickableElement[j].wert.trim();
-					inputWert.className = 'inputWertFaceplate';
-					inputWert.id = inputWert.className + ClickableElement[j].name.trim();
-					div.appendChild(inputWert);
-					
-					var lblUnitFaceplate = document.createElement('label');
-					lblUnitFaceplate.innerHTML = ClickableElement[j].einheit.trim();
-					lblUnitFaceplate.className = 'lblUnitFaceplate';
-					div.appendChild(lblUnitFaceplate);
-					div.appendChild(document.createElement('br'));
-				}
-					
-					
-					
-					
-				var lblNameFaceplate = document.createElement('label');
-				lblNameFaceplate.innerHTML = ClickableElement[j].name.trim() + ' Betriebsart';
-				lblNameFaceplate.className = 'lblNameFaceplate';
-				div.appendChild(lblNameFaceplate);
-				
-				var btnAuto = document.createElement('input');
-				btnAuto.type = 'button';
-				btnAuto.id = 'btn' + ClickableElement[j].name.trim() + 'Auto';
-				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btn' + ClickableElement[j].name.trim();
-				btnAuto.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnAuto);
-				
-				if (ClickableElement[j].einheit.includes('%') || FORCE_ANALOGMISCHER) {					
-					//Bei Analogmischer nur btnHand erzeugen
-					var btnHand = document.createElement('input');
-					btnHand.type = 'button';
-					btnHand.id = 'btn' + ClickableElement[j].name.trim() + 'Hand';
-					btnHand.className = 'btnHand';
-					btnHand.name = 'btn' + ClickableElement[j].name.trim();
-					btnHand.onclick = BetriebsartBtnHanlder;
-					div.appendChild(btnHand);
-				}
-				
-				if (ClickableElement[j].einheit.includes('3P') && !FORCE_ANALOGMISCHER) {
-					//lblName, inputWert & lblUnitFaceplate zusätzlich ausblenden
-					if (!DEBUG) {
-						div.childNodes.forEach(function(el) {
-							if (el.className == 'lblName' || el.className == 'inputWert' || el.className == 'lblUnitFaceplate') el.style.display = 'none';
-						});
-					}
-					
-					var btnHandAuf = document.createElement('input');
-					btnHandAuf.type = 'button';
-					btnHandAuf.id = 'btn' + ClickableElement[j].name.trim() + 'HandAuf';
-					btnHandAuf.className = 'btnHandAuf';
-					btnHandAuf.name = 'btn' + ClickableElement[j].name.trim();
-					btnHandAuf.onclick = BetriebsartBtnHanlder;
-					div.appendChild(btnHandAuf);
-					
-					var btnHandZu = document.createElement('input');
-					btnHandZu.type = 'button';
-					btnHandZu.id = 'btn' + ClickableElement[j].name.trim() + 'HandZu';
-					btnHandZu.className = 'btnHandZu';
-					btnHandZu.name = 'btn' + ClickableElement[j].name.trim();
-					btnHandZu.onclick = BetriebsartBtnHanlder;
-					div.appendChild(btnHandZu);
-					
-					var btnStopp = document.createElement('input');
-					btnStopp.type = 'button';
-					btnStopp.id = 'btn' + ClickableElement[j].name.trim() + 'Stopp';
-					btnStopp.className = 'btnStopp';
-					btnStopp.name = 'btn' + ClickableElement[j].name.trim();
-					btnStopp.onclick = BetriebsartBtnHanlder;
-					div.appendChild(btnStopp);
-				}				
-			}
-			
-			
-			if (ClickableElement[j].name.includes('Pumpen Handwert') || ClickableElement[j].name.includes('Kesselpumpe')) {
-				var HandwertKesselpumpe;
-				if (ClickableElement[j].name.includes('Kesselpumpe')) HandwertKesselpumpe = ClickableElement[j].wert.trim();
-				if (!DEBUG) {
-					//inputWert & lblUnit ausblenden (enthält info über HK Betriebsart)
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-					});
-				}
-				//dafür Slider(range) erzeugen:
-				var inputWert = document.createElement('input');
-				inputWert.type = 'range';
-				inputWert.min = parseFloat(ClickableElement[j].unterGrenze.trim());
-				inputWert.max = parseFloat(ClickableElement[j].oberGrenze.trim());
-				inputWert.step = Math.pow(10, -ClickableElement[j].nachKommaStellen);
-				inputWert.oninput = updateSliderValue;
-				inputWert.value = ClickableElement[j].wert.trim();
-				inputWert.className = 'inputWertFaceplate';
-				inputWert.id = inputWert.className + ClickableElement[j].name.trim();
-				div.appendChild(inputWert);
-				
-				var lblUnit = document.createElement('label');
-				lblUnit.innerHTML = ClickableElement[j].einheit.trim();
-				lblUnit.className = 'lblUnitFaceplate';
-				div.appendChild(lblUnit);
-				
-				div.appendChild(document.createElement('br'));
-				
-				var lblNameFaceplate = document.createElement('label');
-				lblNameFaceplate.innerHTML = 'Betriebsart ' + faceplateTyp + '-Pumpe';
-				lblNameFaceplate.className = 'lblNameFaceplate';
-				div.appendChild(lblNameFaceplate);
-				
-				var btnAuto = document.createElement('input');
-				btnAuto.type = 'button';
-				btnAuto.id = 'btn' + faceplateTyp + 'PmpAuto';
-				btnAuto.className = 'btnAuto';
-				btnAuto.name = 'btn' + faceplateTyp + 'Pmp';
-				btnAuto.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnAuto);
-				
-				var btnHandEin = document.createElement('input');
-				btnHandEin.type = 'button';
-				btnHandEin.id = 'btn' + faceplateTyp + 'PmpHandEin';
-				btnHandEin.className = 'btnHandEin';
-				btnHandEin.name = 'btn' + faceplateTyp + 'Pmp';
-				btnHandEin.onclick = BetriebsartBtnHanlder;
-				div.appendChild(btnHandEin);
-				
-				if (faceplateTyp != 'Kessel') {		//HandAus bei Kesselpumpe nicht vorgesehen!
-					var btnHandAus = document.createElement('input');
-					btnHandAus.type = 'button';
-					btnHandAus.id = 'btn' + faceplateTyp + 'PmpHandAus';
-					btnHandAus.className = 'btnHandAus';
-					btnHandAus.name = 'btn' + faceplateTyp + 'Pmp';
-					btnHandAus.onclick = BetriebsartBtnHanlder;
-					div.appendChild(btnHandAus);
-				}					
-			}
-			
-			
-			if (ClickableElement[j].name.includes('Einmalig')) {
-				var btnID;
-				if (ClickableElement[j].name.includes('EIN')) btnID = 'Ein';
-				if (ClickableElement[j].name.includes('AUS')) btnID = 'Aus';
-				if (ClickableElement[j].name.includes('Desinf.')) btnID = 'Desinf';
-				
-				//inputWert & lblUnit ausblenden
-				if (!DEBUG) {
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-					});
-				}
-				
-				//TriggerButton erzeugen
-				var btnTrigger = document.createElement('input');
-				btnTrigger.type = 'button';
-				btnTrigger.id = 'btnTrigger' + btnID;
-				btnTrigger.className = 'btn' + btnID;
-				btnTrigger.name = 'btnTrigger';
-				//btnTrigger.value = btnID;
-				btnTrigger.onclick = RadioBtnBehaviorByName;
-				div.appendChild(btnTrigger);
-			}
-			
-			
-			if (ClickableElement[j].name.includes('Wochenk')) { 
-				//inputWert & lblUnit ausblenden
-				if (!DEBUG) {
-					div.childNodes.forEach(function(el) {
-						if (el.className == 'inputWert' || el.className == 'lblUnit') el.style.display = 'none';
-					});
-				}
-				
-				//SprungButton erzeugen
-				var btnWochenkalender = document.createElement('input');
-				btnWochenkalender.type = 'button';
-				btnWochenkalender.id = 'btnWochenkalender';
-				btnWochenkalender.value = 'zum Kalender';
-				btnWochenkalender.onclick = jumpToWochenKalender;
-				div.appendChild(btnWochenkalender);
-			}
+			//if (el.className.includes('checked')) changedBtns.push(el);
+			el.className = el.className.replace("checked", "").trim();
 		}
-	}
+	});
 	
-	//Btn entsprechend aktueller Betriebsart setzen und Verriegelung setzen
-	handleConfirmBtn(locked);
+	return btn; //return event;? return changedBtns;???
+}
+
+function toggleSliderAbilityByBtnHandNEW(event) {
+	var btn = event.target;
+	if (btn == null || btn == undefined) return event;
 	
-	
-	var activeBtn;
-	switch (Betriebsart) {
-		case '-1':
-			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandAus');
-			break;
-			
-		case '0':
-			activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto');
-			break;
-			
-		case '1':
-			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
-			break;
-			
-		default:
-			activeBtn = document.getElementById('btn' + faceplateTyp + 'HandEin');
-			//activeBtn = document.getElementById('btn' + faceplateTyp + 'Auto').nextSibling; //entspricht BtnHand oder BtnHandEin
-	}
-	if (activeBtn != null) BetriebsartBtnHanlder(activeBtn.id);
-	if (faceplateTyp == 'HK' && Betriebsart > 1) BetriebsartBtnHanlder('btnHKPmpHandEin');
-	
-	
-	if (faceplateTyp == 'Kessel') {
-		updateSliderValue('inputWertFaceplateBetriebsart');
-		updateSliderValue('inputWertFaceplateKesselpumpe');
-		(HandwertKesselpumpe == 0) ? RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpAuto') : RadioBtnBehaviorByName('btn' + faceplateTyp + 'PmpHandEin');
-	}
-	
-	
-	if (faceplateTyp == 'HK') {
-		updateSliderValue('inputWertFaceplatePumpen Handwert');
-		
-		if (mischerBetriebsart == '0') RadioBtnBehaviorByName('btn' + mischerName + 'Auto');
-		if (mischerTyp != undefined && mischerTyp != null) {			
-			if (mischerTyp.includes('3P') && !FORCE_ANALOGMISCHER) {
-				if (mischerBetriebsart == '-1') RadioBtnBehaviorByName('btn' + mischerName + 'Stopp');
-				if (mischerBetriebsart == '1') RadioBtnBehaviorByName('btn' + mischerName + 'HandAuf');
-				if (mischerBetriebsart == '2') RadioBtnBehaviorByName('btn' + mischerName + 'HandZu');
-			}
-			if (mischerTyp.includes('%') || FORCE_ANALOGMISCHER) {
-				if (mischerBetriebsart != '0') RadioBtnBehaviorByName('btn' + mischerName + 'Hand');
-				updateSliderValue('inputWertFaceplate' + mischerName);
-			}
+	var enabled = btn.className.toUpperCase().includes('HAND');
+
+	btn.parentElement.childNodes.forEach(function(el) {
+		if (el.type == 'range') {
+			el.disabled = !enabled;
+			//console.log(el.className);
+			(enabled) ? el.classList.remove('disabled') : el.classList.add('disabled');
+			//console.log(el.className);
+			var pseudoEvent = {};
+			pseudoEvent.target = el;
+			sliderStyling(pseudoEvent);
 		}
+		if (el.className.includes('btnIncDec')) el.disabled = !enabled;
+	});	
+	
+}
+
+function updateLblUnit(event) {
+	var btn = event.target;
+	if (btn == null || btn == undefined) return event;
+	
+	var lbl = btn.parentElement.nextElementSibling;
+	if (lbl == null || lbl == undefined) return event;
+	
+	if (btn.title.toUpperCase().includes('HAND')) {
+		(lbl.value <= 0) ?  lbl.innerHTML = 'Zu' : lbl.innerHTML = lbl.value + ' ' + lbl.unit;
+	}
+	else {
+		lbl.innerHTML = btn.title;
 	}
 }
 
+function controlGroupBtnHandlerNEW(event) {
+	if (event == null || event == undefined) return event;
+	//console.log(event);
+	var btn;
+	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
+	
+	var returnedBtn = radioBtnByNameNEW(event); //returned event??!
+	if (btn != returnedBtn) console.log('fpBtnHandler: btn != returnedBtn');
+	if (btn != returnedBtn) return btn; //return event;???	
+	//if (btn.className.includes('Hand')) disableSliderNEW();
+	toggleSliderAbilityByBtnHandNEW(event);
+	updateLblUnit(event);
+	//console.log(btn);
+}
 
-function jumpToWochenKalender(){
+function createControlGroup(fpSection, el) {
+	//div mit ID=rtosVariable erzeugen & anhängen (return object)
+	var divRtosVar = document.createElement('div');
+	fpSection.appendChild(divRtosVar);
+	divRtosVar.id = 'v' + el.idx.toString().padStart(3,'0');
+	divRtosVar.className = 'divRtosVar';
+	divRtosVar.idx = el.idx;
+	
+	//Namenslabel erzeugen & anhängen
+	var lblName = document.createElement('label');				
+	divRtosVar.appendChild(lblName);
+	lblName.className = 'lblName';
+	lblName.innerHTML = el.name.trim();
+	
+	//Inputelemente (btns, slider, number, etc.) erzeugen & anhängen
+	var divInpWert = document.createElement('div');
+	divRtosVar.appendChild(divInpWert);
+	divInpWert.className = 'divInpWert';
+	divInpWert.id = divInpWert.className + el.idx;
+	divInpWert.idx = el.idx;
+	
+	//zu erzeugende Elemente auf Basis der Range ermitteln:
+	var range = (parseFloat(el.oberGrenze.trim()) - parseFloat(el.unterGrenze.trim()) + 1) * Math.pow(10, el.nachKommaStellen);
+	
+	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
+	if (range <= 4 && !lblName.innerHTML.includes('kalender')) lblName.innerHTML = '\n' + lblName.innerHTML;
+	
+	//-Button vor Slider erzeugen
+	if (range > 4) {
+		var btnIncDec = document.createElement('input');
+		divInpWert.appendChild(btnIncDec);
+		btnIncDec.type = 'button';
+		btnIncDec.className = 'btnIncDec btnDec';
+		var btnVal = Math.pow(10, -el.nachKommaStellen);
+		if (btnVal < 1) btnVal = btnVal.toString().slice(1);
+		btnIncDec.value = '-';// + btnVal;
+		btnIncDec.onclick = decrementSliderValue;
+	}
+	
+	var inpWert = document.createElement('input');				
+	divInpWert.appendChild(inpWert);
+	inpWert.className = 'inpWert';
+	inpWert.id = inpWert.className + el.idx;
+	inpWert.idx = el.idx;
+	inpWert.unit = el.einheit.trim();
+	//if (inpWert.unit.includes('&deg') || el.name.includes('Betriebsart')) inpWert.className += ' gradientSlider';
+	inpWert.unterGrenze = parseFloat(el.unterGrenze.trim());
+	inpWert.oberGrenze = parseFloat(el.oberGrenze.trim());
+	inpWert.min = inpWert.unterGrenze;
+	inpWert.minColor = '#1F94B9';
+	inpWert.max = inpWert.oberGrenze;
+	if (inpWert.unit.includes('&deg') || lblName.innerHTML.includes('Kessel') || lblName.innerHTML.includes('BHKW')) {
+		inpWert.maxColor = '#C31D64';
+	}
+	else {
+		inpWert.maxColor = '#1F94B9';
+	}
+	inpWert.step = Math.pow(10, -el.nachKommaStellen);
+	inpWert.wert = parseFloat(el.wert);
+	
+	//+Button hinter Slider erzeugen
+	if (range > 4) {
+		var btnIncDec = document.createElement('input');
+		divInpWert.appendChild(btnIncDec);
+		btnIncDec.type = 'button';
+		btnIncDec.className = 'btnIncDec btnInc';
+		var btnVal = Math.pow(10, -el.nachKommaStellen);
+		if (btnVal < 1) btnVal = btnVal.toString().slice(1);
+		btnIncDec.value = '+';// + btnVal;
+		btnIncDec.onclick = incrementSliderValue;
+	}
+	
+	/*if (range > 4) {
+		for (var i=0; i<2; i++) {
+			var btnIncDec = document.createElement('input');
+			divInpWert.appendChild(btnIncDec);
+			btnIncDec.type = 'button';
+			btnIncDec.className = 'btnIncDec';
+			(i == 0) ? btnIncDec.value = '-' : btnIncDec.value = '+';
+			btnIncDec.value += Math.pow(10, -el.nachKommaStellen);
+		}
+	}*/
+	
+	//console.log(range);
+	var checkedBtn;
+	switch (range) {
+			
+			//createTriggerBtn (Einmalig...); radioBtnByNameNEW
+			case 2:
+				inpWert.type = 'button';
+				inpWert.id = 'triggerBtn';
+				inpWert.className += ' btnBA';
+				inpWert.className += ' uncheckable';
+				inpWert.name = 'triggerBtn';
+				inpWert.wert = 1;
+				inpWert.title = el.name.trim();
+				inpWert.onclick = radioBtnByNameNEW;
+				if (el.name.toUpperCase().includes('AUS')) {
+					inpWert.id += 'Aus';
+					inpWert.className += ' btnAus';
+				}
+				else if (el.name.toUpperCase().includes('EIN')) {
+					inpWert.id += 'Ein';
+					inpWert.className += ' btnEin';
+				}
+				if (el.wert == inpWert.wert) checkedBtn = inpWert;
+				break;
+			
+			//createBtnCalender || createBtnGroup
+			case 3:
+				if (parseFloat(el.unterGrenze.trim()) == 0) {
+					inpWert.type = 'button';
+					inpWert.id = 'calenderBtn';
+					inpWert.className += ' calenderBtn';
+					locked ? inpWert.wert = 2 : inpWert.wert = 1;
+					inpWert.value = 'zum Kalender';
+					inpWert.title = 'Absenkungswochenkalender öffnen';
+					if (inpWert.wert == 2) inpWert.title += ' (schreibgeschützt)';
+					inpWert.onclick = jumpToWochenKalender;
+				}
+				
+				if (parseFloat(el.unterGrenze.trim()) == -1) {
+					for (var i=0; i<3; i++) {
+						if (i > 0) {
+							var inpWert = document.createElement('input');				
+							divInpWert.appendChild(inpWert);
+							inpWert.className = 'inpWert';
+							inpWert.idx = el.idx;
+						}
+						
+						var id;
+						if (i == 0) id = 'Auto';
+						if (i == 1) id = 'Ein';
+						if (i == 2) id = 'Aus';
+						
+						inpWert.type = 'button';
+						inpWert.title = id;
+						inpWert.id = 'btn' + id + el.idx;	//el.idx nutzen um eindeutige IDs zu erzeugen
+						inpWert.className += ' btnBA';
+						inpWert.className += (' btn' + id);
+						inpWert.name = 'btnBA' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
+						(i == 2) ? inpWert.wert = -1 : inpWert.wert = i;
+						inpWert.onclick = radioBtnByNameNEW;
+						if (el.wert == inpWert.wert) checkedBtn = inpWert;
+					}					
+				}
+				break;
+			
+			//createBtnGroup3PMischer (Auto, HandOpen, HandClose, Stop)
+			case 4:
+				for (var i=0; i<4; i++) {
+					if (i > 0) {
+						var inpWert = document.createElement('input');				
+						divInpWert.appendChild(inpWert);
+						inpWert.className = 'inpWert';
+						inpWert.idx = el.idx;
+					}
+					
+					var id;
+					if (i == 0) id = 'Auto';
+					if (i == 1) id = 'Auf';
+					if (i == 2) id = 'Zu';
+					if (i == 3) id = 'Stopp';
+					
+					inpWert.type = 'button';
+					inpWert.title = id;
+					inpWert.id = 'btn' + id + el.idx;	//el.idx nutzen um eindeutige IDs zu erzeugen
+					inpWert.className += ' btnBA';
+					inpWert.className += (' btn' + id);
+					inpWert.name = 'btnValve' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
+					(i == 3) ? inpWert.wert = -1 : inpWert.wert = i;
+					inpWert.onclick = radioBtnByNameNEW;
+					if (el.wert == inpWert.wert) checkedBtn = inpWert;
+				}
+				break;
+				
+			//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
+			case 101: //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
+				inpWert.min = 1;
+			case 102:
+				lblName.innerHTML = 'Handwert\n\n' + lblName.innerHTML;
+								
+				var iterations = range - 100 + 1;
+				/*console.log(el.name.toUpperCase().includes('MISCHER'));*/
+				if (el.name.toUpperCase().includes('MISCHER') || el.name.toUpperCase().includes('VENTIL'))
+					iterations = 1;//*/			//SONDERFALL MISCHER!
+				
+				for (var i=0; i<=iterations; i++) {
+					var inpBtn = document.createElement('input');				
+					divInpWert.appendChild(inpBtn);
+					inpBtn.className = 'inpWert';
+					inpBtn.idx = el.idx;
+					
+					var id;
+					if (i == 0) {
+						id = 'Auto';
+						inpBtn.wert = 0;
+					}
+					if (i == 1) {
+						id = 'Hand';
+						inpBtn.wert = '';
+					}
+					if (i == 2) {
+						id = 'Ein';
+						inpBtn.wert = 1;
+					}
+					if (i == 3) {
+						id = 'Aus';
+						inpBtn.wert = -1;
+						inpWert.min = 2;
+					}
+					
+					inpBtn.type = 'button';
+					(id == 'Ein') ? inpBtn.title = id + ' (Sollw. intern)' : inpBtn.title = id;
+					inpBtn.id = 'btn' + id + el.idx;//el.idx nutzen um eindeutige IDs zu erzeugen
+					inpBtn.className += ' btnBA';
+					inpBtn.className += (' btn' + id);
+					inpBtn.name = 'btnBA' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
+					//console.log(el.idx);
+					//(i == 3) ? inpBtn.value = -1 : inpBtn.value = i/2;
+					inpBtn.onclick = controlGroupBtnHandlerNEW;
+					if (el.wert == inpBtn.wert) checkedBtn = inpBtn;
+					//console.log(checkedBtn);
+				}
+				if (checkedBtn == undefined || checkedBtn == null) checkedBtn = document.getElementById('btnHand' + el.idx);
+				//hier KEIN break um zusätzlichen slider zu erzeugen!
+				//break;
+			//createSlider/Number?
+			default:
+				inpWert.type = 'range';
+
+				inpWert.value = inpWert.wert;
+				if (parseFloat(inpWert.value) < parseFloat(inpWert.min)) inpWert.value = inpWert.min;
+				if (parseFloat(inpWert.value) > parseFloat(inpWert.max)) inpWert.value = inpWert.max;
+				inpWert.wert = inpWert.value;
+				
+				if (inpWert.type == 'number' || inpWert.type == 'text') inpWert.onclick = showOSK; //OSK für 'text' & 'number' bei Eingabe einblenden
+				if (inpWert.type == 'range') inpWert.oninput = sliderHandler;
+	}	
+	
+	//Unit-Label erzeugen & anhängen
+	var lblUnit = document.createElement('label');				
+	divRtosVar.appendChild(lblUnit);
+	lblUnit.className = 'lblUnit';
+	lblUnit.idx = el.idx;
+	lblUnit.value = inpWert.value;//parseFloat(el.wert);
+	lblUnit.unit = el.einheit.trim();
+	if (lblUnit.unit != '' && lblUnit.unit != '3P') lblUnit.innerHTML = inpWert.value + ' ' + inpWert.unit;
+	if (lblUnit.innerHTML.includes('undefined')) lblUnit.innerHTML = "";
+	
+	//pseudoEvents ausführen um aktuellen Zustand zu Initiieren
+	var pseudoEvent = {};
+	if (inpWert.type == 'range') {
+		pseudoEvent.target = inpWert;
+		sliderHandler(pseudoEvent);
+	}
+	
+	if (checkedBtn != null && checkedBtn != undefined) {
+		pseudoEvent.target = checkedBtn;
+		(range > 4) ? controlGroupBtnHandlerNEW(pseudoEvent) : radioBtnByNameNEW(pseudoEvent);
+	}
+	//return divRtosVar;
+}
+
+function buildFaceplateNEW() {
+	//Allgemeines
+	var fpBg = document.getElementById('fpBg');
+	//var fpBezeichnung;
+	//var fpID;
+	//var fpTyp;
+	
+	var h4fpHeader = document.getElementById('h4FpHeader');
+	
+	var fpBody = document.getElementById('fpBody');
+	var fpSection;
+	
+	ClickableElement.forEach(function(el) {
+		//console.log(el);
+/**/	if (el.name.trim() == 'Betriebsart') el.name = ('Kessel ' + el.name.trim()).padEnd(24);
+		
+		if (el.sectionIndicator.toUpperCase() == 'H') h4fpHeader.innerHTML = 'Einstellungen für ' + el.wert.trim();
+		
+		var zwischenüberschrift;
+		if (el.name.includes('Betriebsart') || el.name.includes('Wochenkalender')) zwischenüberschrift = el.name.trim();
+		if (el.name.includes('NennVL')) zwischenüberschrift = 'HK-Temperaturparameter';
+		if (el.name.includes('20 &degC')) zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
+		
+		if (zwischenüberschrift != undefined || fpSection == undefined) {
+			//Beginn neue Section
+			//neue Section erzeugen & anhängen
+			fpSection = document.createElement('div');
+			fpBody.appendChild(fpSection);
+			fpSection.className = 'fpSection';
+			
+			//Zwischenüberschrift erzeugen & anhängen
+			var h5fpSection = document.createElement('h5');
+			fpSection.appendChild(h5fpSection)
+			if (zwischenüberschrift != undefined) h5fpSection.innerHTML = zwischenüberschrift;
+		}
+		
+		//FP-Zeile erzeugen
+		if (el.sectionIndicator.toUpperCase() != 'H' && el.wert.trim() != '') createControlGroup(fpSection, el);
+		
+		/*
+		switch (el.sectionIndicator.toUpperCase()) {
+			//FP-Header (1.Zeile)
+			case 'H':
+				fpBezeichnung = el.wert.trim();
+				h4fpHeader.innerHTML = 'Einstellungen für ' + fpBezeichnung;
+				break;
+				
+			//FP-Body
+			case 'S':
+				//Beginn neue Section
+				//neue Section erzeugen & anhängen
+				fpSection = document.createElement('div');
+				fpBody.appendChild(fpSection);
+				fpSection.className = 'fpSection';
+				
+				//Zwischenüberschrift erzeugen & anhängen
+				var h5fpSection = document.createElement('h5');
+				fpSection.appendChild(h5fpSection)
+				h5fpSection.innerHTML = el.name;
+				
+				break;
+			//Letzte Zeile
+			case 'X':
+			case ' ':
+				if (fpSection == undefined) {
+					//neue Section erzeugen & anhängen
+					fpSection = document.createElement('div');
+					fpBody.appendChild(fpSection);
+					fpSection.className = 'fpSection';
+				}
+				//normale FP-Erzeugung
+				if (el.wert.trim() != '') createControlGroup(fpSection, el);
+				break;
+			default:
+				//keine besondere Behandlung
+				alert('Fehler FP-Datenübertragung');
+		}*/
+	});	
+}
+
+function jumpToWochenKalender(event){
 	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
 	clearInterval(fernbedienungAutoReload);
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
 	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
-	var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
+	//var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
+	var sendError = sendDataToRtosNEW(event);
 	if (!sendError) {
 		//3.Modalfenster mit eingebettets Heizkreiswochenkalender einblenden oder Fernbedienung Tab im Iframe darstellen
 		//showElemementById('wochenKalenderImVisu');
+		
+		//waitForRtosData('V011', 32, false);
+		//waitForRtosData('V011', 32, true);	//Auf Bit32-Toggle false->true warten
+		
 		showWochenKalenderVisu();
 		activeTabID = 'wochenKalenderImVisu';
 		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50,wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
 	}
 }
 
+/*function waitForRtosData(rtosVar, bit, stateIfDone, maxCicles) {
+	if (rtosVar == undefined || rtosVar.length != 4) return undefined;
+	rtosVar = rtosVar.toUpperCase();
+	if (!rtosVar.startsWith('V')) return undefined;
+	
+	var bitmask = 2**(32-bit);
+	if (stateIfDone == undefined) stateIfDone = true;
+	
+	const url = 'http://172.16.0.102/JSONADD/GET?p=1&Var=sel&' + rtosVar;
+	var i = 0;
+	if (maxCicles == undefined || maxCicles < 1) maxCicles = 200;
+	
+	do {
+		var fb = getData(url);
+		//fb = JSON.parse(fb);
+		//fb = fb[rtosVar].slice(3);		//Hex-Wert(32-Bit) isolieren
+		//console.log(fb);
+		fb = fb.trim().slice(-10, -2);	//Hex-Wert(32-Bit) isolieren
+		fb = parseInt(fb, 16);			//Hex2Int			
+		fb &= bitmask;					//VerUndung mit Bitmaske
+		i++;							//für notfallausstieg/Timeout
+		//console.log(fb, i);
+	} while(fb == stateIfDone && i<maxCicles);
+}*/
+
 function closeModalWochenKalenderImVisu(){
 	hideElemementById('wochenKalenderImVisu');
 	sendData(clickableElementUrl);
 	//sendValueFromVisuToRtos('closeHKWochenKalender');
 	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
-	showElemementById('osk');	//osk für Faceplate öffnen
+	//showElemementById('osk');	//osk für Faceplate öffnen
 }
 
 function showOSK(event) {
@@ -2918,8 +3086,9 @@ function showOSK(event) {
 function showFaceplate(matchItem) {
 	const OFFSET_ICON_2_FACEPLATE_PX = 80;
 	const OFFSET_FP_2_OSK = 40;
-	var faceplateBackground = showElemementById('fpBg');
-	var faceplateContent = document.getElementById('fpContent');
+	//var faceplateBackground = showElemementById('fpBg');
+	hideElemementById('visLoader');
+	var faceplateContent = showElemementById('fpContent');//document.getElementById('fpContent');
 	var osk = showElemementById('osk');	//osk temporär zu Anordnungsberechnung öffnen; wird am Ende wieder geschlossen!
 	
 	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.offsetWidth < window.innerWidth) {
@@ -2960,9 +3129,9 @@ function showWochenKalenderVisu() {
 	var wochenKalenderImVisuContent = $('#wochenKalenderImVisuContent');
 	
 	var kalenderHeader = document.getElementById('txtWochenKalenderImVisuHeader');
-	var faceplateHeader = document.getElementById('txtFpHeader');
+	var faceplateHeader = document.getElementById('h4FpHeader');
 	kalenderHeader.textContent = faceplateHeader.textContent.replace('Einstellungen', 'Wochenkalender');
-	
+	//console.log(wochenKalenderImVisu);
 	wochenKalenderImVisu.style.display = "block";
 	//console.log(wochenKalenderImVisuContent.width());
 	

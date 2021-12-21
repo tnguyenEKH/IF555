@@ -1,11 +1,13 @@
 h5 {				/*Für Sektorüberschriften Faceplate*/
 	margin: 0px;
-	margin-top: 5px;
+	margin-top: 1vw;/*5px;*/
+	white-space: pre-line;
 }
 
 h6 {				/*Für Sektorüberschriften Faceplate*/
 	margin: 0px;
 	margin-top: 2px;
+	white-space: pre-line;
 }
 
 #visualisierungDisplay {
@@ -13,6 +15,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 }
 	
 	#vbtnVirtualKeyboard {
+		display: none;
 		position: absolute;
 		top: 10vh;
 		right: 10vh;
@@ -40,14 +43,32 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 		background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 	}
-
+	
 	#btnUnlock {
 		color: #C31D64;
 	}
-
+	
 	#btnLock {
 		display: none;
 		color: #1F94B9;
+	}
+	
+	#btnUnlock:hover,
+	#btnUnlock:active	{
+		color: #F1F1F1;
+		background-color: #C31D64;
+	}	
+	
+	#btnLock:hover,
+	#btnLock:active	{
+		color: #F1F1F1;
+		background-color: #1F94B9;
+	}
+	
+	#btnUnlock:active,
+	#btnLock:active	{
+		box-shadow: 4px 4px #666;
+		transform: translateY(2px);
 	}
 	
 	#lblPin {
@@ -55,12 +76,91 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 		width: 50px;
 		text-align: right;
 	}
-	
-	#cbHidePin {
-		width: auto;
-		margin-left: 30px;
-		margin-right: 20px;
+	.modalVisuBodyLine {
+		margin: 5px;
 	}
+	
+		/* Hiding the initial checkbox */
+		#cbHidePin {
+			visibility: hidden;
+			width: auto;
+			/*margin-left: 30px;
+			margin-right: 20px;
+			transform: scale(1.8);*/
+		}
+		
+			#lblHidePin {
+				display: block;
+				position: relative;
+				margin-left: 15px;
+				margin-bottom: 15px;
+				padding-left: 40px;
+				padding-top: 2px;
+				cursor: pointer;
+			}      
+		  
+			/* Creating a custom checkbox based on demand */
+			.checkmark {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 23px;
+				width: 23px;
+				font-size: 2.5vh;
+			}
+			
+			#lblHidePin input ~ .checkmark {
+				border: 3px solid #939393;
+				border-radius: 4px;
+			}
+			
+			/* Specify the background color to be shown when hovering over checkbox */
+			#lblHidePin:hover input ~ .checkmark {
+				border: 3px solid #666;
+			}
+			
+			/* Specify the background color to be shown when checkbox is active */
+			#lblHidePin input:active ~ .checkmark {
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when checkbox is checked */
+			#lblHidePin input:checked ~ .checkmark {
+				background-color: #1F94B9;
+				border: none;
+			}
+			
+			/* Checkmark to be shown in checkbox */
+			/* It is not be shown when not checked */
+			.checkmark:after {
+				content: "\2713";
+				display: none;
+				position: absolute;
+				color: white;
+				font-weight: bold;
+				left: 3px;
+				/*top: -2px;*/
+			}
+			
+			/* Display checkmark when checked */
+				#lblHidePin input:checked ~ .checkmark:after {
+				display: block;
+			}
+			
+			/* Styling the checkmark using webkit */
+			/* Rotated the rectangle by 45 degree and showing only two border to make it look like a tickmark */
+			#lblHidePin .checkmark:after {
+				/*left: 10px;
+				bottom: 5px;
+				width: 8px;
+				height: 12px;
+				border: solid white;
+				border-width: 0 4px 4px 0;
+				/*-webkit-transform: rotate(45deg);
+				-ms-transform: rotate(45deg);
+				transform: rotate(45deg);*/
+			}    
+		
 
 	.vinsideWrapper
 	{
@@ -253,7 +353,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 			margin: auto;
 			padding: 0;
 			border: 1px solid #888;
-			width: 490px;   /*550px*/
+			width: 515px;   /*550px*/
 			box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
 			-webkit-animation-name: animatetop;
 			-webkit-animation-duration: 0.4s;
@@ -263,6 +363,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 		
 		#wochenKalenderImVisuContent {
 			width: auto;
+			background-color: #E0E0E0;
 		}
 			
 		
@@ -298,41 +399,133 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					cursor: pointer;
 				}
 				
-				
+			
+			#wochenKalenderImVisuBody {
+				background-color: #E0E0E0;
+			}
+
+			
 			.modalVisuBody {
+				float: left;
 				padding: 2px 13px;  
 			}
 			
-			#wochenKalenderImVisuBody {
-				padding: 0px;
-				background-color: #E0E0E0;
-			}				
+				.fpSection {
+					float: inherit;
+				}
+				
+				.divRtosVar {
+					float: inherit;
+					padding-top: 1vw;
+				}
 				
 				.modalVisuBody .lblName,
 				.modalVisuBody .lblNameFaceplate {
 					display: inline-block;
-					width: 235px;
+					float: inherit;
+					width: 200px;
 					text-align: right;
 					margin-right: 5px;
+					padding-top: 3px;
+					white-space: pre-line;
 				}
-
+				
+				.modalVisuBody .lblWert,
+				.modalVisuBody .lblWertFaceplate,
 				.modalVisuBody .lblUnit,
 				.modalVisuBody .lblUnitFaceplate {
 					display: inline-block;
-					width: 60px;
+					float: inherit;
+					width: 70px;
 					text-align: left;
 					margin-left: 5px;
-				}
-
-				.modalVisuBody /*select,*/ input /*[type="text"]*/ {
-					width: 152px;
-					margin: 1px 0px;
-					/*background-color: #fefefe;*/
+					padding-top: 3px;
 				}
 				
-				#btnWochenkalender {
+				.divInpWert {
+					float: inherit;
+					width: 205px;
+				}
+
+					.modalVisuBody input {
+						width: 150px;/*205px;*/
+						margin: 1px 0px;
+						background-color: white;
+					}
+					
+					.modalVisuBody input:focus {
+						outline: none;
+					}
+					
+					.modalVisuBody [type="range"] {
+						-webkit-appearance: none;
+						/*background: linear-gradient(to right, #82CFD0 0%, #82CFD0 50%, #fff 50%, #fff 100%);*/
+						background: linear-gradient(to right, #1F94B9 0%, #C31D64 50%, #E0E0E0 50%, #E0E0E0 100%);
+						/*background: linear-gradient(to right, rgb(31, 148, 185) 0%, #C31D64 100%);*/
+						/*background: linear-gradient(to right, #1F94B9 0%, #3C92B8 10%, #578EB5 20%, #6F88B0 30%, #847FAA 40%, #9674A2 50%, #A66698 60%, #B2578D 70%, #BB4681 80%, #C13273 90%, #C31D64 100%);*/
+						border: solid 1px #C0C0C0;
+						border-radius: 12px;
+						height: 8px;
+						/*outline: none;*/
+						transition: background 150ms ease-in;
+					}
+					
+					/*Chrome/Chromium Styling Schieber des Sliders*/
+					.modalVisuBody [type="range"]::-webkit-slider-thumb {
+						-webkit-appearance: none;
+						border: 1px solid #E0E0E0;
+						height: 18px;
+						width: 18px;
+						border-radius: 9px;
+						background: #2F88B1; /*#2F88B1 #5070A0 #71598F #92417E #B3296D*/
+						cursor: pointer;
+						transition: background 150ms ease-in;
+						/*margin-top: -14px; /* You need to specify a margin in Chrome, but in Firefox and IE it is automatic */
+						/*box-shadow: 1px 1px 1px #000000, 0px 0px 1px #0d0d0d; /* Add cool effects to your sliders! */						
+					}
+					
+					.modalVisuBody [type="range"].quarter::-webkit-slider-thumb {
+						background: #5070A0;
+						transition: background 150ms ease-in;
+					}
+					
+					.modalVisuBody [type="range"].half::-webkit-slider-thumb {
+						background: #71598F;
+						transition: background 150ms ease-in;
+					}
+					
+					.modalVisuBody [type="range"].threequarter::-webkit-slider-thumb {
+						background: #92417E;
+						transition: background 150ms ease-in;
+					}
+					
+					.modalVisuBody [type="range"].full::-webkit-slider-thumb {
+						background: #B3296D;
+						transition: background 150ms ease-in;
+					}
+					
+					.modalVisuBody [type="range"].disabled::-webkit-slider-thumb {
+						background: #C0C0C0;
+						/*transition: background 150ms ease-in;*/
+					}
+					
+					#fpBody .btnIncDec {
+						height: 24px;
+						width: 24px;
+						color: #fefefe;
+						background-color: #1F94B9; /*EKH blau*/
+					}
+					
+					#fpBody .btnIncDec:disabled {
+						border-style: inset;
+						background-color:  #E0E0E0;
+					}
+					
+				
+				#btnWochenkalender,
+				#calenderBtn{
 					height: 24px;
-					width: 152px;
+					width: 205px;
 					/*background-color: #fefefe;*/
 					color: #fefefe;
 					background-color: #1F94B9; /*EKH blau*/
@@ -344,9 +537,11 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					margin: 1px;
 					margin-left: 0px;
 					border-radius: 5px;
-				}
+					border-width: 3px;
+					/*background-color: white;*/
+				}				
 				
-				.btnStopp:disabled,
+				/*.btnStopp:disabled,
 				.btnAuto:disabled,
 				.btnAutoNA:disabled,
 				.btnHand:disabled,
@@ -354,12 +549,17 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				.btnHandAus:disabled,
 				.btnHandAuf:disabled,
 				.btnHandZu:disabled {
-					/*border-color: red;*/
 					border-style: inset;
 					background-color:  #E0E0E0;
+				}*/
+				
+				.modalVisuBody .checked {
+					border: 3px inset;
+					background-color: #E0E0E0; /*#C0C0C0;*/
+					/*border-style: inset;*/
 				}
 				
-				.btnEinChecked,
+				/*.btnEinChecked,
 				.btnDesinfChecked {
 					border-style: inset;
 					background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/On.png);
@@ -368,54 +568,80 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				.btnAusChecked {
 					border-style: inset;
 					background: #E0E0E0 no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
-				}				
+				}*/				
 				
 				.btnStopp {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/Stopp.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain; /*90%*/
+					background-image: url(/Images/FaceplateBtns/Stopp.png);
 				}
 
 				.btnAuto {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/Auto.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/Auto.png);
 				}
 
 				.btnHand {
-					background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inet.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/Hand_inet.png);
 				}
 
-				.btnHandEin,
-				.btnHandAuf,
 				.btnEin,
-				.btnDesinf {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/On.png);
+				.btnAuf {
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/On.png);
 				}
 				
-				.btnHandAus,
-				.btnHandZu,
-				.btnAus {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/Off.png);
+				.btnAus,
+				.btnZu {
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/Off.png);
 				}
 
 				.btnAutoNA {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/AutoNA.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/AutoNA.png);
 					border-style: outset;
 				}
 
 				.btnHandNA {
-					background: no-repeat center/70% url(/Images/FaceplateBtns/Hand_inetNA.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/Hand_inetNA.png);
 				}
 
 				.btnHandEinNA,
 				.btnHandAufNA {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/OnNA.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/OnNA.png);
 				}
 
 				.btnHandAusNA,
 				.btnHandZuNA {
-					background: no-repeat center/90% url(/Images/FaceplateBtns/OffNA.png);
+					background-repeat: no-repeat;
+					background-position: center;
+					background-size: contain;
+					background-image: url(/Images/FaceplateBtns/OffNA.png);
 				}
 				
 				
 			.modalVisuFooter {
+				float: left;
+				width: 100%;
 				padding: 2px 16px;
 				background-color: #1F94B9/*#5cb85c*/;
 				color: #fefefe;/* white;*/
