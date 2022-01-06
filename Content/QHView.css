@@ -170,7 +170,12 @@
 				padding-left: 7px;
 				margin-top: 2px;
 				cursor: pointer;
-			}			
+			}
+			
+			#lblcbQHtoggle {
+				padding-left: 0px;
+				width: 25px
+			}
 		  
 			/* Creating a custom checkbox based on demand */
 			.checkmark {
