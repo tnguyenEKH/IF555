@@ -313,7 +313,7 @@ function createVisudata(sText){
 				item.Kanal = sText.substr((idx + 4), 2);
 				item.Nachkommastellen = 0;
 				item.iEinheit = 0;
-				item.Wert = sText.substr((idx + 6), 20).trim();
+				item.sWert = sText.substr((idx + 6), 20).trim();
 				//item.Wert *= 0.01;
 				item.isBool = false;
 				item.BoolVal = false;
@@ -1754,6 +1754,10 @@ function drawVCOItem(item) {
 					var nk = values[i].Nachkommastellen;
 					gasSensorWert = parseFloat((value * 100) / 100).toFixed(nk);
 				}
+			if ((values[i].Bezeichnung == "HKNA") && (vco.Kanal == values[i].Kanal)) {
+                        svalue = values[i].sWert;
+				}
+
 		}
 
 			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
