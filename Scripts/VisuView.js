@@ -296,41 +296,166 @@ Datastructure of Visudownload will be nested array + array of object
 
 function createVisudata(sText){
 	if (sText != undefined){
-		//console.log(sText);
 		var Stoerungen = [];
 		var Items = [];
 		var Projektnummer = sText.substring(0,5);
 		var index = 0;
 		
-		//HK-Namen
+		do
+		{
+			var stoerung = {};
+			idx = sText.indexOf("STOE");
+			if(idx >=0)
+			{
+				stoerung.BezNr = sText.substring((idx + 4), idx +7); //4 Zeichen lang
+				stoerung.StoerungText = sText.substring(idx + 7, idx + 27);
+				Stoerungen.push(stoerung);
+				var textToCut = sText.substring(idx, idx + 27);
+				sText = sText.replace(textToCut,'');
+			}
+			
+		}
+		while (idx >= 0);
+
 		do
 		{
 			var item = {};
 			idx = sText.indexOf("HKNA");
-			if(idx >=0)
+			if (idx >= 0)
 			{
 				item.Bezeichnung = "HKNA";
-				item.Kanal = sText.substr((idx + 4), 2);
-				item.Nachkommastellen = 0;
-				item.iEinheit = 0;
-				item.sWert = sText.substr((idx + 6), 20).trim();
-				//item.Wert *= 0.01;
+				item.Kanal = sText.substring(idx + 4, idx +6);
 				item.isBool = false;
 				item.BoolVal = false;
-				item.EinheitText = '';
+				item.sWert = sText.substring(idx + 7, idx + 26);
 				Items.push(item);
-				sText= sText.slice((idx+26), sText.length);
-				//console.log(sText);
+				var textToCut = sText.substring(idx, idx + 26);
+				sText = sText.replace(textToCut,'');
+				// sText= sText.slice((idx + 26), sText.length);
 			}
 		}
 		while (idx >= 0);
+
+
+
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("KES");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "KES";
+				item.Kanal = sText.substring(idx + 3, idx + 5);
+				item.isBool = false;
+				item.BoolVal = false;
+				item.sWert = sText.substring(idx + 6, idx + 13);
+				if (item.sWert == 'CLICK')
+				{
+					item.Wert = 2;
+				}
+				else
+				{
+					item.Wert = sText.substring(idx + 12, idx + 13);
+				}
+				
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 13);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+14), sText.length);
+			}
+		}
+		while (idx >= 0);
+
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("BHK");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "BHK";
+				item.Kanal = sText.substring(idx + 3, idx + 5);
+				item.isBool = false;
+				item.BoolVal = false;
+				item.sWert = sText.substring(idx + 6, idx + 13);
+				if (item.sWert == 'CLICK')
+				{
+					item.Wert = 2;
+				}
+				else
+				{
+					item.Wert = sText.substring(idx + 12, idx + 13);
+				}
+				
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 13);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+14), sText.length);
+			}
+		}
+		while (idx >= 0);
+
+
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("WWL");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "WWL";
+				item.Kanal = sText.substring(idx + 3, idx + 5);
+				item.isBool = false;
+				item.BoolVal = false;
+				item.sWert = sText.substring(idx + 6, idx + 13);
+				if (item.sWert == 'CLICK')
+				{
+					item.Wert = 2;
+				}
+				else
+				{
+					item.Wert = sText.substring(idx + 12, idx + 13);
+				}
+				
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 13);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+14), sText.length);
+			 }
+		}
+		while (idx >= 0);
+
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("HK ");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "HK ";
+				item.Kanal = sText.substring(idx + 3, idx + 5);
+				item.isBool = false;
+				item.BoolVal = false;
+				item.sWert = sText.substring(idx + 6, idx + 13);
+				if (item.sWert == 'CLICK')
+				{
+					item.Wert = 2;
+				}
+				else
+				{
+					item.Wert = sText.substring(idx + 12, idx + 13);
+				}
+				
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 13);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+14), sText.length);
+			  }
+		}
+		while (idx >= 0);		
 		
-		//Nennleistung Erzeuger
 		do
 		{
 			var item = {};
 			idx = sText.indexOf("PMK");
-			if (idx >= 0)
+			if(idx >=0)
 			{
 				item.Bezeichnung = "PMK";
 				item.Kanal = sText.substr((idx + 3), 2);
@@ -342,16 +467,19 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
+			
 		}
 		while (idx >= 0);
-		
+
 		do
 		{
 			var item = {};
 			idx = sText.indexOf("PMB");
-			if (idx >= 0)
+			if(idx >=0)
 			{
 				item.Bezeichnung = "PMB";
 				item.Kanal = sText.substr((idx + 3), 2);
@@ -363,40 +491,13 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
-			}
-		}
-		while (idx >= 0);
-		
-		
-		do
-		{
-			var stoerung = {};
-			idx = sText.indexOf("STOE");
-			if(idx >=0)
-			{
-			   // Für Picoli, nach STOE gibt nur 2 stellige Störungsnummer. Annahme: Picolinamen sind immer mit P1 anfangen
-				if (Projektnummer.indexOf("P1") >-1)
-				{
-					stoerung.BezNr = sText.substr((idx + 4), 2);
-					stoerung.StoerungText = sText.substr((idx + 6), 16);
-					Stoerungen.push(stoerung);
-					sText = sText.slice((idx+16), sText.length);                        
-				}
-
-				// Für MPC, nach STOE gibt 3 stellige Störungsnummer
-				else
-				{
-					stoerung.BezNr = sText.substr((idx + 4), 3);
-					stoerung.StoerungText = sText.substr((idx + 7), 20);
-					Stoerungen.push(stoerung);
-					sText = sText.slice((idx+20), sText.length);   
-				}
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 			
 		}
-		while (idx >= 0);
-		
+		while (idx >= 0);		
 		
 		do
 		{
@@ -414,7 +515,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 			
 		}
@@ -436,7 +539,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -457,7 +562,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -478,7 +585,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -499,7 +608,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -520,7 +631,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -541,7 +654,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -562,7 +677,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -583,7 +700,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -604,7 +723,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -625,7 +746,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -646,7 +769,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -667,7 +792,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -688,7 +815,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -709,7 +838,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -730,7 +861,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -751,7 +884,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -772,7 +907,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert >0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -793,7 +930,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert >0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -814,7 +953,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert >0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -835,7 +976,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert > 0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -856,7 +999,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -877,7 +1022,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -898,7 +1045,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -918,7 +1067,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -939,7 +1090,9 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+11), sText.length);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -960,7 +1113,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);	
@@ -980,7 +1135,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -1001,7 +1158,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -1022,7 +1181,9 @@ function createVisudata(sText){
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				sText= sText.slice((idx+17), sText.length);
+				var textToCut = sText.substring(idx, idx + 17);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+17), sText.length);
 			}
 		}
 		while (idx >= 0);
@@ -1315,60 +1476,83 @@ function Heizkreis(vDynCtx, x, y, scale) {
 }
 */
 
-function Heizkreis(vDynCtx, x, y) {
-	var notches = 7,                      // num. of notches
-		radiusO = 12,                    // outer radius
-		radiusI = 9,                    // inner radius
-		radiusH = 5,                    // hole radius
-		taperO = 30,                     // outer taper %
-		taperI = 40,                     // inner taper %
+function Heizkreis(vDynCtx, x, y, betrieb) {
+    var notches = 7,                      // num. of notches
+        radiusO = 12,                    // outer radius
+        radiusI = 9,                    // inner radius
+        radiusH = 5,                    // hole radius
+        taperO = 30,                     // outer taper %
+        taperI = 40,                     // inner taper %
 
-		// pre-calculate values for loop
-		pi2 = 2 * Math.PI,            // cache 2xPI (360deg)
-		angle = pi2 / (notches * 2),    // angle between notches
-		taperAI = angle * taperI * 0.005, // inner taper offset (100% = half notch)
-		taperAO = angle * taperO * 0.005, // outer taper offset
-		a = angle,                  // iterator (angle)
-		toggle = false;                  // notch radius level (i/o)
+        // pre-calculate values for loop
+        pi2 = 2 * Math.PI,            // cache 2xPI (360deg)
+        angle = pi2 / (notches * 2),    // angle between notches
+        taperAI = angle * taperI * 0.005, // inner taper offset (100% = half notch)
+        taperAO = angle * taperO * 0.005, // outer taper offset
+        a = angle,                  // iterator (angle)
+        toggle = false;                  // notch radius level (i/o)
 
-	vDynCtx.save();
-	vDynCtx.fillStyle = '#000';
-	vDynCtx.lineWidth = 2.5;
-	vDynCtx.strokeStyle = '#000';
-	vDynCtx.beginPath();
-	vDynCtx.shadowColor = "black";
-	vDynCtx.shadowBlur = 3;
-	vDynCtx.shadowOffsetX = 3;
-	vDynCtx.shadowOffsetY = 3;
-	vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
+    vDynCtx.save();
+    vDynCtx.fillStyle = '#000';
+    vDynCtx.lineWidth = 2.5;
+    vDynCtx.strokeStyle = '#000';
+    vDynCtx.beginPath()
+    vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
 
-	for (; a <= pi2; a += angle) {
+    for (; a <= pi2; a += angle) {
 
-		// draw inner to outer line
-		if (toggle) {
-			vDynCtx.lineTo(x + radiusI * Math.cos(a - taperAI),
-				y + radiusI * Math.sin(a - taperAI));
-			vDynCtx.lineTo(x + radiusO * Math.cos(a + taperAO),
-				y + radiusO * Math.sin(a + taperAO));
-		}
+        // draw inner to outer line
+        if (toggle) {
+            vDynCtx.lineTo(x + radiusI * Math.cos(a - taperAI),
+                y + radiusI * Math.sin(a - taperAI));
+            vDynCtx.lineTo(x + radiusO * Math.cos(a + taperAO),
+                y + radiusO * Math.sin(a + taperAO));
+        }
 
-		// draw outer to inner line
-		else {
-			vDynCtx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
-				y + radiusO * Math.sin(a - taperAO));
-			vDynCtx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
-				y + radiusI * Math.sin(a + taperAI));
-		}
+        // draw outer to inner line
+        else {
+            vDynCtx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
+                y + radiusO * Math.sin(a - taperAO));
+            vDynCtx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
+                y + radiusI * Math.sin(a + taperAI));
+        }
 
-		// switch level
-		toggle = !toggle;
-	}
-	// close the final line
-	vDynCtx.closePath();
-	vDynCtx.moveTo(x + radiusH, y);
-	vDynCtx.arc(x, y, radiusH, 0, pi2);
-	vDynCtx.stroke();
-	vDynCtx.restore();
+        // switch level
+        toggle = !toggle;
+    }
+    // close the final line
+    vDynCtx.closePath();
+    vDynCtx.moveTo(x + radiusH, y);
+    vDynCtx.arc(x, y, radiusH, 0, pi2);
+
+    if (betrieb == '0') {
+
+    }
+    else {
+        //vDynCtx.font = "12px Arial";
+        //vDynCtx.fillText("Handbetrieb", x - 20, y + 24);
+        vDynCtx.translate(x,y)
+        vDynCtx.moveTo(40, 27);
+        vDynCtx.lineTo(40, 10);
+        vDynCtx.arc(38, 8, 2, 2 * Math.PI, 1 * Math.PI, true);
+        vDynCtx.lineTo(36, 16);
+        vDynCtx.arc(34, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        vDynCtx.lineTo(32, 15);
+        vDynCtx.arc(30, 5.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        vDynCtx.lineTo(28, 15);
+        vDynCtx.arc(26, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        vDynCtx.lineTo(24, 20);
+        vDynCtx.lineTo(20, 16);
+        vDynCtx.arc(19, 17.8, 2, 1.8 * Math.PI, 0.8 * Math.PI, true);
+        vDynCtx.lineTo(26, 27);
+        vDynCtx.lineTo(40, 27);
+        vDynCtx.fillStyle = 'yellow';
+        vDynCtx.scale(1, 1)
+        vDynCtx.fill();
+        //vDynCtx.stroke();
+    }
+    vDynCtx.stroke();
+    vDynCtx.restore();
 }
 
 
@@ -1801,7 +1985,7 @@ function drawVCOItem(item) {
 					if (svalue.trim() == "1")
 						Heizkreis(vDynCtx, item.x, item.y, 1);
 					else
-						Heizkreis(vDynCtx, item.x, item.y, 1);
+						Heizkreis(vDynCtx, item.x, item.y, 0);
 				}
 
 				if (item.Symbol == "Absenkung") {
