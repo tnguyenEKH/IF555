@@ -3148,7 +3148,7 @@ function buildFaceplateNEW() {
 	
 	ClickableElement.forEach(function(el) {
 		//console.log(el);
-/**/	if (el.name.trim() == 'Betriebsart') el.name = ('Kessel ' + el.name.trim()).padEnd(24);
+/**/	//if (el.name.trim() == 'Betriebsart') el.name = ('Kessel ' + el.name.trim()).padEnd(24);
 		
 		if (el.sectionIndicator.toUpperCase() == 'H') h4fpHeader.innerHTML = 'Einstellungen für ' + el.wert.trim();
 		
