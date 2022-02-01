@@ -1028,6 +1028,29 @@ function createVisudata(sText){
 			}
 		}
 		while (idx >= 0);
+		
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("SP");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "SP";
+				item.Kanal = sText.substr((idx + 3), 2);
+				item.Nachkommastellen = sText.substr((idx + 6), 1);
+				item.iEinheit = sText.substr((idx + 8), 2);
+				item.Wert = sText.substr((idx + 8), 3);
+				//item.Wert *= 0.01;
+				item.isBool = true;
+				item.BoolVal = item.Wert>0;
+				item.EinheitText = getVisuItemEinheit(item.iEinheit);
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 11);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+11), sText.length);
+			}
+		}
+		while (idx >= 0);
 
 		do
 		{
