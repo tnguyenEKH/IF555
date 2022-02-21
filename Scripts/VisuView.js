@@ -2079,9 +2079,9 @@ function drawVCOItem(item) {
 					}
 					if (item.SymbolFeature == "rot/gruen") {
 						if (!b)
-							Led(ctx, item.x, item.y, 1, "red");
+							Led(vDynCtx, item.x, item.y, 1, "red");
 						else
-							Led(ctx, item.x, item.y, 1, "green");
+							Led(vDynCtx, item.x, item.y, 1, "green");
 
 					}
 					if (item.SymbolFeature == "unsichtbar/rot blinkend") {
