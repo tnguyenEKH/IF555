@@ -103,7 +103,7 @@ button:disabled,
 		margin-top: 0.3em;
 		height: 1.5em;
 		white-space: nowrap;
-		/*animation: floatText 30s infinite linear;*/
+		/*animation: floatText 30s infinite linear;
 		margin-left: 100%; /*Initial offset*/
 	}
 
