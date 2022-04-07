@@ -1224,58 +1224,42 @@ function getVisuItemEinheit(i)
 	{
 		case "1":
 			return "°C";
-			break;
 		case "2":
 			return "bar";
-			break;
 		case "3":
-			return "V";
-			break;	
+			return "V";	
 		case "4":
 			return "kW";
-			break;
 		case "5":
 			return "m³/h";
-			break;
 		case "6":
 			return "mWS";
-			break;	
 		case "7":
 			return "%";
-			break;
 		case "8":
 			return "kWh";
-			break;
 		case "9":
-			return "Bh";
-			break;	
+			return "Bh";	
 		case "10":
 			return "m³";
-			break;
 		case "11":
 			return "°C\u00F8";
-			break;
 		case "12":
-			return "mV";
-			break;	
+			return "mV";	
 		case "13":
 			return "UPM";
-			break;
 		case "14":
 			return "s";
-			break;
 		case "15":
 			return "mbar";
-			break;	
 		case "16":
 			return "A";
-			break;
 		case "17":
 			return "Hz";
-			break;
 		case "18":
-			return "1/h";
-			break;	
+			return "l/h";
+		case "19":
+			return "l";
 		case "40":
 			return "";
 			break;
