@@ -82,6 +82,26 @@
 					<button id="btnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
 				</div>
 				
+				<!--modal benutzer-->
+				<div id="modalBenutzer" class="modalEK">
+					<div class="modal-header" id="modalHeaderZaehler">
+                        <span>Aktuelle Benutzer</span>
+                    </div>
+					<!-- Modal content -->
+					<div  class="modal-content">
+						<div class="modal-body">
+							 <div id="zugeschaltetBenutzer"></div>
+						</div>
+						<div class="modal-footer">
+							<h4>Sie können dieses Fenster schließen</h4>
+							<input id="btnCopyClip" type="button" class="form-control" onclick="closeModalBenutzer()" value="Schließen" />
+						</div>
+					</div>
+				</div>
+			<!--end modal benutzer-->
+				
+				
+				
 			</div>
 		</div>
 	</div>
