@@ -1729,6 +1729,39 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.restore();
 }
 
+function ablufklappen(vDynCtx, x, y, scale, rot) {
+    vDynCtx.save();
+    vDynCtx.strokeStyle = "black";
+    vDynCtx.lineWidth = 1;
+    vDynCtx.translate(x, y);
+    vDynCtx.scale(scale, scale);
+    vDynCtx.beginPath();
+    //Kreis zeichnen
+    vDynCtx.arc(15, 0, 3, 0, 2 * Math.PI, false);
+    vDynCtx.fillStyle = 'black';
+    vDynCtx.fill();
+
+    //Linine durch den Kreis zeichnen ggf. rotieren
+    //rotation 0 = bool value = 1
+    /*if (rot == 0) {
+        vDynCtx.moveTo(0, 0);
+        vDynCtx.lineTo(30, 0);
+    }
+    //rotation 0 = bool value = 0
+    if (rot == 45) {
+        vDynCtx.rotate(45 * Math.PI / 180);
+        vDynCtx.moveTo(0, 0);
+        vDynCtx.lineTo(30, 0);
+    }*/
+    if (rot) vDynCtx.translate(4,11);
+    vDynCtx.rotate(-rot * Math.PI / 180);
+    vDynCtx.moveTo(0, 0);
+    vDynCtx.lineTo(30, 0);
+
+    vDynCtx.stroke();
+    vDynCtx.restore();
+}
+
 function Led(vDynCtx, x, y, scale, col) {
 
 
@@ -2045,6 +2078,10 @@ function drawVCOItem(item) {
 							ventil(vDynCtx, item.x, item.y, 2, 90);
 						}
 					}
+				}
+
+				if (item.Symbol == "Abluftklappen") {
+					(parseInt(svalue)) ? ablufklappen(vDynCtx, item.x, item.y, 1, 0) : ablufklappen(vDynCtx, item.x, item.y, 1, 45);
 				}
 
 				if (item.Symbol == "Led") {
