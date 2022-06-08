@@ -44,6 +44,9 @@ var activeTabID = "fernbedienung";
 var toclipboard;              // Communikation Klick->Clipboard
 var statmouseweek;
 
+var currentDataSet;
+var ASCII127PositionCurrentPage = [];  
+
 //Canvas für die Darstellung auf "Ferbedienung" Reiter
 var fernbedienungCanvas;
 var fernbedienungCanvasContext;
@@ -54,6 +57,7 @@ var wochenKalenderImVisuCanvasContext;
 
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
+
 
 
 
@@ -230,25 +234,89 @@ function initCanvas(canvasName, canvasContext){
 	//canvasName.width = parent.offsetWidth;
 	//canvasName.height = parent.offsetHeight;
   
-  	canvasName.addEventListener("click", function (evt) {
-	  var rect = canvasName.getBoundingClientRect();
+    canvasName.addEventListener("click", function (evt) {
+        var rect = canvasName.getBoundingClientRect();
 
-	  if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
-		var x= evt.clientX - rect.left;
-		var y= evt.clientY - rect.top;
-		var ypos = Math.round((y-76)/30)-1;
-		var xpos = Math.round((x-50)/5);
-		var maus = Math.round(4001+ypos*144+xpos) 
-		var TastURLId = TastURL + maus;
-		var data = getData(TastURLId);
-	  }
-	  else {
-		var x= evt.clientX - rect.left;
-		var y= 8 + evt.clientY - rect.top;
-	  
-		var xr = Math.round(x/16)   //   /16 Zeichenbreite
-		var yr = Math.round(y/30)   //   /30 Zeilenhoehe
-	  //  alert(xr + ',' + yr);
+        if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
+            var x = evt.clientX - rect.left;
+            var y = evt.clientY - rect.top;
+            var ypos = Math.round((y - 76) / 30) - 1;
+            var xpos = Math.round((x - 50) / 5);
+            var maus = Math.round(4001 + ypos * 144 + xpos)
+            var TastURLId = TastURL + maus;
+            var data = sendData(TastURLId);
+        }
+        else {
+
+            var x = evt.clientX - rect.left;
+            var y = 8 + evt.clientY - rect.top;
+
+            var xr = Math.round(x / 16)   //   /16 Zeichenbreite (spalte column)
+            var yr = Math.round(y / 30)   //   /30 Zeilenhoehe (zeile row)
+
+             /************Ton Erweiterung***********************/
+            /*erweiterte Logik to simulate clickevent von Eckhard
+             Idee: aktuelle Postition of ASCII 127 wird im globalen Variable gespeichert, die wid bei jedem Datenabruf mit aktualisiert
+             Die xr und yr, die  von Eckhard ermittelt wurde, wird mit den in den Position im globalen Variable abgeglichen
+             Basierend auf die aktuelle Position wird die click event für das Textabschnitt auf dem Canvas als Click auf dem Button simulieren
+             */
+
+            /*reorganisieren der Postition of ASCII 127 wird im globalen Variable
+             * es wird Zeile für Zeile überprüft, wie viele ASCII 127 in der Zeile sich befinden
+             * wenn nur eine ASCII 127 da ist, wird die Koordinate der Spalte = Koordinate der ASCII 127 gesetzt
+             * */
+
+            // reorganizize der Postition of ASCII 127 wird im globalen Variable
+            var allASCII127ColumnInRow = []
+            for (var m = 0; m < ASCII127PositionCurrentPage.length; m++) {
+                if (yr == ASCII127PositionCurrentPage[m].row) {
+                    allASCII127ColumnInRow.push(ASCII127PositionCurrentPage[m].column);
+                }
+            }
+            var columnsCount = allASCII127ColumnInRow.length
+            // wenn nur ein ASCII 127 in der Zeile 
+            if (columnsCount == 1) {
+                xr = allASCII127ColumnInRow[0];
+            }
+
+            //wenn mehrere ASCII 127 in der Zeile sind
+            else {
+                var anchor;
+                for (var n = 0; n < allASCII127ColumnInRow.length; n++) {
+                    //Click event zwischen 2 ASCII127
+
+                    if (stat4 != '1') {
+                        if ((allASCII127ColumnInRow[n] < xr) && (xr <= allASCII127ColumnInRow[(n + 1)])) {
+                            anchor = allASCII127ColumnInRow[n+1];
+                        }
+                    }
+
+                    //stat4 =1 bedeutet größeres Display für Wochenkalender, die ASCII127 liegen am Anfang der Zeile, muss sonder behandelt werden
+                    else {
+                        if ((allASCII127ColumnInRow[n] < xr) && (xr < allASCII127ColumnInRow[(n + 1)])) {
+                            anchor = allASCII127ColumnInRow[n];
+                        }
+                        if (xr >= allASCII127ColumnInRow[(n + 1)]) {
+                            anchor = allASCII127ColumnInRow[n+1];
+                        }
+                    }
+
+
+                }
+                //Click event vor dem 1. ASCII127
+                if (xr <= allASCII127ColumnInRow[0]) {
+                    anchor = allASCII127ColumnInRow[0];
+                }
+                xr = anchor;
+            }
+
+			/* Ende der Erweiterung*/
+         
+		//1. Zeile, immer als Zurück zu voherige Seite
+		if (yr == 1) {
+			xr = 1;
+		}
+			
 		var maus = Math.round(1000+yr*100+xr) 
 		var TastURLId = TastURL + maus;
 		var data = getData(TastURLId);
@@ -286,7 +354,18 @@ function initCanvas(canvasName, canvasContext){
 		  timeweek(canvasContext);
 		}
 	  }
-
+	  if (stat1 == '1') {
+	    $('#DisplayCanvas').css('cursor', 'default');
+		var x = evt.clientX - rect.left;
+		var y = 8 + evt.clientY - rect.top;
+		var xr = Math.round(x / 16)   //   /16 Zeichenbreite (spalte column)
+		var yr = Math.round(y / 30)   //   /30 Zeilenhoehe (zeile row)
+		for (var i = 0; i < ASCII127PositionCurrentPage.length; i++) {
+				if ((yr == ASCII127PositionCurrentPage[i].row) && (x < 530)) {
+					$('#DisplayCanvas').css('cursor', 'pointer');
+				}
+			}
+		}
 	}, false);
 }
 
@@ -368,6 +447,34 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
       //status 4:  Wochenkalender in CANVAS anzeigen    600 * 350                             
       // zykzaehler=zyklus; 
       if (stat4 == '1') {
+				
+		var row = 15;
+		var column = 2;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		var row = 15;
+		var column = 35;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+
+		var row = 16;
+		var column = 2;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		var row = 16;
+		var column = 35;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+
+		var row = 17;
+		var column = 2;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		var row = 17;
+		var column = 35;
+		var coordinateOfClickButton = { row, column };
+		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		  
         zykzaehler=zyklus;
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
@@ -733,81 +840,92 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
       else {
 
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
-        if (stat1 == '1') {
-        	ctx.fillStyle = "#D0D0D0";
-          ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
-          zykzaehler=zyklus;
-          xpos= 1;   
-          ypos= 1;   
-          ctx.font = "bold 26px Courier New";
-          ctx.fillStyle = "#000000";  
-          for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
-            variableName = "v0" + i;
-    
-            ypos=ypos+30;
-            xpos=1;
-            if (i == y) {                                             //  Zeile in der die rote Stelle ist
+		if (stat1 == '1') {
+			ASCII127PositionCurrentPage = [];
+			ctx.fillStyle = "#D0D0D0";
+			ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+			zykzaehler = zyklus;
+			xpos = 1;
+			ypos = 1;
+			ctx.font = "bold 26px Courier New";
+			ctx.fillStyle = "#000000";
+			for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
+				variableName = "v0" + i;
 
-              for (k = 0; k < 46; k++) {                              // alle 46 Zeichen der Zeile abarbeiten
-                textToReplace = data[variableName].substring(k, k+1)    
-                var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
-                if (ascii == 127) {                                   // bei = 127  Button erstellen
-                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
-                  ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-                  ctx.fillRect(xpos+4,ypos-17,14,17);
-                  ctx.fillStyle = "#000000";
-                }
-                else {                                                //  /= 127  dann Zeichen hinschreiben
-                  if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                    ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
-                    ctx.fillText(textToReplace, xpos, ypos);
-                    ctx.fillStyle = "#000000";  
-                  }
-                  else {
-                    ctx.fillText(textToReplace, xpos, ypos);
-                  }
-                }
-                xpos=xpos+16;
-              }
+				ypos = ypos + 30;
+				xpos = 1;
+				if (i == y) {                                             //  Zeile in der die rote Stelle ist
 
-            }
-            else {                //  Zeile ohne rot
-              for (k = 0; k < 46; k++) {                               // alle 46 Zeichen der Zeile abarbeiten
-                textToReplace = data[variableName].substring(k, k+1)    
-                var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
-                if (ascii == 127) {                                    // bei = 127  Button erstellen
-                  ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
-                  ctx.fillRect(xpos+1,ypos-20,20,23);
-                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-                  ctx.fillRect(xpos+4,ypos-17,14,17);
-                  ctx.fillStyle = "#000000";
-                }
-                else {
-                  ctx.fillText(textToReplace, xpos, ypos);
-                }
-                xpos=xpos+16;
-              } 
-            }
-          }
-          if (toclipboard) {
-            var texttoclip="";
-            for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
-              variableName = "v0" + i;
-              textToReplace = data[variableName]
-              texttoclip=texttoclip.concat(textToReplace,String.fromCharCode(13, 10));
-            }
-         // navigator.clipboard.write(texttoclip)
-         // event.clipboardData.setData(texttoclip)
-            const el = document.createElement('textarea');
-            el.value = texttoclip;
-            document.body.appendChild(el);
-            el.select();
-            document.execCommand('copy');
-            document.body.removeChild(el);
-            toclipboard=false;
-          }
-        }
+					for (k = 0; k < 46; k++) {                              // alle 46 Zeichen der Zeile abarbeiten
+						textToReplace = data[variableName].substring(k, k + 1)
+						var ascii = textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
+						if (ascii == 127) {                                   // bei = 127  Button erstellen
+							ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+							//ctx.fillStyle = "#FF0000";	/*EKH hellblau*/
+							//ctx.fillRect(xpos + 1, ypos - 20, 30, 30);
+							ctx.fillRect(xpos + 1, ypos - 20, 20, 23);
+							ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+							ctx.fillRect(xpos + 4, ypos - 17, 14, 17);
+							ctx.fillStyle = "#000000";
+							var row = i - 15;
+							var column = k + 1;
+							var coordinateOfClickButton = { row, column };
+							ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+						}
+						else {                                                //  /= 127  dann Zeichen hinschreiben
+							if ((k > x - 1) && (k < x + z)) {                       //  liegt im Bereich rote Darstellung ?
+								ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
+								ctx.fillText(textToReplace, xpos, ypos);
+								ctx.fillStyle = "#000000";
+							}
+							else {
+								ctx.fillText(textToReplace, xpos, ypos);
+							}
+						}
+						xpos = xpos + 16;
+					}
+
+				}
+				else {                //  Zeile ohne rot
+					for (k = 0; k < 46; k++) {                               // alle 46 Zeichen der Zeile abarbeiten
+						textToReplace = data[variableName].substring(k, k + 1)
+						var ascii = textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
+						if (ascii == 127) {                                    // bei = 127  Button erstellen
+							ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+							ctx.fillRect(xpos + 1, ypos - 20, 20, 23);
+							ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+							ctx.fillRect(xpos + 4, ypos - 17, 14, 17);
+							ctx.fillStyle = "#000000";
+							var row = i - 15;
+							var column = k + 1;
+							var coordinateOfClickButton = { row, column };
+							ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+						}
+						else {
+							ctx.fillText(textToReplace, xpos, ypos);
+						}
+						xpos = xpos + 16;
+					}
+				}
+			}
+			if (toclipboard) {
+				var texttoclip = "";
+				for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
+					variableName = "v0" + i;
+					textToReplace = data[variableName]
+					texttoclip = texttoclip.concat(textToReplace, String.fromCharCode(13, 10));
+				}
+				// navigator.clipboard.write(texttoclip)
+				// event.clipboardData.setData(texttoclip)
+				const el = document.createElement('textarea');
+				el.value = texttoclip;
+				document.body.appendChild(el);
+				el.select();
+				document.execCommand('copy');
+				document.body.removeChild(el);
+				toclipboard = false;
+			}
+		}
     
         else {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
