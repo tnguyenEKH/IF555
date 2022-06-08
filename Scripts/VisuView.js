@@ -1729,42 +1729,35 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.restore();
 }
 
-function ablufklappen(vDynCtx, x, y, scale, rot) {
-    vDynCtx.save();
-    vDynCtx.strokeStyle = "black";
-    vDynCtx.lineWidth = 1;
-    vDynCtx.translate(x, y);
-    vDynCtx.scale(scale, scale);
-    vDynCtx.beginPath();
+function lueftungsklappe(ctx, x, y, scale, val, orientation = 'Links') {
+    let rotation = 0;
+    if (orientation == 'Oben') rotation = 90;
+    if (orientation == 'Rechts') rotation = 180;
+    if (orientation == 'Unten') rotation = 270;
+    if (!val) val = 0;
+    rotation -= val/100 * 75;
+    
+    ctx.save();
+    ctx.strokeStyle = "black";
+    ctx.lineWidth = 1;
+    ctx.translate(x, y);
+    ctx.scale(scale, scale);
+    ctx.beginPath();
     //Kreis zeichnen
-    vDynCtx.arc(15, 0, 3, 0, 2 * Math.PI, false);
-    vDynCtx.fillStyle = 'black';
-    vDynCtx.fill();
+    ctx.arc(0, 0, 3, 0, 2 * Math.PI);
+    ctx.fillStyle = 'black';
+    ctx.fill();
 
-    //Linine durch den Kreis zeichnen ggf. rotieren
-    //rotation 0 = bool value = 1
-    /*if (rot == 0) {
-        vDynCtx.moveTo(0, 0);
-        vDynCtx.lineTo(30, 0);
-    }
-    //rotation 0 = bool value = 0
-    if (rot == 45) {
-        vDynCtx.rotate(45 * Math.PI / 180);
-        vDynCtx.moveTo(0, 0);
-        vDynCtx.lineTo(30, 0);
-    }*/
-    if (rot) vDynCtx.translate(4,11);
-    vDynCtx.rotate(-rot * Math.PI / 180);
-    vDynCtx.moveTo(0, 0);
-    vDynCtx.lineTo(30, 0);
+    
+    ctx.rotate(rotation * Math.PI / 180);
+    ctx.moveTo(-20, 0);
+    ctx.lineTo(20, 0);
 
-    vDynCtx.stroke();
-    vDynCtx.restore();
+    ctx.stroke();
+    ctx.restore();
 }
 
 function Led(vDynCtx, x, y, scale, col) {
-
-
 	vDynCtx.save();
 	vDynCtx.strokeStyle = "black";
 	vDynCtx.fillStyle = "#aaa";
@@ -1782,6 +1775,31 @@ function Led(vDynCtx, x, y, scale, col) {
 	vDynCtx.fillStyle = col;
 	vDynCtx.fill();
 	vDynCtx.restore();
+}
+
+function freitext(ctx, x, y, scale, font, color, txt, bgHeight, bgColor, active) {
+    if (txt.startsWith('!')) {  //führendes '!' in SymbolFeature als Invertierungsindikator!
+        txt = txt.replace('!','');
+        active = !active;
+    }
+    if (!active) return;
+    
+    ctx.save();
+    ctx.moveTo(0 - 10 * scale, 0);
+
+    var w = ctx.measureText(txt).width;
+    ctx.font = font;
+    if (bgColor) {
+        ctx.fillStyle = bgColor;
+        ctx.fillRect(x - 1, y - bgHeight - 1, w + 2, bgHeight + 3);
+    }
+    
+    ctx.translate(x, y);
+    
+    ctx.fillStyle = color;
+    ctx.fillText(txt, 0, 0);
+
+    ctx.restore();
 }
 
 
@@ -2080,8 +2098,10 @@ function drawVCOItem(item) {
 					}
 				}
 
-				if (item.Symbol == "Abluftklappen") {
-					(parseInt(svalue)) ? ablufklappen(vDynCtx, item.x, item.y, 1, 0) : ablufklappen(vDynCtx, item.x, item.y, 1, 45);
+				if (item.Symbol == "Lueftungsklappe" || item.Symbol == "Abluftklappen") {
+					let val = parseFloat(svalue.trim());
+					if (val == 1) val = 100;
+					lueftungsklappe(vDynCtx, item.x, item.y, 1, val, item.SymbolFeature);                            
 				}
 
 				if (item.Symbol == "Led") {
@@ -2121,16 +2141,19 @@ function drawVCOItem(item) {
 					}
 				}
 
+				if (item.Symbol == "Freitext") {
+					const val = (svalue.trim() == "1")
+					freitext(vDynCtx, item.x, item.y, 1, item.font, item.Color, item.SymbolFeature, item.BgHeight, item.BgColor, val);
+				}
+
 				hasSymbolsFlag = true;
 			}
 			else {
 				var sz = document.getElementById("selSize");
 				vDynCtx.font = item.font;
 				var w = vDynCtx.measureText(txt).width;
-				(item.BgColor == '#BEBEBE' ||item.BgColor == '#E0E0E0') ? //durchsichtige Darstellung des Hintergrunds, wenn BmpBg || ZaehlerBg
-					vDynCtx.fillStyle = "rgba(0,0,0,0)":
-					vDynCtx.fillStyle = item.BgColor;
-				vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				vDynCtx.fillStyle = item.BgColor;
+				if (item.BgColor && item.BgColor != '#BEBEBE' && item.BgColor != '#E0E0E0') vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
 				vDynCtx.fillStyle = item.Color;
 				vDynCtx.fillText(txt, x, y);
 			}
@@ -2165,7 +2188,7 @@ function drawTextList() {
 					vStatCtx.rotate(-Math.PI / 2);
 				if (item.VerweisAusrichtung == "dn")
 					vStatCtx.rotate(Math.PI / 2);
-				vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
+				if (item.BgColor) vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
 				vStatCtx.strokeStyle = "black";
 				vStatCtx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
 				vStatCtx.fillStyle = item.Color;
@@ -2174,7 +2197,7 @@ function drawTextList() {
 				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap, txt);
 			}
 			else {
-				vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				if (item.BgColor) vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
 				vStatCtx.fillStyle = item.Color;
 				vStatCtx.fillText(txt, x, y);
 			}
