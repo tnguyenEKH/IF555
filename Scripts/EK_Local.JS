@@ -105,6 +105,7 @@ $(document).ready(function () {
 function getData(url) {
 	var res;
     var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('text/plain; charset=Windows-1252');
     xhr.open("GET", url, false); 
 	xhr.onreadystatechange = function(event){
 		if (xhr.readyState == 4){
