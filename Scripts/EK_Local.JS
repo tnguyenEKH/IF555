@@ -66,8 +66,11 @@ $(document).ready(function () {
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
 	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
-	const bedien_pdf = new PDF_file('../SD_DATA/Bedien.pdf', 'bedien');
-	const slp_pdf = new PDF_file('../SD_DATA/SLP.pdf', 'slp');
+
+	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
+	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
+	var dynamicSLP = '../SD_DATA/SLP.pdf' + '?' + Date.now();
+	const slp_pdf = new PDF_file(dynamicSLP, 'slp');
 	
 	fernbedienungCanvas = document.getElementById('DisplayCanvas');    
 	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');                    
@@ -1118,11 +1121,12 @@ function tabIdHanlder(evt, id)
     }
 	
   if (id == "bedienungsAnleitung") {
-	//bedien_pdf.getDoc();
+
 	//callReader(bedien_pdf);//'../SD_DATA/Bedien.pdf', 'bedien');
   }
 
   if (id == "verdrahtungsplan") {
+
 	//callReader(slp_pdf);
   }
 
