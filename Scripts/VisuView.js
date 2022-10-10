@@ -1068,7 +1068,7 @@ function createVisudata(sText){
 				item.BoolVal = item.Wert>0;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				var textToCut = sText.substring(idx, idx + 17);
+				var textToCut = sText.substring(idx, idx + 11);
 				sText = sText.replace(textToCut,'');
 				//sText= sText.slice((idx+11), sText.length);
 			}
