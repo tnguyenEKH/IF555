@@ -1104,7 +1104,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "BI";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 8), 3);
