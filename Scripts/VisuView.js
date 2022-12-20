@@ -1725,16 +1725,24 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.lineTo(3, 0);
 	vDynCtx.lineTo(0, -3);
 	vDynCtx.fill();
+	//patch 22.11.2022: doppelte Pfeile
+	ctx.translate(11, 0);
+	ctx.fillRect(-1.5, -1, 1.5, 2);
+	ctx.moveTo(0, 2);
+	ctx.lineTo(2, 0);
+	ctx.lineTo(0, -2);
+	ctx.fill();
 
 	vDynCtx.restore();
 }
 
-function lueftungsklappe(ctx, x, y, scale, val, orientation = 'Links') {
+function lueftungsklappe(ctx, x, y, scale, val, orientation = 'Links', isNC = true) {
     let rotation = 0;
     if (orientation == 'Oben') rotation = 90;
     if (orientation == 'Rechts') rotation = 180;
     if (orientation == 'Unten') rotation = 270;
-    if (!val) val = 0;
+	if (!val) val = 0;
+	if (isNC) val = 100 - val;
     rotation -= val/100 * 75;
     
     ctx.save();
