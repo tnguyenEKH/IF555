@@ -1720,18 +1720,18 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.rotate(Math.PI / 180 * rot);
 	vDynCtx.scale(scale, scale);
 	vDynCtx.beginPath();
-	vDynCtx.fillRect(-3, -1, 3, 2);
-	vDynCtx.moveTo(0, 3);
-	vDynCtx.lineTo(3, 0);
-	vDynCtx.lineTo(0, -3);
+	//patch 29.12.22/ entspr. Webtermpatch 22.11.2022: doppelte (kleinere) Pfeile
+	vDynCtx.fillRect(-1.5, -1, 1.5, 2);
+	vDynCtx.moveTo(0, 2);
+	vDynCtx.lineTo(2, 0);
+	vDynCtx.lineTo(0, -2);
 	vDynCtx.fill();
-	//patch 22.11.2022: doppelte Pfeile
-	ctx.translate(11, 0);
-	ctx.fillRect(-1.5, -1, 1.5, 2);
-	ctx.moveTo(0, 2);
-	ctx.lineTo(2, 0);
-	ctx.lineTo(0, -2);
-	ctx.fill();
+	vDynCtx.translate(11, 0);
+	vDynCtx.fillRect(-1.5, -1, 1.5, 2);
+	vDynCtx.moveTo(0, 2);
+	vDynCtx.lineTo(2, 0);
+	vDynCtx.lineTo(0, -2);
+	vDynCtx.fill();
 
 	vDynCtx.restore();
 }

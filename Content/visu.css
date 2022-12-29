@@ -554,9 +554,9 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 				}*/
 				
 				.modalVisuBody .checked {
-					border: 3px inset;
-					background-color: #E0E0E0; /*#C0C0C0;*/
-					/*border-style: inset;*/
+					/*border: 3px inset;*/
+					background-color:#C0C0C0; /*#E0E0E0*/
+					border-style: inset;
 				}
 				
 				/*.btnEinChecked,

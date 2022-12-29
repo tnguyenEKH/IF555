@@ -617,15 +617,15 @@ function createControlGroup(fpSection, el) {
 
 function buildFaceplateNEW() {
 	//Allgemeines
-	var fpBg = document.getElementById('fpBg');
+	//var fpBg = document.getElementById('fpBg');
 	//var fpBezeichnung;
 	//var fpID;
 	//var fpTyp;
 	
-	var h4fpHeader = document.getElementById('h4FpHeader');
+	const h4fpHeader = document.getElementById('h4FpHeader');
 	
-	var fpBody = document.getElementById('fpBody');
-	var fpSection;
+	const fpBody = document.getElementById('fpBody');
+	let fpSection;
 	
 	ClickableElement.forEach(function(el) {
 		//console.log(el);
@@ -633,10 +633,11 @@ function buildFaceplateNEW() {
 		
 		if (el.sectionIndicator.toUpperCase() == 'H') h4fpHeader.innerHTML = 'Einstellungen für ' + el.wert.trim();
 		
-		var zwischenüberschrift;
+		let zwischenüberschrift;
 		if (el.name.includes('Betriebsart') || el.name.includes('Wochenkalender')) zwischenüberschrift = el.name.trim();
 		if (el.name.includes('NennVL')) zwischenüberschrift = 'HK-Temperaturparameter';
 		if (el.name.includes('20 &degC')) zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
+		if (el.sectionIndicator.toUpperCase() == 'S') zwischenüberschrift = el.name;
 		
 		if (zwischenüberschrift != undefined || fpSection == undefined) {
 			//Beginn neue Section
@@ -646,7 +647,7 @@ function buildFaceplateNEW() {
 			fpSection.className = 'fpSection';
 			
 			//Zwischenüberschrift erzeugen & anhängen
-			var h5fpSection = document.createElement('h5');
+			let h5fpSection = document.createElement('h5');
 			fpSection.appendChild(h5fpSection)
 			if (zwischenüberschrift != undefined) h5fpSection.innerHTML = zwischenüberschrift;
 		}
