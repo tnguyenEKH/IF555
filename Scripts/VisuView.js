@@ -553,7 +553,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "GA";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 10), 7);
@@ -599,7 +599,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "PT";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 10), 7);
@@ -622,7 +622,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "DF";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 10), 7);
@@ -852,7 +852,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "AA";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 10), 7);
@@ -924,7 +924,7 @@ function createVisudata(sText){
 				item.Kanal = sText.substr((idx + 3), 2);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert >0;
@@ -944,10 +944,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "KL";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert >0;
@@ -970,7 +970,7 @@ function createVisudata(sText){
 				item.Kanal = sText.substr((idx + 3), 2);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert > 0;
@@ -990,10 +990,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "BL";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert>0;
@@ -1013,10 +1013,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "LP";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert>0;
@@ -1036,10 +1036,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "SP";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert>0;
@@ -1059,10 +1059,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "ZP";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert>0;
@@ -1081,10 +1081,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "SG";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 8), 3);
+				item.Wert = sText.substr((idx + 10), 1);
 				//item.Wert *= 0.01;
 				item.isBool = true;
 				item.BoolVal = item.Wert>0;
@@ -1127,16 +1127,16 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "ZZ";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
-				item.Wert = sText.substr((idx + 10), 7);
+				item.Wert = sText.substr((idx + 10), 10);
 				//item.Wert *= 0.01;
 				item.isBool = false;
 				item.BoolVal = false;
 				item.EinheitText = getVisuItemEinheit(item.iEinheit);
 				Items.push(item);
-				var textToCut = sText.substring(idx, idx + 17);
+				var textToCut = sText.substring(idx, idx + 20);
 				sText = sText.replace(textToCut,'');
 				//sText= sText.slice((idx+17), sText.length);
 			}
@@ -1195,7 +1195,7 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "GR";
-				item.Kanal = sText.substr((idx + 3), 2);
+				item.Kanal = sText.substr((idx + 2), 3);
 				item.Nachkommastellen = sText.substr((idx + 6), 1);
 				item.iEinheit = sText.substr((idx + 8), 2);
 				item.Wert = sText.substr((idx + 10), 7);
