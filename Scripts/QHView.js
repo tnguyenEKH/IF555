@@ -82,8 +82,8 @@ function startQH() {
         diagramHeader = loadHeader(QHHeaderFile);
         diagramData = loadData();
 		
-		//writeToTextFile(QHSettingTestFile)
-        UserSettings = getUserSettings();
+        //writeToTextFile(QHSettingTestFile)
+        if (!UserSettings) UserSettings = getUserSettings();
 
         //var sQHInfo = getQH_Info_St(Steuerung);
         //QHInfo = $.parseJSON(sQHInfo);
