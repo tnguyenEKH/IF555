@@ -82,8 +82,8 @@ function startQH() {
         diagramHeader = loadHeader(QHHeaderFile);
         diagramData = loadData();
 		
-		//writeToTextFile(QHSettingTestFile)
-        UserSettings = getUserSettings();
+        //writeToTextFile(QHSettingTestFile)
+        if (!UserSettings) UserSettings = getUserSettings();
 
         //var sQHInfo = getQH_Info_St(Steuerung);
         //QHInfo = $.parseJSON(sQHInfo);
@@ -569,31 +569,37 @@ Der Zufriff erfolgt über den dort mit abgelegten Spur-Index.
 
 function ColorSelectionHandler(id) {
     inColorMenue = true;
-    var si = id.substring(4);
-    var i = parseInt(si);
-    var sCol = defaultColors[i];
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
-    var nSpuren = UserSettings.qh_Spuren.length;
-    var itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
-    if (itemsFound.length > 0) {
-        var SpurIndex = 1;
-        var item = itemsFound[0];
-        // patch 19.05.2016: Bug bei Farbauswahl
-        var idx = UserSettings.qh_Spuren.indexOf(item);
-        //UserSettings.qh_Spuren[TrackInEdit].color = sCol;
-        UserSettings.qh_Spuren[idx].color = sCol;
+    //var si = id.substring(4);
+    const i = parseInt(id.substring(4));
+    const sCol = defaultColors[i];
+    if (sCol === `white` || sCol === `#FFFFFF`) {   //wenn weiß ausgewählt wird -> gleichbedeutend mit Spur entfernen!
+        ConfirmColorMenu();
     }
     else {
-        var isLeft = $('#' + "cbSettingsL_" + TrackInEdit).prop("checked");
-        var itm = { bSkala_Links: isLeft, color: sCol, index: TrackInEdit };
-        UserSettings.qh_Spuren.push(itm);
-        UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
+        const Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
+        //var nSpuren = UserSettings.qh_Spuren.length;
+        const itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
+        if (itemsFound.length > 0) {
+            //var SpurIndex = 1;
+            const item = itemsFound[0];
+            // patch 19.05.2016: Bug bei Farbauswahl
+            const idx = UserSettings.qh_Spuren.indexOf(item);
+            //UserSettings.qh_Spuren[TrackInEdit].color = sCol;
+            UserSettings.qh_Spuren[idx].color = sCol;
+        }
+        else {
+            const isLeft = $(`#cbSettingsL_${TrackInEdit}`).prop("checked");
+            const itm = { bSkala_Links: isLeft, color: sCol, index: TrackInEdit, enabled: true }; //Wenn Spur in Settings ergänzt wird -> enabled setzen!
+            UserSettings.qh_Spuren.push(itm);
+            UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
+        }
+
+        InitSettings();
+        drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
+        drawData();
+        inColorMenue = false;
+        location.href = "#";
     }
-    InitSettings();
-    drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
-    drawData();
-    inColorMenue = false;
-    location.href = "#";
 }
 
 function ConfirmModalMenu() {
