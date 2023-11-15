@@ -58,11 +58,51 @@ var wochenKalenderImVisuCanvasContext;
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
 
-
+let _SIMULATION_COUNTER = 0;
 
 
 $(document).ready(function () {
-  /*Initialize layout, static variable....*/
+	//console.log({QHHeaderFile});
+	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
+	testRequest(`./DATA/vierttx.tx____________________`);
+});
+
+/****test****/
+function testRequest(url) {
+	console.log({url});
+	const xhr = new XMLHttpRequest();
+	const method = "GET";
+	//const url = `./DATA/vierttx.tx`; //QHHeaderFile
+	
+	xhr.overrideMimeType('text/plain; charset=Windows-1252');
+	console.log(`open`);
+	xhr.open(method, url, true);
+	
+	xhr.onreadystatechange = () => {
+	  // In local files, status is 0 upon success in Mozilla Firefox
+	  if (xhr.readyState === XMLHttpRequest.DONE) {
+		const status = xhr.status;
+		if (status === 0 || (status >= 200 && status < 400)) {
+		  // The request has been completed successfully
+		  console.log(xhr.responseText);
+		  init();
+		} else {
+		  // Oh no! There has been an error with the request!
+		  _SIMULATION_COUNTER++;
+		  let SIM_URL = (_SIMULATION_COUNTER < 2) ? `nonsense` : `./DATA/vierttx.txt`;
+		  setTimeout(testRequest, 5000, SIM_URL);
+		}
+		console.log(`done: ${status}`);
+	  }
+	};
+	console.log(`send`);
+	xhr.send();
+}
+
+function init() {
+    document.querySelector(`.loaderIcon`).classList.remove(`loader`);
+	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
+	/*Initialize layout, static variable....*/	
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
 	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
@@ -100,9 +140,10 @@ $(document).ready(function () {
 	
 	/*******************************/
     callReader(bedien_pdf);
-	callReader(slp_pdf);
+	callReader(slp_pdf);	
+}
 
-});
+
 
 /***********************Kommunikation*************************************/
 function getData(url) {
