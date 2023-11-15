@@ -39,7 +39,19 @@ button:disabled,
   cursor: default;
 }
 
+.connectingToMPCcontainer {
+	position: absolute;
+	top: 0;
+	left: 0;
+	height: 100%;
+	width: 100%;
+	background-color: #C0C0C0;
+	z-index: 1000;
+}
 
+.loaderText {
+	text-align: center;
+}
 
 /* Kopfzeile: Tab-Auswahl */
 .tab {
@@ -359,6 +371,6 @@ button:disabled,
 	border-bottom: 16px solid #1F94B9;
 	width: 120px;
 	height: 120px;
-	-webkit-animation: spin 2s linear infinite;
-	animation: spin 2s linear infinite;
+	-webkit-animation: spin 4s linear infinite;
+	animation: spin 4s linear infinite;
 }
