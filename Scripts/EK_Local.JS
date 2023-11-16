@@ -58,25 +58,24 @@ var wochenKalenderImVisuCanvasContext;
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
 
-let _SIMULATION_COUNTER = 0;
 
 
 $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	testRequest(`./DATA/vierttx.tx____________________`);
+	testRequest(`./DATA/vierttx.txt`, 5000);
 });
 
 /****test****/
-function testRequest(url) {
-	console.log({url});
+function testRequest(_url, timeoutOnError) {
+  //console.log({_url});
+  const url = (_url) ? _url : `./DATA/vierttx.txt`; //QHHeaderFile, cuz this causes the error
 	const xhr = new XMLHttpRequest();
 	const method = "GET";
-	//const url = `./DATA/vierttx.tx`; //QHHeaderFile
 	
 	xhr.overrideMimeType('text/plain; charset=Windows-1252');
-	console.log(`open`);
-	xhr.open(method, url, true);
+	//console.log(`open`);
+	xhr.open(method, url, true); //async
 	
 	xhr.onreadystatechange = () => {
 	  // In local files, status is 0 upon success in Mozilla Firefox
@@ -84,18 +83,17 @@ function testRequest(url) {
 		const status = xhr.status;
 		if (status === 0 || (status >= 200 && status < 400)) {
 		  // The request has been completed successfully
-		  console.log(xhr.responseText);
+		  //console.log(xhr.responseText);
 		  init();
 		} else {
 		  // Oh no! There has been an error with the request!
-		  _SIMULATION_COUNTER++;
-		  let SIM_URL = (_SIMULATION_COUNTER < 2) ? `nonsense` : `./DATA/vierttx.txt`;
-		  setTimeout(testRequest, 5000, SIM_URL);
+      if (timeoutOnError > 0)
+        setTimeout(testRequest, timeoutOnError, url, timeoutOnError);
 		}
-		console.log(`done: ${status}`);
+		//console.log(`done: ${status}`);
 	  }
 	};
-	console.log(`send`);
+	//console.log(`send`);
 	xhr.send();
 }
 
