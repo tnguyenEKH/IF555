@@ -144,6 +144,18 @@ function init() {
 
 
 /***********************Kommunikation*************************************/
+async function fetchData(url) {
+  try {
+    const res = await fetch(url);
+    //console.log(res.ok);
+    const data = await res.json();
+    return data;
+  }
+  catch(err) {
+    console.error(err);
+  }
+}
+
 function getData(url) {
 	var res;
     var xhr = new XMLHttpRequest();

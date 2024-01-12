@@ -24,42 +24,47 @@ async function openFaceplate() {
 		hideElemementById('fpContent');
 		showElemementById('visLoader');
 		clickableElementUrl = ClickableElementUrlList.find(el => el.includes(matchItem.id));
-		const test = await fetchData(clickableElementUrl);
-		const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
-		//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
-		if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
-			Object.entries(adjustmentOptions).forEach(([key, value]) => {
-				const originalKeyNo = parseInt(key.match(/\d+/g));
-				let item = {};
-				item.idx = key.replace(originalKeyNo, originalKeyNo + 20);
-				item.sectionIndicator = value.substr(59, 1);
-				
-				switch (item.sectionIndicator) {
-					case 'H':
-						item.name = value.substr(0, 24);
-						item.wert = value.substr(24,35)
-						break;
-					case 'S':
-						item.name = value.substr(0, 59);
-						break;
-					default:
-						item.name = value.substr(0, 24);
-						item.wert = value.substr(24,12);
-						item.oberGrenze = value.substr(36,6);
-						item.unterGrenze = value.substr(42,6);
-						item.nachKommaStellen = value.substr(48,2);
-						item.einheit = value.substr(50,9);
-				}
+		try {
+			const test = await fetchData(clickableElementUrl);
+			const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
+			//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
+			if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
+				Object.entries(adjustmentOptions).forEach(([key, value]) => {
+					const originalKeyNo = parseInt(key.match(/\d+/g));
+					let item = {};
+					item.idx = key.replace(originalKeyNo, originalKeyNo + 20);
+					item.sectionIndicator = value.substr(59, 1);
+					
+					switch (item.sectionIndicator) {
+						case 'H':
+							item.name = value.substr(0, 24);
+							item.wert = value.substr(24,35)
+							break;
+						case 'S':
+							item.name = value.substr(0, 59);
+							break;
+						default:
+							item.name = value.substr(0, 24);
+							item.wert = value.substr(24,12);
+							item.oberGrenze = value.substr(36,6);
+							item.unterGrenze = value.substr(42,6);
+							item.nachKommaStellen = value.substr(48,2);
+							item.einheit = value.substr(50,9);
+						}
 
-				ClickableElement.push(item);
-			});
-			buildFaceplateNEW();
-			showFaceplate(matchItem);
+						ClickableElement.push(item);
+				});
+				buildFaceplateNEW();
+				showFaceplate(matchItem);
+			}
+			else {
+				alert(`timeout`);
+				hideElemementById('fpBg');
+				hideElemementById('visLoader');
+			}
 		}
-		else {
-			alert(`timeout`);
-			hideElemementById('fpBg');
-			hideElemementById('visLoader');
+		catch(err) {
+			console.error(err);
 		}
 	}
 }
