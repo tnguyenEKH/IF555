@@ -17,7 +17,7 @@ async function openFaceplate() {
 		dy = my - y;
 		return (bitmapIndex === bmpIndex && dx * dx + dy * dy < radius * radius);
 	});
-	console.log(matchItem);
+	//console.log(matchItem);
 	
 	if (matchItem) {
 		showElemementById('fpBg');
