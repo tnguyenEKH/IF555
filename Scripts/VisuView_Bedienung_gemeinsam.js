@@ -1,114 +1,59 @@
-function openFaceplate() {
-		/*SettingsFromVisualisierung*/
+async function openFaceplate() {
+	/*SettingsFromVisualisierung*/
 	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
-
-	var n = ClickableElementList.length;
-	for (var i = 0; i < n; i++) {
-		var item = ClickableElementList[i];
-
-		//check bitmap referenz to avoid interferenz between layer
-		var currentBitmapIndex = bmpIndex;
-
-		/********************* Heizkreise *************************/
-		if ((item.bitmapIndex == currentBitmapIndex) && (item.Bezeichnung == "HK" || item.Bezeichnung == "KES" || item.Bezeichnung == "BHK" || item.Bezeichnung == "WWL")) {
-			dx = mx - item.x;
-			dy = my - item.y;
-			if (dx * dx + dy * dy < item.radius * item.radius) {
-				match = true;
-				var matchItem = item;
-				
-				showElemementById('fpBg');
-				hideElemementById('fpContent');
-				showElemementById('visLoader');
-				
-
-				//search in the link list of clickable element base on unique id to find out the coresspondent link 
-				for (var j = 0; j < ClickableElementUrlList.length; j++) {
-					if (ClickableElementUrlList[j].indexOf(item.id) >= 0) {
-						clickableElementUrl = ClickableElementUrlList[j];
-					}
-				}
-
-				/*query the available adjustable params from RTOS in three steps
-					1. tell the RTOS-Webserver, which elemente will be queried
-					2. read RTOS-Vars until they are empty (Strings)
-					3. read RTOS-Vars until identifiers are equal (Strings)
-				*/
-				sendData(clickableElementUrl);
-				//sleep(1000);
-				var c = 0;
-				do {
-					var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-					c++;
-				} while (adjustmentOption.v070.trim() != '' && c < 50);
-				c = 0;
-				do {
-					var adjustmentOption  = JSON.parse(getData(readParameterOfClickableElementUrl));
-					c++;
-				} while (adjustmentOption.v070.slice(0,5) != clickableElementUrl.slice(-5) && c < 50);
-				
-				if (c < 50) {
-					ClickableElement = [];
-					//24 stellig für Name , 10 stellig für Werte, 2 Leerzeichen, 5 stellig für Obergrenze, 1 Leerzeichen, 5 stellig für Untergrenze, 1 Leerzeichen, 1 stellig für Nachkommastellen, 1 Leerzeichen, 5 stellig für Einheit
-					for (var j = 70; j < 90; j++) {
-						var rtosVariable = "v0" + j;
-						var option = adjustmentOption[rtosVariable];
-						
-						/*if (option.trim() == '' || option.trim().toUpperCase() == 'X') {
-							//leere rtos-Variablen ignorieren
-						}
-						else {*/
-													
-							var item = new Object();
-
-							item['idx'] = j + 20;
-							item['name'] = '';
-							item['wert'] = '';
-							item["oberGrenze"] = '';
-							item["unterGrenze"] = '';
-							item["nachKommaStellen"] = '';
-							item["einheit"] = '';
-							item["sectionIndicator"] = option.substr(59, 1);
-							
-	/*					if (j == 70) item["sectionIndicator"] = 'H';*/
-							switch (item["sectionIndicator"]) {
-								case 'H':
-									item['name'] = option.substr(0, 24);
-									item['wert'] = option.substr(24,35)
-									break;
-								case 'S':
-									item['name'] = option.substr(0, 59);
-									break;
-								default:
-									item['name'] = option.substr(0, 24);
-									item['wert'] = option.substr(24,12);
-									item["oberGrenze"] = option.substr(36,6);
-									item["unterGrenze"] = option.substr(42,6);
-									item["nachKommaStellen"] = option.substr(48,2);
-									item["einheit"] = option.substr(50,9);
-							}
-							/*if (item.name.includes('Betriebsart')) {
-								item.name = ('Handwert&#10' + item.name.trim()).padEnd(24);
-								
-								console.log(item.name);
-							}*/
-							ClickableElement.push(item);
-						//}
-					}
-					
-					//buildFaceplate();
-					/*document.getElementById('btnKesselAuto').wert = 0;
-					console.log(document.getElementById('btnKesselAuto'));//*/
-					buildFaceplateNEW();
-				}
-				else {
-					console.log('Error: openFaceplate');
-				}				
-			}	
-		}	
-	}
+	//console.log(ClickableElementList);
 	
-	if (match) showFaceplate(matchItem);
+	matchItem = ClickableElementList.find(el => {
+		const {x, y, radius, bitmapIndex} = el;
+		dx = mx - x;
+		dy = my - y;
+		return (bitmapIndex === bmpIndex && dx * dx + dy * dy < radius * radius);
+	});
+	console.log(matchItem);
+	
+	if (matchItem) {
+		showElemementById('fpBg');
+		hideElemementById('fpContent');
+		showElemementById('visLoader');
+		clickableElementUrl = ClickableElementUrlList.find(el => el.includes(matchItem.id));
+		const test = await fetchData(clickableElementUrl);
+		const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
+		//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
+		if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
+			Object.entries(adjustmentOptions).forEach(([key, value]) => {
+				const originalKeyNo = parseInt(key.match(/\d+/g));
+				let item = {};
+				item.idx = key.replace(originalKeyNo, originalKeyNo + 20);
+				item.sectionIndicator = value.substr(59, 1);
+				
+				switch (item.sectionIndicator) {
+					case 'H':
+						item.name = value.substr(0, 24);
+						item.wert = value.substr(24,35)
+						break;
+					case 'S':
+						item.name = value.substr(0, 59);
+						break;
+					default:
+						item.name = value.substr(0, 24);
+						item.wert = value.substr(24,12);
+						item.oberGrenze = value.substr(36,6);
+						item.unterGrenze = value.substr(42,6);
+						item.nachKommaStellen = value.substr(48,2);
+						item.einheit = value.substr(50,9);
+				}
+
+				ClickableElement.push(item);
+			});
+			buildFaceplateNEW();
+			showFaceplate(matchItem);
+		}
+		else {
+			alert(`timeout`);
+			hideElemementById('fpBg');
+			hideElemementById('visLoader');
+		}
+	}
 }
 
 function convertHexToRGBArray(hex) {
