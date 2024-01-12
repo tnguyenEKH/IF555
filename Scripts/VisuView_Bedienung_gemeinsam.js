@@ -1,3 +1,11 @@
+function timeout(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+async function asyncSleep(fn, delay, ...args) {
+    await timeout(delay);
+    return fn(...args);
+}
+
 async function openFaceplate() {
 	/*SettingsFromVisualisierung*/
 	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
