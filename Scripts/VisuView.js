@@ -324,10 +324,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "HKNA";
-				item.Kanal = sText.substring(idx + 4, idx +6);
+				item.Kanal = sText.substring(idx + 4, idx + 6);
 				item.isBool = false;
 				item.BoolVal = false;
-				item.sWert = sText.substring(idx + 7, idx + 26);
+				item.sWert = sText.substring(idx + 6, idx + 26);
 				Items.push(item);
 				var textToCut = sText.substring(idx, idx + 26);
 				sText = sText.replace(textToCut,'');
