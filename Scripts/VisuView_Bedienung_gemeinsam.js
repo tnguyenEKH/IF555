@@ -20,19 +20,22 @@ async function openFaceplate() {
 	//console.log(matchItem);
 	
 	if (matchItem) {
+		const body = document.querySelector(`body`);
+		body.setAttribute(`cursorStyle`, `progress`);
 		showElemementById('fpBg');
 		hideElemementById('fpContent');
-		showElemementById('visLoader');
+		//showElemementById('visLoader');
 		clickableElementUrl = ClickableElementUrlList.find(el => el.includes(matchItem.id));
 		try {
 			const test = await fetchData(clickableElementUrl);
 			const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
 			//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
 			if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
+				ClickableElement = [];
 				Object.entries(adjustmentOptions).forEach(([key, value]) => {
 					const originalKeyNo = parseInt(key.match(/\d+/g));
 					let item = {};
-					item.idx = key.replace(originalKeyNo, originalKeyNo + 20);
+					item.idx = originalKeyNo + 20;
 					item.sectionIndicator = value.substr(59, 1);
 					
 					switch (item.sectionIndicator) {
@@ -62,6 +65,7 @@ async function openFaceplate() {
 				hideElemementById('fpBg');
 				hideElemementById('visLoader');
 			}
+			body.removeAttribute(`cursorStyle`);
 		}
 		catch(err) {
 			console.error(err);
@@ -220,40 +224,34 @@ function incrementSliderValue(event) {
 	sliderHandler(pseudoEvent);
 }
 
-function radioBtnByNameNEW(event) {
-	if (event == null || event == undefined) return event;
+function radioBtnByNameNEW(ev) {
+	//if (ev == null || ev == undefined) return ev;
 	
-	var btn;
-	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
-	if (btn == null || btn == undefined) return btn;
+	const btn = ((typeof ev) === 'string') ? document.getElementById(ev) : ev.target;
+	//if (btn == null || btn == undefined) return btn;
+	const {idx, name, id} = btn;
 		
-	var divRtosVar = document.getElementById('v' + btn.idx.toString().padStart(3,'0'));
+	
+	//var changedBtns = [];
+	const relatedBtns = document.getElementsByName(name);
+	const btnToggleForceVal = (btn.classList.contains(`uncheckable`)) ? undefined : true;
+	relatedBtns.forEach(el => el.classList.toggle(`checked`, (el === btn) ? btnToggleForceVal : false));
+	
 	if (btn.wert.toString() == '') {
-		var slider = document.getElementById('inpWert' + btn.idx);
+		const slider = document.querySelector(`#inpWert${idx}`);
 		btn.wert = slider.wert;
 	}
-	divRtosVar.wert = btn.wert;
-		
-	//var changedBtns = [];
-	var relatedBtns = document.getElementsByName(btn.name);
-	relatedBtns.forEach(function(el) {
-		//console.log(el);
-		if (el.id == btn.id) {
-			if (!el.className.includes('checked')) {
-				//changedBtns.push(el);
-				el.className += " checked";
-			}
-			else {
-				if (el.className.includes('uncheckable')) el.className = el.className.replace("checked", "").trim();				
-			}
-		}
-		else {
-			//if (el.className.includes('checked')) changedBtns.push(el);
-			el.className = el.className.replace("checked", "").trim();
-		}
-	});
+	const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+	if (btn.id === `triggerBtnTagbetrieb`) {
+		divRtosVar.wert = (btn.classList.contains(`checked`)) ? 1 : 0;
+	}
+	else {
+		divRtosVar.wert = btn.wert;
+	}
+	if (btn.id === `triggerBtnTagbetrieb`) sendDataToRtosNEW(ev);
 	
-	return btn; //return event;? return changedBtns;???
+
+	return btn; //return ev;? return changedBtns;???
 }
 
 function toggleSliderAbilityByBtnHandNEW(event) {
@@ -310,53 +308,42 @@ function controlGroupBtnHandlerNEW(event) {
 }
 
 function createControlGroup(fpSection, el) {
+	const {idx, name, wert, oberGrenze, unterGrenze, nachKommaStellen, einheit} = el;
 	//div mit ID=rtosVariable erzeugen & anhängen (return object)
-	var divRtosVar = document.createElement('div');
+	const divRtosVar = document.createElement('div');
 	fpSection.appendChild(divRtosVar);
-	divRtosVar.id = 'v' + el.idx.toString().padStart(3,'0');
+	divRtosVar.id = `v${idx.toString().padStart(3,'0')}`;
 	divRtosVar.className = 'divRtosVar';
-	divRtosVar.idx = el.idx;
+	divRtosVar.idx = idx;
 	
 	//Namenslabel erzeugen & anhängen
-	var lblName = document.createElement('label');				
+	const lblName = document.createElement('label');				
 	divRtosVar.appendChild(lblName);
 	lblName.className = 'lblName';
-	lblName.innerHTML = el.name.trim();
+	lblName.innerHTML = name.trim();
 	
 	//Inputelemente (btns, slider, number, etc.) erzeugen & anhängen
-	var divInpWert = document.createElement('div');
+	const divInpWert = document.createElement('div');
 	divRtosVar.appendChild(divInpWert);
 	divInpWert.className = 'divInpWert';
-	divInpWert.id = divInpWert.className + el.idx;
-	divInpWert.idx = el.idx;
+	divInpWert.id = divInpWert.className + idx;
+	divInpWert.idx = idx;
 	
 	//zu erzeugende Elemente auf Basis der Range ermitteln:
-	var range = (parseFloat(el.oberGrenze.trim()) - parseFloat(el.unterGrenze.trim()) + 1) * Math.pow(10, el.nachKommaStellen);
+	const range = (parseFloat(oberGrenze.trim()) - parseFloat(unterGrenze.trim()) + 1) * Math.pow(10, nachKommaStellen);
 	
 	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
 	if (range <= 4 && !lblName.innerHTML.includes('kalender')) lblName.innerHTML = '\n' + lblName.innerHTML;
 	
-	//-Button vor Slider erzeugen
-	if (range > 4) {
-		var btnIncDec = document.createElement('input');
-		divInpWert.appendChild(btnIncDec);
-		btnIncDec.type = 'button';
-		btnIncDec.className = 'btnIncDec btnDec';
-		var btnVal = Math.pow(10, -el.nachKommaStellen);
-		if (btnVal < 1) btnVal = btnVal.toString().slice(1);
-		btnIncDec.value = '-';// + btnVal;
-		btnIncDec.onclick = decrementSliderValue;
-	}
-	
-	var inpWert = document.createElement('input');				
+	const inpWert = document.createElement('input');				
 	divInpWert.appendChild(inpWert);
 	inpWert.className = 'inpWert';
-	inpWert.id = inpWert.className + el.idx;
-	inpWert.idx = el.idx;
-	inpWert.unit = el.einheit.trim();
-	//if (inpWert.unit.includes('&deg') || el.name.includes('Betriebsart')) inpWert.className += ' gradientSlider';
-	inpWert.unterGrenze = parseFloat(el.unterGrenze.trim());
-	inpWert.oberGrenze = parseFloat(el.oberGrenze.trim());
+	inpWert.id = inpWert.className + idx;
+	inpWert.idx = idx;
+	inpWert.unit = einheit.trim();
+	//if (inpWert.unit.includes('&deg') || name.includes('Betriebsart')) inpWert.className += ' gradientSlider';
+	inpWert.unterGrenze = parseFloat(unterGrenze.trim());
+	inpWert.oberGrenze = parseFloat(oberGrenze.trim());
 	inpWert.min = inpWert.unterGrenze;
 	inpWert.minColor = '#1F94B9';
 	inpWert.max = inpWert.oberGrenze;
@@ -366,201 +353,198 @@ function createControlGroup(fpSection, el) {
 	else {
 		inpWert.maxColor = '#1F94B9';
 	}
-	inpWert.step = Math.pow(10, -el.nachKommaStellen);
-	inpWert.wert = parseFloat(el.wert);
+	inpWert.step = Math.pow(10, -nachKommaStellen);
+	inpWert.wert = parseFloat(wert);
 	
-	//+Button hinter Slider erzeugen
+	//-Button vor Slider erzeugen
 	if (range > 4) {
-		var btnIncDec = document.createElement('input');
-		divInpWert.appendChild(btnIncDec);
-		btnIncDec.type = 'button';
-		btnIncDec.className = 'btnIncDec btnInc';
-		var btnVal = Math.pow(10, -el.nachKommaStellen);
-		if (btnVal < 1) btnVal = btnVal.toString().slice(1);
-		btnIncDec.value = '+';// + btnVal;
-		btnIncDec.onclick = incrementSliderValue;
+		const adjustBtnArray = [`-`, `+`];
+		adjustBtnArray.forEach(el => {
+			const btnIncDec = document.createElement('input');
+			btnIncDec.type = 'button';
+			btnIncDec.className = `btnIncDec`;
+			let btnVal = Math.pow(10, -nachKommaStellen);
+			if (btnVal < 1) btnVal = btnVal.toString().slice(1);
+			btnIncDec.value = el;
+			if (el === `-`) {
+				divInpWert.insertBefore(btnIncDec, inpWert);
+				btnIncDec.classList.add(`btnDec`); 
+				btnIncDec.addEventListener(`click`, decrementSliderValue);
+			}
+			else if (el === `+`) {
+				divInpWert.appendChild(btnIncDec);
+				btnIncDec.classList.add(`btnInc`);
+				btnIncDec.addEventListener(`click`, incrementSliderValue);
+			}
+		});
 	}
 	
-	/*if (range > 4) {
-		for (var i=0; i<2; i++) {
-			var btnIncDec = document.createElement('input');
-			divInpWert.appendChild(btnIncDec);
-			btnIncDec.type = 'button';
-			btnIncDec.className = 'btnIncDec';
-			(i == 0) ? btnIncDec.value = '-' : btnIncDec.value = '+';
-			btnIncDec.value += Math.pow(10, -el.nachKommaStellen);
-		}
-	}*/
-	
 	//console.log(range);
-	var checkedBtn;
+	let checkedBtn;
 	switch (range) {
 			
-			//createTriggerBtn (Einmalig...); radioBtnByNameNEW
-			case 2:
+		//createTriggerBtn (Einmalig...); radioBtnByNameNEW
+		case 2:
+			inpWert.type = 'button';
+			inpWert.classList.add(`btnBA`,`uncheckable`);
+			inpWert.classList.toggle(`checked`, parseInt(wert));
+			inpWert.name = 'triggerBtn';
+			inpWert.wert = 1;
+			inpWert.title = name.trim();
+			inpWert.addEventListener(`click`, radioBtnByNameNEW);
+			if (name.toUpperCase().includes('AUS')) {
+				inpWert.id = `triggerBtnAus`;
+				inpWert.classList.add('btnAus');
+			}
+			else if (name.toUpperCase().includes('EIN')) {
+				inpWert.id = `triggerBtnEin`;
+				inpWert.classList.add('btnEin');
+			}
+			else if (name.toUpperCase().includes('TAGBETRIEB')) {
+				inpWert.id = `triggerBtnTagbetrieb`;
+				inpWert.classList.add('btnTagbetrieb', 'btnEin');
+			}
+			//if (wert == inpWert.wert) checkedBtn = inpWert;
+			break;
+		
+		//createBtnCalender || createBtnGroup
+		case 3:
+			if (parseFloat(unterGrenze.trim()) == 0) {
 				inpWert.type = 'button';
-				inpWert.id = 'triggerBtn';
-				inpWert.className += ' btnBA';
-				inpWert.className += ' uncheckable';
-				inpWert.name = 'triggerBtn';
-				inpWert.wert = 1;
-				inpWert.title = el.name.trim();
-				inpWert.onclick = radioBtnByNameNEW;
-				if (el.name.toUpperCase().includes('AUS')) {
-					inpWert.id += 'Aus';
-					inpWert.className += ' btnAus';
-				}
-				else if (el.name.toUpperCase().includes('EIN')) {
-					inpWert.id += 'Ein';
-					inpWert.className += ' btnEin';
-				}
-				if (el.wert == inpWert.wert) checkedBtn = inpWert;
-				break;
+				inpWert.id = 'calenderBtn';
+				inpWert.classList.add(`calenderBtn`);
+				inpWert.wert = locked ? 2 : 1;
+				inpWert.value = 'zum Kalender';
+				inpWert.title = `Absenkungswochenkalender öffnen${locked ? ' (schreibgeschützt)' : ''}`;
+				//inpWert.title = 'Absenkungswochenkalender öffnen';
+				//if (inpWert.wert == 2) inpWert.title += ' (schreibgeschützt)';
+				inpWert.addEventListener(`click`, jumpToWochenKalender);
+			}
 			
-			//createBtnCalender || createBtnGroup
-			case 3:
-				if (parseFloat(el.unterGrenze.trim()) == 0) {
-					inpWert.type = 'button';
-					inpWert.id = 'calenderBtn';
-					inpWert.className += ' calenderBtn';
-					locked ? inpWert.wert = 2 : inpWert.wert = 1;
-					inpWert.value = 'zum Kalender';
-					inpWert.title = 'Absenkungswochenkalender öffnen';
-					if (inpWert.wert == 2) inpWert.title += ' (schreibgeschützt)';
-					inpWert.onclick = jumpToWochenKalender;
-				}
-				
-				if (parseFloat(el.unterGrenze.trim()) == -1) {
-					for (var i=0; i<3; i++) {
-						if (i > 0) {
-							var inpWert = document.createElement('input');				
-							divInpWert.appendChild(inpWert);
-							inpWert.className = 'inpWert';
-							inpWert.idx = el.idx;
-						}
-						
-						var id;
-						if (i == 0) id = 'Auto';
-						if (i == 1) id = 'Ein';
-						if (i == 2) id = 'Aus';
-						
-						inpWert.type = 'button';
-						inpWert.title = id;
-						inpWert.id = 'btn' + id + el.idx;	//el.idx nutzen um eindeutige IDs zu erzeugen
-						inpWert.className += ' btnBA';
-						inpWert.className += (' btn' + id);
-						inpWert.name = 'btnBA' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
-						(i == 2) ? inpWert.wert = -1 : inpWert.wert = i;
-						inpWert.onclick = radioBtnByNameNEW;
-						if (el.wert == inpWert.wert) checkedBtn = inpWert;
-					}					
-				}
-				break;
-			
-			//createBtnGroup3PMischer (Auto, HandOpen, HandClose, Stop)
-			case 4:
-				for (var i=0; i<4; i++) {
+			if (parseFloat(unterGrenze.trim()) == -1) {
+				for (let i=0; i<3; i++) {
 					if (i > 0) {
-						var inpWert = document.createElement('input');				
+						const inpWert = document.createElement('input');				
 						divInpWert.appendChild(inpWert);
 						inpWert.className = 'inpWert';
-						inpWert.idx = el.idx;
+						inpWert.idx = idx;
 					}
 					
-					var id;
+					let id;
 					if (i == 0) id = 'Auto';
-					if (i == 1) id = 'Auf';
-					if (i == 2) id = 'Zu';
-					if (i == 3) id = 'Stopp';
+					if (i == 1) id = 'Ein';
+					if (i == 2) id = 'Aus';
 					
 					inpWert.type = 'button';
 					inpWert.title = id;
-					inpWert.id = 'btn' + id + el.idx;	//el.idx nutzen um eindeutige IDs zu erzeugen
+					inpWert.id = 'btn' + id + idx;	//idx nutzen um eindeutige IDs zu erzeugen
 					inpWert.className += ' btnBA';
 					inpWert.className += (' btn' + id);
-					inpWert.name = 'btnValve' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
-					(i == 3) ? inpWert.wert = -1 : inpWert.wert = i;
+					inpWert.name = 'btnBA' + idx;	//idx nutzen um eindeutige RadioGroups zu erzeugen
+					(i == 2) ? inpWert.wert = -1 : inpWert.wert = i;
 					inpWert.onclick = radioBtnByNameNEW;
-					if (el.wert == inpWert.wert) checkedBtn = inpWert;
-				}
-				break;
-				
-			//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
-			case 101: //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
-				inpWert.min = 1;
-			case 102:
-				lblName.innerHTML = 'Handwert\n\n' + lblName.innerHTML;
-								
-				var iterations = range - 100 + 1;
-				/*console.log(el.name.toUpperCase().includes('MISCHER'));*/
-				if (el.name.toUpperCase().includes('MISCHER') || el.name.toUpperCase().includes('VENTIL'))
-					iterations = 1;//*/			//SONDERFALL MISCHER!
-				
-				for (var i=0; i<=iterations; i++) {
-					var inpBtn = document.createElement('input');				
+					if (wert == inpWert.wert) checkedBtn = inpWert;
+				}					
+			}
+			break;
+		
+		//createBtnGroup3PMischer (Auto, HandOpen, HandClose, Stop)
+		case 4:
+			const idArray = [`Auto`, `Auf`, `Zu`, `Stopp`];
+			idArray.forEach((el, elIdx) => {
+				const inpBtn = (elIdx === 0) ? inpWert : document.createElement('input');
+				if (i > 0) {			
 					divInpWert.appendChild(inpBtn);
 					inpBtn.className = 'inpWert';
-					inpBtn.idx = el.idx;
-					
-					var id;
-					if (i == 0) {
-						id = 'Auto';
-						inpBtn.wert = 0;
-					}
-					if (i == 1) {
-						id = 'Hand';
-						inpBtn.wert = '';
-					}
-					if (i == 2) {
-						id = 'Ein';
-						inpBtn.wert = 1;
-					}
-					if (i == 3) {
-						id = 'Aus';
-						inpBtn.wert = -1;
-						inpWert.min = 2;
-					}
-					
-					inpBtn.type = 'button';
-					(id == 'Ein') ? inpBtn.title = id + ' (Sollw. intern)' : inpBtn.title = id;
-					inpBtn.id = 'btn' + id + el.idx;//el.idx nutzen um eindeutige IDs zu erzeugen
-					inpBtn.className += ' btnBA';
-					inpBtn.className += (' btn' + id);
-					inpBtn.name = 'btnBA' + el.idx;	//el.idx nutzen um eindeutige RadioGroups zu erzeugen
-					//console.log(el.idx);
-					//(i == 3) ? inpBtn.value = -1 : inpBtn.value = i/2;
-					inpBtn.onclick = controlGroupBtnHandlerNEW;
-					if (el.wert == inpBtn.wert) checkedBtn = inpBtn;
-					//console.log(checkedBtn);
+					inpBtn.idx = idx;
 				}
-				if (checkedBtn == undefined || checkedBtn == null) checkedBtn = document.getElementById('btnHand' + el.idx);
-				//hier KEIN break um zusätzlichen slider zu erzeugen!
-				//break;
-			//createSlider/Number?
-			default:
-				inpWert.type = 'range';
-
-				inpWert.value = inpWert.wert;
-				if (parseFloat(inpWert.value) < parseFloat(inpWert.min)) inpWert.value = inpWert.min;
-				if (parseFloat(inpWert.value) > parseFloat(inpWert.max)) inpWert.value = inpWert.max;
-				inpWert.wert = inpWert.value;
+				inpBtn.type = 'button';
+				inpBtn.title = el;
+				inpBtn.id = `btn${el}${idx}`;	//idx nutzen um eindeutige IDs zu erzeugen
+				inpBtn.classList.add(`btnBA`, `btn${el}`);
+				inpBtn.name = `btnValve${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
+				inpBtn.wert = (el === `Stopp`) ? -1 : elIdx;
+				inpBtn.addEventListener(`click`, radioBtnByNameNEW);
+				if (wert == inpBtn.wert) checkedBtn = inpBtn;
+			});
+			break;
+			
+		//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
+		case 101: //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
+			inpWert.min = 1;
+		case 102:
+			lblName.innerHTML = 'Handwert\n\n' + lblName.innerHTML;
+							
+			const iterations = range - 100 + 1;
+			/*console.log(name.toUpperCase().includes('MISCHER'));*/
+			if (name.toUpperCase().includes('MISCHER') || name.toUpperCase().includes('VENTIL'))
+				iterations = 1;//*/			//SONDERFALL MISCHER!
+			
+			for (let i=0; i<=iterations; i++) {
+				const inpBtn = document.createElement('input');				
+				divInpWert.appendChild(inpBtn);
+				inpBtn.className = 'inpWert';
+				inpBtn.idx = idx;
 				
-				if (inpWert.type == 'number' || inpWert.type == 'text') inpWert.onclick = showOSK; //OSK für 'text' & 'number' bei Eingabe einblenden
-				if (inpWert.type == 'range') inpWert.oninput = sliderHandler;
+				let id;
+				if (i == 0) {
+					id = 'Auto';
+					inpBtn.wert = 0;
+				}
+				if (i == 1) {
+					id = 'Hand';
+					inpBtn.wert = '';
+				}
+				if (i == 2) {
+					id = 'Ein';
+					inpBtn.wert = 1;
+				}
+				if (i == 3) {
+					id = 'Aus';
+					inpBtn.wert = -1;
+					inpWert.min = 2;
+				}
+				
+				inpBtn.type = 'button';
+				(id == 'Ein') ? inpBtn.title = id + ' (Sollw. intern)' : inpBtn.title = id;
+				inpBtn.id = 'btn' + id + idx;//idx nutzen um eindeutige IDs zu erzeugen
+				inpBtn.className += ' btnBA';
+				inpBtn.className += (' btn' + id);
+				inpBtn.name = 'btnBA' + idx;	//idx nutzen um eindeutige RadioGroups zu erzeugen
+				//console.log(idx);
+				//(i == 3) ? inpBtn.value = -1 : inpBtn.value = i/2;
+				inpBtn.onclick = controlGroupBtnHandlerNEW;
+				if (wert == inpBtn.wert) checkedBtn = inpBtn;
+				//console.log(checkedBtn);
+			}
+			if (checkedBtn == undefined || checkedBtn == null) checkedBtn = document.getElementById('btnHand' + idx);
+			//hier KEIN break um zusätzlichen slider zu erzeugen!
+			//break;
+		//createSlider/Number?
+		default:
+			inpWert.type = 'range';
+
+			inpWert.value = inpWert.wert;
+			if (parseFloat(inpWert.value) < parseFloat(inpWert.min)) inpWert.value = inpWert.min;
+			if (parseFloat(inpWert.value) > parseFloat(inpWert.max)) inpWert.value = inpWert.max;
+			inpWert.wert = inpWert.value;
+			
+			if (inpWert.type == 'number' || inpWert.type == 'text') inpWert.onclick = showOSK; //OSK für 'text' & 'number' bei Eingabe einblenden
+			if (inpWert.type == 'range') inpWert.oninput = sliderHandler;
 	}	
 	
 	//Unit-Label erzeugen & anhängen
-	var lblUnit = document.createElement('label');				
+	const lblUnit = document.createElement('label');				
 	divRtosVar.appendChild(lblUnit);
 	lblUnit.className = 'lblUnit';
-	lblUnit.idx = el.idx;
-	lblUnit.value = inpWert.value;//parseFloat(el.wert);
-	lblUnit.unit = el.einheit.trim();
+	lblUnit.idx = idx;
+	lblUnit.value = inpWert.value;//parseFloat(wert);
+	lblUnit.unit = (range > 4) ? einheit.trim() : ``;
 	if (lblUnit.unit != '' && lblUnit.unit != '3P') lblUnit.innerHTML = inpWert.value + ' ' + inpWert.unit;
 	if (lblUnit.innerHTML.includes('undefined')) lblUnit.innerHTML = "";
 	
 	//pseudoEvents ausführen um aktuellen Zustand zu Initiieren
-	var pseudoEvent = {};
+	const pseudoEvent = {};
 	if (inpWert.type == 'range') {
 		pseudoEvent.target = inpWert;
 		sliderHandler(pseudoEvent);
@@ -575,27 +559,28 @@ function createControlGroup(fpSection, el) {
 
 function buildFaceplateNEW() {
 	//Allgemeines
-	//var fpBg = document.getElementById('fpBg');
+	//var fpBg = document.querySelector('#fpBg');
 	//var fpBezeichnung;
 	//var fpID;
 	//var fpTyp;
 	
-	const h4fpHeader = document.getElementById('h4FpHeader');
+	const h4fpHeader = document.querySelector('#h4FpHeader');
 	
-	const fpBody = document.getElementById('fpBody');
+	const fpBody = document.querySelector('#fpBody');
 	let fpSection;
 	
-	ClickableElement.forEach(function(el) {
+	ClickableElement.forEach(el => {
 		//console.log(el);
-/**/	//if (el.name.trim() == 'Betriebsart') el.name = ('Kessel ' + el.name.trim()).padEnd(24);
+		const {sectionIndicator, wert, name} = el
+/**/	//if (name.trim() == 'Betriebsart') name = ('Kessel ' + name.trim()).padEnd(24);
 		
-		if (el.sectionIndicator.toUpperCase() == 'H') h4fpHeader.innerHTML = 'Einstellungen für ' + el.wert.trim();
+		if (sectionIndicator.toUpperCase() == 'H') h4fpHeader.innerHTML = 'Einstellungen für ' + wert.trim();
 		
 		let zwischenüberschrift;
-		if (el.name.includes('Betriebsart') || el.name.includes('Wochenkalender')) zwischenüberschrift = el.name.trim();
-		if (el.name.includes('NennVL')) zwischenüberschrift = 'HK-Temperaturparameter';
-		if (el.name.includes('20 &degC')) zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
-		if (el.sectionIndicator.toUpperCase() == 'S') zwischenüberschrift = el.name;
+		if (name.includes('Betriebsart') || name.includes('Wochenkalender') || name.includes(`Tagbetrieb`)) zwischenüberschrift = name.trim();
+		if (name.includes('NennVL')) zwischenüberschrift = 'HK-Temperaturparameter';
+		if (name.includes('20 &degC')) zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
+		if (sectionIndicator.toUpperCase() == 'S') zwischenüberschrift = name;
 		
 		if (zwischenüberschrift != undefined || fpSection == undefined) {
 			//Beginn neue Section
@@ -611,13 +596,13 @@ function buildFaceplateNEW() {
 		}
 		
 		//FP-Zeile erzeugen
-		if (el.sectionIndicator.toUpperCase() != 'H' && el.wert.trim() != '') createControlGroup(fpSection, el);
+		if (sectionIndicator.toUpperCase() != 'H' && wert.trim() != '') createControlGroup(fpSection, el);
 		
 		/*
-		switch (el.sectionIndicator.toUpperCase()) {
+		switch (sectionIndicator.toUpperCase()) {
 			//FP-Header (1.Zeile)
 			case 'H':
-				fpBezeichnung = el.wert.trim();
+				fpBezeichnung = wert.trim();
 				h4fpHeader.innerHTML = 'Einstellungen für ' + fpBezeichnung;
 				break;
 				
@@ -632,7 +617,7 @@ function buildFaceplateNEW() {
 				//Zwischenüberschrift erzeugen & anhängen
 				var h5fpSection = document.createElement('h5');
 				fpSection.appendChild(h5fpSection)
-				h5fpSection.innerHTML = el.name;
+				h5fpSection.innerHTML = name;
 				
 				break;
 			//Letzte Zeile
@@ -645,7 +630,7 @@ function buildFaceplateNEW() {
 					fpSection.className = 'fpSection';
 				}
 				//normale FP-Erzeugung
-				if (el.wert.trim() != '') createControlGroup(fpSection, el);
+				if (wert.trim() != '') createControlGroup(fpSection, el);
 				break;
 			default:
 				//keine besondere Behandlung
@@ -654,17 +639,20 @@ function buildFaceplateNEW() {
 	});	
 }
 
-function jumpToWochenKalender(event){
+function jumpToWochenKalender(ev){
 	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
 	clearInterval(fernbedienungAutoReload);
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
 	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
 	//var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
-	var sendError = sendDataToRtosNEW(event);
+	const divRtosVar = document.querySelector(`#v${ev.target.idx.toString().padStart(3,'0')}`);
+	divRtosVar.wert = ev.target.wert;
+
+	const sendError = sendDataToRtosNEW(ev);
 	if (!sendError) {
 		showWochenKalenderVisu();
 		activeTabID = 'wochenKalenderImVisu';
-		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50,wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
+		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
 	}
 }
 

@@ -1,3 +1,21 @@
+/*******************24016 JW: cursor appearance start*******************/
+[cursorStyle = "progress"] {
+    cursor: progress;
+}
+[cursorStyle = "wait"] {
+    cursor: wait;
+}
+[cursorStyle = "pointer"] {
+    cursor: pointer;
+}
+[cursorStyle = "grab"] {
+    cursor: grab;
+}
+[cursorStyle = "grabbing"] {
+    cursor: grabbing;
+}
+/*******************24016 JW: cursor appearance end*********************/
+
 h5 {				/*Für Sektorüberschriften Faceplate*/
 	margin: 0px;
 	margin-top: 1vw;/*5px;*/

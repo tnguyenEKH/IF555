@@ -2540,20 +2540,24 @@ function sendValueFromVisuToRtos(option) {
 	}
 }
 
-function sendDataToRtosNEW(event) {
-	if (event == null || event == undefined) return event;
+function sendDataToRtosNEW(ev) {
+	//if (ev == null || ev == undefined) return ev;
 	
-	var btn;
-	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
-	if (btn == null || btn == undefined) return btn;
+	const btn =	((typeof ev) === 'string') ? document.getElementById(ev) : ev.target;
+	//if (btn == null || btn == undefined) return btn;
 	
-	var errorString = '';
+	let errorString = '';
 	
 	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
-	if (btn.id.toUpperCase().includes('CALENDER')) {
-		ClickableElement.forEach(function (el) {
-			if (btn.idx == el.idx) el.wert = el.wert.replace('0', btn.wert);
-		});		
+	if (btn.id === `calenderBtn` || btn.id === `triggerBtnTagbetrieb`) {
+		ClickableElement.forEach(el => {
+			if (btn.idx === el.idx) {
+				console.log(parseInt(el.wert.trim()), parseInt(el.wert));
+				const divRtosVar = document.querySelector(`#v${btn.idx.toString().padStart(3,'0')}`);
+				console.log(divRtosVar, divRtosVar.wert);
+				el.wert = el.wert.replace(parseInt(el.wert).toString(), divRtosVar.wert);
+			}
+		});
 	}
 	else {
 		var rtosVars = Array.from(document.getElementsByClassName('divRtosVar'));
