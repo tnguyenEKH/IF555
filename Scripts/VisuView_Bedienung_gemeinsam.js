@@ -480,8 +480,6 @@ function createControlGroup(el) {
 		//createSlider/Number?
 		default:
 			inpWert.type = 'range';
-
-			console.log(inpWert.value, inpWert.min, inpWert.max, constrain(inpWert.value, inpWert.min, inpWert.max));
 			inpWert.value = constrain(inpWert.wert, inpWert.min, inpWert.max);
 			inpWert.wert = inpWert.value;
 			

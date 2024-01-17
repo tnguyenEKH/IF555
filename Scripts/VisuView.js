@@ -2558,28 +2558,16 @@ function sendDataToRtosNEW(target) {
 		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
 	}
 	else {
-		const rtosVars = Array.from(document.querySelector(`.divRtosVar`));
-		const changedRtosVars = rtosVars.filter(el => el.wert != undefined);
-		
+		const divRtosVars = Array.from(document.querySelectorAll(`.divRtosVar`)).map(el => el.wert);
+		console.log(divRtosVars);
+		console.log(ClickableElement);
+		const changedRtosVars = divRtosVars.filter(el => el.wert != undefined);
+		console.log(changedRtosVars);
 		changedRtosVars.forEach(changedEl => {
 			const foundEl =	ClickableElement.find(el => changedEl.idx === el.idx);
 			const changedVal = parseFloat(changedEl.wert);
 			//console.log(typeof changedEl.wert);
-			if (isNaN(changedVal) || changedEl.wert.toString().trim() == '') {
-				changedEl.style.color = '#C31D64';
-				errorString += `${changedEl.firstElementChild.textContent}: ungültige Zahl!\n`;
-			}
-			else if (changedVal > parseFloat(foundEl.oberGrenze)) {
-				changedEl.style.color = '#C31D64';
-				errorString += `${changedEl.firstElementChild.textContent}: max = ${foundEl.oberGrenze}\n`;
-			}
-			else if (changedVal < parseFloat(foundEl.unterGrenze)) {
-				changedEl.style.color = '#C31D64';
-				errorString += `${changedEl.firstElementChild.textContent}: min = ${foundEl.unterGrenze}\n`;
-			}
-			else {
-				foundEl.wert = changedVal.toFixed(4).padStart(10).padEnd(12);
-			}				
+			//foundEl.wert = changedVal.toFixed(4).padStart(10).padEnd(12);			
 		});
 	}
 	
