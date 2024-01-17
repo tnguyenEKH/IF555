@@ -541,12 +541,12 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					
 				
 				#btnWochenkalender,
-				#calenderBtn{
+				#calenderBtn,
+				#triggerBtnTagbetrieb {
 					height: 24px;
 					width: 205px;
-					/*background-color: #fefefe;*/
 					color: #fefefe;
-					background-color: #1F94B9; /*EKH blau*/
+					background-color: hsl(194, 71%, 42%); /*EKH blau*/
 				}
 
 				.modalVisuBody [type="button"] {
@@ -575,6 +575,10 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					/*border: 3px inset;*/
 					background-color:#C0C0C0; /*#E0E0E0*/
 					border-style: inset;
+				}
+
+				#triggerBtnTagbetrieb .checked {
+					background-color: hsl(194, 71%, 32%); /*EKH blau*/
 				}
 				
 				/*.btnEinChecked,

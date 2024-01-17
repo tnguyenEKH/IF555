@@ -311,7 +311,7 @@ function createControlGroup(el) {
 			btnIncDec.className = `btnIncDec`;
 			btnIncDec.value = el;
 			btnIncDec.wert = Math.pow(10, -nachKommaStellen);
-			btnIncDec.addEventListener(`mousedown`, (ev) => sliderAdjustValueBtnEventHandler(ev));//sliderAdjustValueBtnHandler(ev.target));
+			btnIncDec.addEventListener(`mousedown`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseup`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseout`, sliderAdjustValueBtnEventHandler);
 			if (el === `-`) {
@@ -348,7 +348,8 @@ function createControlGroup(el) {
 			}
 			else if (name.toUpperCase().includes('TAGBETRIEB')) {
 				inpWert.id = `triggerBtnTagbetrieb`;
-				inpWert.classList.add('btnTagbetrieb', 'btnEin');
+				inpWert.value = `Partytaster`;
+				inpWert.classList.add(`btnTagbetrieb`);
 			}
 			//if (wert == inpWert.wert) checkedBtn = inpWert;
 			break;
@@ -552,6 +553,8 @@ function buildFaceplateNEW() {
 			zwischenüberschrift = 'HK-Temperaturparameter';
 		if (name.includes('20 &degC'))
 			zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
+		if (name.includes(`Tagbetrieb`))
+			zwischenüberschrift = `Partytaster`;
 		if (sectionIndicator.toUpperCase() == 'S')
 			zwischenüberschrift = name;
 		
@@ -559,7 +562,7 @@ function buildFaceplateNEW() {
 			//Beginn neue Section
 			//neue Section erzeugen & anhängen
 			fpSection = document.createElement('div');
-			fpBody.appendChild(fpSection);
+			(zwischenüberschrift === `Partytaster`) ? fpBody.insertBefore(fpSection, fpBody.firstElementChild) : fpBody.appendChild(fpSection);
 			fpSection.className = 'fpSection';
 			
 			//Zwischenüberschrift erzeugen & anhängen
