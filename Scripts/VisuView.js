@@ -53,7 +53,7 @@ var match;
 //Einstellungen Visualisierungen
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
-var readParameterOfClickableElementUrl = `${mpcJsonGetUrl}p=5&Var=all`;   /*SettingsFromVisualisierung*/
+var readParameterOfClickableElementUrl = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
@@ -2550,7 +2550,7 @@ function sendDataToRtosNEW(target) {
 	if (id === `calenderBtn` || id === `triggerBtnTagbetrieb`) {
 		const foundEl = ClickableElement.find(el => idx === el.idx);
 		//console.log(parseInt(foundEl.wert.trim()), parseInt(foundEl.wert));
-		const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+		const divRtosVar = target.closest(`.divRtosVar`);
 		//console.log(divRtosVar, divRtosVar.wert);
 		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
 	}

@@ -12,8 +12,8 @@ const menuLink = `${mpcJsonPutUrl}V004=`;
 const TastURL = `${mpcJsonPutUrl}V010=`;
 const textInputUrl = `${mpcJsonPutUrl}V007=`;
 
-const QHDataFile = 'http://172.16.0.101/Data/2001.bin';
-const uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
+const piDataUrl = `http://172.16.0.101/Data/`;
+const uploadSkriptUrl = `${piDataUrl}upload.php`;
 const HASH_FILE = '../SD_DATA/hash.txt';
 
 /********************* Projekt SETTINGS *********************/
@@ -104,12 +104,12 @@ function testRequest(_url, timeoutOnError) {
 }
 
 function init() {
-    document.querySelector(`.loaderIcon`).classList.remove(`loader`);
+  document.querySelector(`.loaderIcon`).classList.remove(`loader`);
 	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
 	/*Initialize layout, static variable....*/	
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
-	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
+	const QHDataFile = `${piDataUrl}${projektNummer.substr(1)}.bin`;
 
 	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
 	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
@@ -1310,7 +1310,7 @@ $(document).keydown(function (event) {
 /*************Hilfsfunktionen------------------*/
 function constrain(_in, _min, _max) {
   const min = Math.min(parseFloat(_min), parseFloat(_max));
-  const max = Math.min(parseFloat(_min), parseFloat(_max));
+  const max = Math.max(parseFloat(_min), parseFloat(_max));
   return Math.max(Math.min(parseFloat(_in), max), min);
 }
 

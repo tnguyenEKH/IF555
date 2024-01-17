@@ -155,29 +155,33 @@ function sliderStyling(target) {
 
 
 function sliderHandler(target) {	//sliderHandler
+	//console.log(target.value);
 	sliderStyling(target);
 	const {idx, min, max} = target;
-	
-	const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
-	
+
+	//const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+	const divRtosVar = target.closest(`.divRtosVar`);
+	//console.log(divRtosVar);
 	//Due to wrapping the slider in a container-div (.divInpWert), the aimed target (.lblUnit) is
 	//actually the parentsNextSibling...
 	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
+	//const lblUnit = target.parentElement.nextElementSibling;
+	//console.log(lblUnit);
 	//const parentsNextSibling = slider.parentElement.nextElementSibling;
 	//console.log(slider, lblUnit);
 	
-	if (max - min == 101 && slider.value <= 0)
-		slider.value = -1;
-	slider.wert = slider.value;
-	divRtosVar.wert = slider.wert;
+	if (max - min == 101 && target.value <= 0)
+		target.value = -1;
+	target.wert = target.value;
+	divRtosVar.wert = target.wert;
 	const btnHand = document.querySelector(`#btnHand${idx}`);
 	if (btnHand)
-		btnHand.wert = slider.wert;
-	lblUnit.wert = slider.wert;
-	lblUnit.value = slider.value;
+		btnHand.wert = target.wert;
+	lblUnit.wert = target.wert;
+	lblUnit.value = target.value;
 	
 	//min <= 0 
-	lblUnit.innerHTML = (max - min == 101 && slider.value <= 0) ? 'Zu' : `${lblUnit.value} ${lblUnit.unit}`;
+	lblUnit.innerHTML = (max - min == 101 && target.value <= 0) ? 'Zu' : `${lblUnit.value} ${lblUnit.unit}`;
 	
 	return lblUnit;
 }
@@ -193,6 +197,7 @@ function sliderAdjustValueBtnHandler(target) {
 }
 
 function radioBtnByNameNEW(target) {
+	//console.log(target);
 	const {idx, name, id} = target;		
 	
 	//var changedBtns = [];
@@ -204,7 +209,8 @@ function radioBtnByNameNEW(target) {
 		const slider = document.querySelector(`#inpWert${idx}`);
 		target.wert = slider.wert;
 	}
-	const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+	//const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+	const divRtosVar = target.closest(`.divRtosVar`);
 	if (id === `triggerBtnTagbetrieb`) {
 		divRtosVar.wert = (target.classList.contains(`checked`)) ? 1 : 0;
 	}
@@ -214,46 +220,33 @@ function radioBtnByNameNEW(target) {
 	if (id === `triggerBtnTagbetrieb`) sendDataToRtosNEW(target);
 }
 
-function toggleSliderAbilityByBtnHandNEW(event) {
-	var btn = event.target;
-	if (btn == null || btn == undefined) return event;
-	
-	var enabled = btn.className.toUpperCase().includes('HAND');
-
-	btn.parentElement.childNodes.forEach(function(el) {
-		if (el.type == 'range') {
-			el.disabled = !enabled;
-			//console.log(el.className);
-			(enabled) ? el.classList.remove('disabled') : el.classList.add('disabled');
-			//console.log(el.className);
+function toggleSliderAbilityByBtnHandNEW(target) {	
+	const enabled = target.className.toUpperCase().includes('HAND');
+	//console.log(target.parentElement.childNodes);
+	const relevantSiblings = Array.from(target.parentElement.childNodes).filter(el => (el.type === `range` || el.classList.contains(`btnIncDec`)));
+	relevantSiblings.forEach(el => {
+		el.disabled = !enabled;
+		if (el.type === `range`) {
+			el.classList.toggle(`disabled`, !enabled);
 			sliderStyling(el);
 		}
-		if (el.className.includes('btnIncDec')) el.disabled = !enabled;
-	});	
-	
+	});
 }
 
 
 
-function updateLblUnit(event) {
-	var btn = event.target;
-	if (btn == null || btn == undefined) return event;
+function updateLblUnit(target) {
+	const divRtosVar = target.closest(`.divRtosVar`);
+	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
 	
-	var lbl = btn.parentElement.nextElementSibling;
-	if (lbl == null || lbl == undefined) return event;
-	
-	if (btn.title.toUpperCase().includes('HAND')) {
-		(lbl.value <= 0) ?  lbl.innerHTML = 'Zu' : lbl.innerHTML = lbl.value + ' ' + lbl.unit;
-	}
-	else {
-		lbl.innerHTML = btn.title;
-	}
+	const targetIsBtnHand = target.title.toUpperCase().includes('HAND');
+	lblUnit.innerHTML = (!targetIsBtnHand) ? target.title : (lblUnit.value <= 0) ? `Zu` : `${lblUnit.value} ${lblUnit.unit}`;
 }
 
 function controlGroupBtnHandlerNEW(target) {
 	radioBtnByNameNEW(target);
-	toggleSliderAbilityByBtnHandNEW(event);
-	updateLblUnit(event);
+	toggleSliderAbilityByBtnHandNEW(target);
+	updateLblUnit(target);
 	//console.log(btn);
 }
 
@@ -313,7 +306,7 @@ function createControlGroup(el) {
 			btnIncDec.className = `btnIncDec`;
 			btnIncDec.value = el;
 			btnIncDec.wert = Math.pow(10, -nachKommaStellen);
-			btnIncDec.addEventListener(`mousedown`, ev => sliderAdjustValueBtnHandler(ev.target));
+			btnIncDec.addEventListener(`mousedown`, (ev) => sliderAdjustValueBtnHandler(ev.target));
 			if (el === `-`) {
 				btnIncDec.wert *= -1;
 				divInpWert.insertBefore(btnIncDec, inpWert);
@@ -327,7 +320,7 @@ function createControlGroup(el) {
 	}
 	
 	//console.log(range);
-	let checkedBtn;
+	//let checkedBtn;
 	switch (range) {			
 		//createTriggerBtn (Einmalig...); radioBtnByNameNEW
 		case 2:
@@ -337,7 +330,7 @@ function createControlGroup(el) {
 			inpWert.name = 'triggerBtn';
 			inpWert.wert = 1;
 			inpWert.title = name.trim();
-			inpWert.addEventListener(`click`, ev => radioBtnByNameNEW(ev.target));
+			inpWert.addEventListener(`click`, (ev) => radioBtnByNameNEW(ev.target));
 			if (name.toUpperCase().includes('AUS')) {
 				inpWert.id = `triggerBtnAus`;
 				inpWert.classList.add('btnAus');
@@ -409,7 +402,7 @@ function createControlGroup(el) {
 				inpWert.title = `Absenkungswochenkalender öffnen${locked ? ' (schreibgeschützt)' : ''}`;
 				//inpWert.title = 'Absenkungswochenkalender öffnen';
 				//if (inpWert.wert == 2) inpWert.title += ' (schreibgeschützt)';
-				inpWert.addEventListener(`click`, ev => jumpToWochenKalender(ev.target));
+				inpWert.addEventListener(`click`, (ev) => jumpToWochenKalender(ev.target));
 			}
 			
 			if (parseFloat(unterGrenze.trim()) == -1) {
@@ -427,9 +420,9 @@ function createControlGroup(el) {
 					inpBtn.classList.add(`btnBA`, `btn${el}`);
 					inpBtn.name = `btnValve${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
 					inpBtn.wert = (elIdx === idArray.length - 1) ? -1 : elIdx;
-					inpBtn.addEventListener(`click`, ev => radioBtnByNameNEW(ev.target));
+					inpBtn.addEventListener(`click`, (ev) => radioBtnByNameNEW(ev.target));
 					if (wert == inpBtn.wert)
-						checkedBtn = inpBtn;
+						divRtosVar.initCheckedBtn = inpBtn;
 				});
 			}
 			break;
@@ -475,13 +468,13 @@ function createControlGroup(el) {
 				inpBtn.id = `btn${id}${idx}`;	//idx nutzen um eindeutige IDs zu erzeugen
 				inpBtn.classList.add(`btnBA`, `btn${id}`);
 				inpBtn.name = `btnBA${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
-				inpBtn.addEventListener(`click`, controlGroupBtnHandlerNEW);
+				inpBtn.addEventListener(`click`, (ev) => controlGroupBtnHandlerNEW(ev.target));
 				if (wert == inpBtn.wert)
-					checkedBtn = inpBtn;
-				//console.log(checkedBtn);
+					divRtosVar.initCheckedBtn = inpBtn;
+				//console.log(divRtosVar.initCheckedBtn);
 			}
-			if (!checkedBtn)
-				checkedBtn = document.querySelector(`#btnHand${idx}`);
+			if (!divRtosVar.initCheckedBtn)
+				divRtosVar.initCheckedBtn = document.querySelector(`#btnHand${idx}`);
 			//hier KEIN break um zusätzlichen slider zu erzeugen!
 			//break;
 		//createSlider/Number?
@@ -489,6 +482,7 @@ function createControlGroup(el) {
 			inpWert.type = 'range';
 
 			inpWert.wert;
+			console.log(inpWert.value, inpWert.min, inpWert.max, constrain(inpWert.value, inpWert.min, inpWert.max));
 			inpWert.value = constrain(inpWert.value, inpWert.min, inpWert.max);
 			inpWert.wert = inpWert.value;
 			
@@ -510,15 +504,32 @@ function createControlGroup(el) {
 	if (lblUnit.innerHTML.includes('undefined'))
 		lblUnit.innerHTML = "";
 	
+	return divRtosVar;
+}
+
+function initControlGroup(divRtosVar) {
+	//console.log(divRtosVar);
+	const {initCheckedBtn} = divRtosVar;
+	const slider = divRtosVar.querySelector(`[type = "range"]`);
+	
 	//targetHandler ausführen um aktuellen Zustand zu Initiieren
-	if (inpWert.type === 'range') {
+	if (slider) {
+		sliderHandler(slider);
+		if (initCheckedBtn)
+			controlGroupBtnHandlerNEW(initCheckedBtn);
+	}
+	else if (initCheckedBtn) {
+		radioBtnByNameNEW(initCheckedBtn);
+	}
+
+	/*if (inpWert.type === 'range') {
 		sliderHandler(inpWert);
 	}
 	
-	if (checkedBtn) {
-		(range > 4) ? controlGroupBtnHandlerNEW(checkedBtn) : radioBtnByNameNEW(checkedBtn);
+	if (initCheckedBtn) {
+		(range > 4) ? controlGroupBtnHandlerNEW(initCheckedBtn) : radioBtnByNameNEW(initCheckedBtn);
 	}
-	return divRtosVar;
+	*/
 }
 
 function buildFaceplateNEW() {
@@ -560,6 +571,7 @@ function buildFaceplateNEW() {
 		if (sectionIndicator.toUpperCase() != 'H' && wert.trim() != '') {
 			const divRtosVar = createControlGroup(el);
 			fpSection.appendChild(divRtosVar);
+			initControlGroup(divRtosVar);
 		}
 	});	
 }
@@ -570,7 +582,7 @@ function jumpToWochenKalender(target){
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
 	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
 	//var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
-	const divRtosVar = document.querySelector(`#v${target.idx.toString().padStart(3,'0')}`);
+	const divRtosVar = target.closest(`.divRtosVar`);
 	divRtosVar.wert = target.wert;
 
 	const sendError = sendDataToRtosNEW(target);
