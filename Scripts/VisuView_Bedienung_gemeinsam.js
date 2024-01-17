@@ -187,8 +187,10 @@ function sliderHandler(target) {	//sliderHandler
 }
 
 function sliderAdjustValueBtnHandler(target) {
-	const slider = (target.classList.contains(`btnDec`)) ? target.nextElementSibling : target.previousElementSibling;
-	//console.log(slider);
+	const slider = Array.from(target.parentElement.childNodes).find(el => (el.type === `range`));
+	
+	//const slider = (target.classList.contains(`btnDec`)) ? target.nextElementSibling : target.previousElementSibling;
+	console.log(slider, target.wert);
 	slider.value = parseFloat(slider.value) + parseFloat(slider.step) * parseFloat(target.wert);
 	//Sonderfall Analogmischer
 	if (slider.unit == '%' && slider.value == 0)
