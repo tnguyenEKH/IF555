@@ -1,13 +1,19 @@
 /********************* URL SETTINGS *********************/
-var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
-var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
-var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V064';
-var getSteuerungNameUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V065';
-var uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
-var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
-var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
-var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
-var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
+const mpcJsonAddUrl = `http://172.16.0.102/JSONADD/`;
+const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
+const mpcJsonPutUrl = `${mpcJsonAddUrl}PUT?`;
+
+const dataUrl = `${mpcJsonGetUrl}p=2&Var=all`;
+const kalenderUrl = `${mpcJsonGetUrl}p=3&Var=all`;
+const benachrichtigungsUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
+const getSteuerungNameUrl = `${mpcJsonGetUrl}p=4&Var=sel&V065`;
+
+const menuLink = `${mpcJsonPutUrl}V004=`;
+const TastURL = `${mpcJsonPutUrl}V010=`;
+const textInputUrl = `${mpcJsonPutUrl}V007=`;
+
+const QHDataFile = 'http://172.16.0.101/Data/2001.bin';
+const uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
 const HASH_FILE = '../SD_DATA/hash.txt';
 
 /********************* Projekt SETTINGS *********************/
@@ -1302,6 +1308,12 @@ $(document).keydown(function (event) {
 
 
 /*************Hilfsfunktionen------------------*/
+function constrain(_in, _min, _max) {
+  const min = Math.min(parseFloat(_min), parseFloat(_max));
+  const max = Math.min(parseFloat(_min), parseFloat(_max));
+  return Math.max(Math.min(parseFloat(_in), max), min);
+}
+
 
 function hideElemementById(id)
 {
