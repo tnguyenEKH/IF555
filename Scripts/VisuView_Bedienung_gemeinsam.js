@@ -157,24 +157,16 @@ function sliderStyling(target) {
 function sliderHandler(target) {	//sliderHandler
 	//console.log(target.value);
 	sliderStyling(target);
-	const {idx, min, max} = target;
+	const {min, max} = target;
 
-	//const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
 	const divRtosVar = target.closest(`.divRtosVar`);
-	//console.log(divRtosVar);
-	//Due to wrapping the slider in a container-div (.divInpWert), the aimed target (.lblUnit) is
-	//actually the parentsNextSibling...
 	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
-	//const lblUnit = target.parentElement.nextElementSibling;
-	//console.log(lblUnit);
-	//const parentsNextSibling = slider.parentElement.nextElementSibling;
-	//console.log(slider, lblUnit);
 	
 	if (max - min == 101 && target.value <= 0)
 		target.value = -1;
 	target.wert = target.value;
 	divRtosVar.wert = target.wert;
-	const btnHand = document.querySelector(`#btnHand${idx}`);
+	const btnHand = divRtosVar.querySelector(`.btnHand`);
 	if (btnHand)
 		btnHand.wert = target.wert;
 	lblUnit.wert = target.wert;
@@ -185,13 +177,24 @@ function sliderHandler(target) {	//sliderHandler
 	
 	return lblUnit;
 }
+function sliderAdjustValueBtnEventHandler(ev) {
+	const {type, target} = ev;
+	//console.log(ev.type);
+	if (type === `mousedown` && !target.timerMousePressed) {
+			target.timerMousePressed = setInterval(sliderAdjustValueBtnHandler, 100, target);
+	}
+	else if (target.timerMousePressed){
+		clearInterval(target.timerMousePressed);
+		target.timerMousePressed = undefined;
+	}
+}
 
 function sliderAdjustValueBtnHandler(target) {
 	const slider = Array.from(target.parentElement.childNodes).find(el => (el.type === `range`));
 	
 	//const slider = (target.classList.contains(`btnDec`)) ? target.nextElementSibling : target.previousElementSibling;
-	console.log(slider, target.wert);
-	slider.value = parseFloat(slider.value) + parseFloat(slider.step) * parseFloat(target.wert);
+	//console.log(slider, target.wert);
+	slider.value = parseFloat(slider.value) + parseFloat(target.wert);
 	//Sonderfall Analogmischer
 	if (slider.unit == '%' && slider.value == 0)
 		slider.value = parseFloat(slider.value) + parseFloat(slider.step);
@@ -308,7 +311,9 @@ function createControlGroup(el) {
 			btnIncDec.className = `btnIncDec`;
 			btnIncDec.value = el;
 			btnIncDec.wert = Math.pow(10, -nachKommaStellen);
-			btnIncDec.addEventListener(`mousedown`, (ev) => sliderAdjustValueBtnHandler(ev.target));
+			btnIncDec.addEventListener(`mousedown`, (ev) => sliderAdjustValueBtnEventHandler(ev));//sliderAdjustValueBtnHandler(ev.target));
+			btnIncDec.addEventListener(`mouseup`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`mouseout`, sliderAdjustValueBtnEventHandler);
 			if (el === `-`) {
 				btnIncDec.wert *= -1;
 				divInpWert.insertBefore(btnIncDec, inpWert);
