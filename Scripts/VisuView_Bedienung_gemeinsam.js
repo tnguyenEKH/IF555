@@ -481,9 +481,8 @@ function createControlGroup(el) {
 		default:
 			inpWert.type = 'range';
 
-			inpWert.wert;
 			console.log(inpWert.value, inpWert.min, inpWert.max, constrain(inpWert.value, inpWert.min, inpWert.max));
-			inpWert.value = constrain(inpWert.value, inpWert.min, inpWert.max);
+			inpWert.value = constrain(inpWert.wert, inpWert.min, inpWert.max);
 			inpWert.wert = inpWert.value;
 			
 			if (inpWert.type == 'number' || inpWert.type == 'text')

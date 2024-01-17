@@ -2541,6 +2541,9 @@ function sendValueFromVisuToRtos(option) {
 	}
 }
 */
+function sendDataToRtosEventHandler(ev) {
+	sendDataToRtosNEW(ev.target);
+}
 
 function sendDataToRtosNEW(target) {	
 	const {id, idx} = target;
