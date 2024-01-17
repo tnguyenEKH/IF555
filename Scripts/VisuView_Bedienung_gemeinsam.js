@@ -469,12 +469,10 @@ function createControlGroup(el) {
 				inpBtn.classList.add(`btnBA`, `btn${id}`);
 				inpBtn.name = `btnBA${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
 				inpBtn.addEventListener(`click`, (ev) => controlGroupBtnHandlerNEW(ev.target));
-				if (wert == inpBtn.wert)
-					divRtosVar.initCheckedBtn = inpBtn;
-				//console.log(divRtosVar.initCheckedBtn);
+				
+				if (wert == inpBtn.wert || (!divRtosVar.initCheckedBtn && id === `Hand`))
+					divRtosVar.initCheckedBtn = inpBtn;	
 			}
-			if (!divRtosVar.initCheckedBtn)
-				divRtosVar.initCheckedBtn = document.querySelector(`#btnHand${idx}`);
 			//hier KEIN break um zusätzlichen slider zu erzeugen!
 			//break;
 		//createSlider/Number?

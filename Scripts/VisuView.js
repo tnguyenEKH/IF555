@@ -2548,7 +2548,6 @@ function sendDataToRtosEventHandler(ev) {
 function sendDataToRtosNEW(target) {	
 	const {id, idx} = target;
 
-	let errorString;
 	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
 	if (id === `calenderBtn` || id === `triggerBtnTagbetrieb`) {
 		const foundEl = ClickableElement.find(el => idx === el.idx);
@@ -2558,34 +2557,24 @@ function sendDataToRtosNEW(target) {
 		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
 	}
 	else {
-		const divRtosVars = Array.from(document.querySelectorAll(`.divRtosVar`)).map(el => el.wert);
-		console.log(divRtosVars);
-		console.log(ClickableElement);
-		const changedRtosVars = divRtosVars.filter(el => el.wert != undefined);
-		console.log(changedRtosVars);
+		const divRtosVar = Array.from(document.querySelectorAll(`.divRtosVar`));
+		const changedRtosVars = divRtosVar.filter(el => el.wert != undefined);
+		
 		changedRtosVars.forEach(changedEl => {
-			const foundEl =	ClickableElement.find(el => changedEl.idx === el.idx);
-			const changedVal = parseFloat(changedEl.wert);
-			//console.log(typeof changedEl.wert);
-			//foundEl.wert = changedVal.toFixed(4).padStart(10).padEnd(12);			
+			const foundEl = ClickableElement.find(el => changedEl.idx == el.idx);
+			foundEl.wert = parseFloat(changedEl.wert).toFixed(4).padStart(10).padEnd(12);
 		});
 	}
 	
-	if (errorString) {
-		alert(errorString);
-	}
-	else {
-		let sendErrors;
-		ClickableElement.forEach(el => {
-			var	rtosVar = '"' + el.name + el.wert + el.oberGrenze + el.unterGrenze + el.nachKommaStellen + el.einheit + el.sectionIndicator + '"';
-			//console.log(rtosVar);
-			var url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
-			var ans = sendData(url);
-			//console.log(url);
-			if (!ans.includes('OK')) sendErrors += ans;
-		});
-		if (sendErrors) console.error(sendErrors);
-	}
+	ClickableElement.forEach(el => {
+		const rtosVar = `"${el.name}${el.wert}${el.oberGrenze}${el.unterGrenze}${el.nachKommaStellen}${el.einheit}${el.sectionIndicator}"`;
+		//console.log(rtosVar);
+		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
+		const ans = sendData(url);
+		//console.log(url);
+		if (!ans.includes('OK'))
+			console.error(ans);
+	}); 
 	
 	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
 }
