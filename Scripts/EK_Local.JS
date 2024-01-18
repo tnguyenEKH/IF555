@@ -80,7 +80,10 @@ function ready(fn) {
   }
 }
 ready(() => {
-  //console.log({QHHeaderFile});
+  //////////////////////addEventListeners//////////////////////
+  document.addEventListener(`keydown`, keydownEventHandler)
+  document.addEventListener(`keypress`, keypressEventHandler)
+
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	testRequest(`./DATA/vierttx.txt`, 5000);
 });
@@ -1252,76 +1255,74 @@ function EthernetButtonHanlder(id) {      /* <<< */
 
 }
 
-/**********Keyboard stroke********/
-$(document).keydown(function (event) {
+//////////////////////EventListeners//////////////////////
+function keypressEventHandler(ev) {
+  //keypressEvent doesn't fire on controlInputs especially arrows, esc & ctrl needed for RTOS; in this cases keydownEventHandler is used!
+    //=>keypress respects keyboardLayout & fires less than keydown, so prefer to use keypress over keydown
+  const {key} = ev;
+  //console.log(key, ev.type, ev);
 
-	//Fernbedienung aktiv	
-	if ((activeTabID == 'fernbedienung') || (activeTabID == 'wochenKalenderImVisu')) {
-		//set focus on "#displayPanel" when a key was pressed. This prevent scroll effect, when the sidebar overflow
-		var displayPanel = document.getElementById('displayPanel');
-		displayPanel.focus();
-		
-		tastascii=0;
-		tastkey = event.key;
-		tastkeylength = tastkey.length;
-		tastcode = event.keyCode;
-		if (tastkeylength < 2) {         /* ein einzelnes Zeichen  */
-			tastascii=tastkey.charCodeAt(0);
-		}
-		else {
-			switch (tastcode) {
-				case 37:  //  LEFT 
-				  tastascii=8;
-				  break;
-				case 38:  //  UP 
-				  tastascii=11;
-				  break;
-				case 39:  //  RIGTH
-				  tastascii=12;
-				  break;
-				case 40:  //  DOWN
-				  tastascii=10;
-				  break;
-				case 13:  //  ENTER
-				  tastascii=13;
-				  break;
+  //Fernbedienung aktiv
+  let charCode;
+  if ((activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi))) {
+    charCode = (key.match(/(enter)/gi)) ? 13 : key.charCodeAt(0);
+  }
+  else if (activeTabID.match(/(datenauswertung)/gi)) {
+    if (key.match(/(enter)/gi))
+      ConfirmModalMenu();			//Enter Handling
+  }
+  
+  //console.log(charCode);
+  if (charCode)
+    sendKeyInputToMPC(charCode);
+}
 
-				case 27:  //  ESC
-				  tastascii=27;
-				  break;
-				case 17:  //  STRG
-				  tastascii=17;
-				  break; 
+function keydownEventHandler(ev) {
+  //keypressEvent doesn't fire on controlInputs especially arrows, esc & ctrl needed for RTOS; in this cases keydownEventHandler is used!
+    //=>keypress respects keyboardLayout & fires less than keydown, so prefer to use keypress over keydown
+  const {key} = ev;
+  //console.log(key, ev.type, ev);
+  
+  //preventScrolling on window overflow!
+  if (key.match(/(arrow)/gi)) {
+    ev.preventDefault();
+  
+  //Fernbedienung aktiv
+  let charCode;
+  if (activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi)) {
+    if (key.match(/(arrowUp)/gi))
+      charCode = 11;        
+    if (key.match(/(arrowDown)/gi))
+      charCode = 10;
+    if (key.match(/(arrowLeft)/gi))
+      charCode = 8;
+    if (key.match(/(arrowRight)/gi))
+      charCode = 12;
+    if (key.match(/(esc)/gi))
+      charCode = 27;
+    if (key.match(/(control)/gi))
+      charCode = 17;
 
-				default:
-			}
-		}
-
-		if (tastascii > 0) {
-			var TastURLId = TastURL + tastascii;
-			var data = getData(TastURLId);
-		}
-		
-		if (zykzaehler > einmalholen) {
-			zykzaehler=einmalholen;
-			tastzaehler=0;
-		}
-		else  {
-			//  zykzaehler=zykzaehler+1;
-			tastzaehler=einmalholen;
-		}
-
-	}
-	if (activeTabID == "datenauswertung") {								//QH-Tab aktiv
-		
-		if (event.key.match(/(enter)/gi)) ConfirmModalMenu();			//Enter Handling	
-		if (event.key.match(/(esc)/gi)) location.href = '#';				//Esc Handling
-	}
-
-});
+    //by Eckhard
+    zykzaehler = Math.min(zykzaehler, einmalholen);
+    tastzaehler = (zykzaehler === einmalholen) ? 0 : einmalholen;    
+  }
+  else if (activeTabID.match(/(datenauswertung)/gi)) {
+    if (key.match(/(esc)/gi))
+      location.href = '#';
+  }
+  
+  //console.log(charCode);
+  if (charCode)
+    sendKeyInputToMPC(charCode);	
+}
+//////////////////////MPC Kommunikation//////////////////////
+function sendKeyInputToMPC(charCode) {
+  return getData(`${TastURL}${charCode}`);
+}
 
 
-/*************Hilfsfunktionen------------------*/
+//////////////////////Hilfsfunktionen//////////////////////
 function constrain(_in, _min, _max) {
   const min = Math.min(parseFloat(_min), parseFloat(_max));
   const max = Math.max(parseFloat(_min), parseFloat(_max));
