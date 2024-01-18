@@ -2576,7 +2576,7 @@ function sendDataToRtosNEW(target) {
 			console.error(ans);
 	}); 
 	
-	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
+	if (id.sectionIndicator.match(/(confirm|send)/gi)) closeFaceplate();
 }
 
 

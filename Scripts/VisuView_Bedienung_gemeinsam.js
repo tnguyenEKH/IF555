@@ -228,7 +228,7 @@ function radioBtnByNameNEW(target) {
 }
 
 function toggleSliderAbilityByBtnHandNEW(target) {	
-	const enabled = target.className.toUpperCase().includes('HAND');
+	const enabled = target.className.match(/(hand)/gi);
 	//console.log(target.parentElement.childNodes);
 	const relevantSiblings = Array.from(target.parentElement.childNodes).filter(el => (el.type === `range` || el.classList.contains(`btnIncDec`)));
 	relevantSiblings.forEach(el => {
@@ -246,7 +246,7 @@ function updateLblUnit(target) {
 	const divRtosVar = target.closest(`.divRtosVar`);
 	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
 	
-	const targetIsBtnHand = target.title.toUpperCase().includes('HAND');
+	const targetIsBtnHand = target.title.match(/(hand)/gi);
 	lblUnit.innerHTML = (!targetIsBtnHand) ? target.title : (lblUnit.value <= 0) ? `Zu` : `${lblUnit.value} ${lblUnit.unit}`;
 }
 
@@ -343,15 +343,15 @@ function createControlGroup(el) {
 			inpWert.wert = 1;
 			inpWert.title = name.trim();
 			inpWert.addEventListener(`click`, (ev) => radioBtnByNameNEW(ev.target));
-			if (name.toUpperCase().includes('AUS')) {
+			if (name.match(/(aus)/gi)) {
 				inpWert.id = `triggerBtnAus`;
 				inpWert.classList.add('btnAus');
 			}
-			else if (name.toUpperCase().includes('EIN')) {
+			else if (name.match(/(ein)/gi)) {
 				inpWert.id = `triggerBtnEin`;
 				inpWert.classList.add('btnEin');
 			}
-			else if (name.toUpperCase().includes('TAGBETRIEB')) {
+			else if (name.match(/(tagbetrieb)/gi)) {
 				inpWert.id = `triggerBtnTagbetrieb`;
 				inpWert.value = `Partytaster`;
 				inpWert.classList.add(`btnTagbetrieb`);
@@ -447,9 +447,8 @@ function createControlGroup(el) {
 			lblName.innerHTML = 'Handwert\n\n' + lblName.innerHTML;
 							
 			const iterations = range - 100 + 1;
-			/*console.log(name.toUpperCase().includes('MISCHER'));*/
-			if (name.toUpperCase().includes('MISCHER') || name.toUpperCase().includes('VENTIL'))
-				iterations = 1;//*/			//SONDERFALL MISCHER!
+			if (name.match(/(mischer|ventil)/gi))
+				iterations = 1;				//SONDERFALL MISCHER!
 			
 			for (let i=0; i<=iterations; i++) {
 				const inpBtn = document.createElement('input');				
@@ -548,7 +547,7 @@ function buildFaceplateNEW() {
 		//console.log(el);
 		const {sectionIndicator, wert, name} = el
 		
-		if (sectionIndicator.toUpperCase() == 'H')
+		if (sectionIndicator.match(/(h)/gi))
 			document.querySelector('#h4FpHeader').innerHTML = 'Einstellungen für ' + wert.trim();
 		
 		let zwischenüberschrift;
@@ -560,7 +559,7 @@ function buildFaceplateNEW() {
 			zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
 		if (name.includes(`Tagbetrieb`))
 			zwischenüberschrift = `Partytaster`;
-		if (sectionIndicator.toUpperCase() == 'S')
+			if (sectionIndicator.match(/(s)/gi))
 			zwischenüberschrift = name;
 		
 		if (zwischenüberschrift || !fpSection) {
@@ -578,7 +577,7 @@ function buildFaceplateNEW() {
 		}
 		
 		//FP-Zeile erzeugen
-		if (sectionIndicator.toUpperCase() != 'H' && wert.trim() != '') {
+		if (!sectionIndicator.match(/(h)/gi) && wert.trim() != '') {
 			const divRtosVar = createControlGroup(el);
 			fpSection.appendChild(divRtosVar);
 			initControlGroup(divRtosVar);
