@@ -179,8 +179,10 @@ function sliderHandler(target) {	//sliderHandler
 }
 function sliderAdjustValueBtnEventHandler(ev) {
 	const {type, target} = ev;
-	//console.log(ev.type);
-	if (type === `mousedown` && !target.timerMousePressed) {
+	console.log(ev.type);
+	if (type.match(/(touchstart)/))
+		ev.preventDefault();
+	if (!target.timerMousePressed && type.match(/(mousedown|touchstart)/)) {
 			target.timerMousePressed = setInterval(sliderAdjustValueBtnHandler, 100, target);
 	}
 	else if (target.timerMousePressed){
@@ -314,6 +316,9 @@ function createControlGroup(el) {
 			btnIncDec.addEventListener(`mousedown`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseup`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseout`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchstart`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchend`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchcancel`, sliderAdjustValueBtnEventHandler);
 			if (el === `-`) {
 				btnIncDec.wert *= -1;
 				divInpWert.insertBefore(btnIncDec, inpWert);
