@@ -295,7 +295,7 @@ function createControlGroup(el) {
 	inpWert.min = inpWert.unterGrenze;
 	inpWert.minColor = '#1F94B9';
 	inpWert.max = inpWert.oberGrenze;
-	if (inpWert.unit.includes('&deg') || lblName.innerHTML.includes('Kessel') || lblName.innerHTML.includes('BHKW')) {
+	if (inpWert.unit.match(/(&deg)/gi) || lblName.innerHTML.match(/(kessel|bhkw)/gi)) {
 		inpWert.maxColor = '#C31D64';
 	}
 	else {
@@ -551,15 +551,15 @@ function buildFaceplateNEW() {
 			document.querySelector('#h4FpHeader').innerHTML = 'Einstellungen für ' + wert.trim();
 		
 		let zwischenüberschrift;
-		if (name.includes('Betriebsart') || name.includes('Wochenkalender') || name.includes(`Tagbetrieb`))
+		if (name.match(/(betriebsart|wochenkalender)/gi))
 			zwischenüberschrift = name.trim();
-		if (name.includes('NennVL'))
+		if (name.match(/(nennVL)/gi))
 			zwischenüberschrift = 'HK-Temperaturparameter';
-		if (name.includes('20 &degC'))
+		if (name.match(/(20 &degC)/gi))
 			zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
-		if (name.includes(`Tagbetrieb`))
+		if (name.match(/(tagbetrieb)/gi))
 			zwischenüberschrift = `Partytaster`;
-			if (sectionIndicator.match(/(s)/gi))
+		if (sectionIndicator.match(/(s)/gi))
 			zwischenüberschrift = name;
 		
 		if (zwischenüberschrift || !fpSection) {

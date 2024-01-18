@@ -2324,9 +2324,9 @@ window.onclick = function(event) {
   var modals = Array.from(document.getElementsByClassName("modalVisuBg"));
   modals.forEach(function(el) {
     if (el == event.target) {
-		if (el.id.includes('fp')) closeFaceplate();
-		if (el.id.includes('Pin')) closePinModal();
-		if (el.id.includes('Kalender')) closeModalWochenKalenderImVisu();
+		if (el.id.match(/(fp)/gi)) closeFaceplate();
+		if (el.id.match(/(pin)/gi)) closePinModal();
+		if (el.id.match(/(kalender)/gi)) closeModalWochenKalenderImVisu();
 	}
   });
 }
@@ -2423,124 +2423,6 @@ function sleep(miliseconds) {
    }
 }
 
-/*
-function sendValueFromVisuToRtos(option) {
-	var sendBackToRtosUrlList = [];
-	var faceplateBody = document.getElementById('fpBody');
-	var faceplateBodyList = Array.from(faceplateBody.children);
-	faceplateBodyList.forEach(el => el.childNodes.forEach(function (ele) {
-		if (ele.id.includes('v')) console.log(ele);
-		
-	}));	
-		
-	console.log(faceplateBodyList);
-	var errorString = '';
-	
-	//normale Zurückübertragen mit Validierung der Eingabe; undefined kommt aus der onlickevent des html button (index.html)
-	if (option == undefined) {	
-		faceplateBodyList.forEach(function(div) {
-			var idx = parseInt(div.id.slice(-3)) - 90;
-			div.childNodes.forEach(function(el) {
-				if (el.className == 'inputWert') {//el.id.includes('inputWert')) {
-					if (idx == 0) {
-						ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
-					}
-					else {					
-						//Numerische Validierung
-						var value = parseFloat(el.value);
-						if (!isNaN(value) && el.value.trim() != '') {		//Wenn nicht leer und Fehlerfrei: neuen rtos-Wert prüfen & überschreiben
-							//Wertebereich prüfen und ggf. korrigieren
-							var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
-							var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
-							
-							el.style.color = 'black';
-							el.previousSibling.style.color = 'black';
-							el.nextSibling.style.color = 'black';
-								
-							if (value < unterGrenze){
-								errorString += el.previousSibling.textContent + ': ' + 'min = ' + unterGrenze + '\n';
-								el.style.color = '#C31D64';
-								el.previousSibling.style.color = '#C31D64';
-								el.nextSibling.style.color = '#C31D64';
-								//el.value = unterGrenze.toString();
-							}
-							if (value > oberGrenze){
-								errorString += el.previousSibling.textContent + ': ' + 'max = ' + oberGrenze + '\n';
-								el.style.color = '#C31D64';
-								el.previousSibling.style.color = '#C31D64';
-								el.nextSibling.style.color = '#C31D64';
-								//el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
-							}
-							
-							var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
-							ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
-							if (returnValue.length > 1) {
-								ClickableElement[idx].wert += returnValue[1].padEnd(4, '0').slice(0, 4);
-							}
-							else {
-								ClickableElement[idx].wert += '0000';
-							}
-						}
-						else {	//isNaN || empty
-							el.style.color = '#C31D64';
-							if (el.previousSibling != null) el.previousSibling.style.color = '#C31D64';
-							if (el.nextSibling != null) el.nextSibling.style.color = '#C31D64';
-							if (el.previousSibling != null) errorString += el.previousSibling.textContent + ': ';
-							errorString += 'ungültige Zahl!' + '\n';
-						}
-					}
-				}
-			});
-		});
-	}
-	//Wenn "Zum Wochekalender" -> Wert "HK Wochenkalender" auf 1 umstellen und weitere Daten unverändert zurückübertragen
-	else { //if (option == 'openHKWochenKalender' || option == 'closeHKWochenKalender') {
-		ClickableElement.forEach(function(el) {
-			//console.log(el.name.trim());
-			if (el.name.includes('Wochenk')) {
-				//console.log('+' + el.wert + '+');
-				//Kalender mit Schreibrechten öffnen
-				if (option == 'openHKWochenKalender' && !locked) el.wert = el.wert.replace('0', '1');
-				//Kalender OHNE Schreibrechte öffnen
-				if (option == 'openHKWochenKalender' && locked) el.wert = el.wert.replace('0', '2');
-				//if (option == 'closeHKWochenKalender') el.wert = el.wert.replace('1', '0');
-				//console.log('+' + el.wert + '+');
-			}
-		});
-	}
-	if(errorString == ''){
-		//erzeugt Linkliste
-		for (var i=0; i<20 ; i++) {
-			var sendBackData = '';
-			var link = ''
-			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
-			//1.Zeile auffüllen auf 60 Zeichen
-			if (i == 0) {
-				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
-				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
-				sendBackToRtosUrlList.push(link);
-			}
-			else {		
-				sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].sectionIndicator;
-				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
-				sendBackToRtosUrlList.push(link);
-			}
-		}
-		//Linkliste an Rtos senden
-		for (var j=0; j<sendBackToRtosUrlList.length; j++){
-			sendData(sendBackToRtosUrlList[j]);
-			//console.log(sendBackToRtosUrlList[j]);
-		}
-		if (option == undefined) closeFaceplate();
-		return 0;
-	}
-	else{
-		alert(errorString);
-		return -100;
-	}
-}
-*/
 function sendDataToRtosEventHandler(ev) {
 	sendDataToRtosNEW(ev.target);
 }
@@ -2572,7 +2454,7 @@ function sendDataToRtosNEW(target) {
 		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
 		const ans = sendData(url);
 		//console.log(url);
-		if (!ans.includes('OK'))
+		if (!ans.match(/(OK)/gi))
 			console.error(ans);
 	}); 
 	
@@ -2581,7 +2463,7 @@ function sendDataToRtosNEW(target) {
 
 
 function showOSK(event) {
-	if (event.target.id.includes('inputWert')) showElemementById('osk');	
+	if (event.target.id.match(/(inputWert)/gi)) showElemementById('osk');	
 }
 
 function showFaceplate(matchItem) {

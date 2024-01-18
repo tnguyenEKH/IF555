@@ -1314,8 +1314,8 @@ $(document).keydown(function (event) {
 	}
 	if (activeTabID == "datenauswertung") {								//QH-Tab aktiv
 		
-		if (event.key.includes('Enter')) ConfirmModalMenu();			//Enter Handling	
-		if (event.key.includes('Esc')) location.href = '#';				//Esc Handling
+		if (event.key.match(/(enter)/gi)) ConfirmModalMenu();			//Enter Handling	
+		if (event.key.match(/(esc)/gi)) location.href = '#';				//Esc Handling
 	}
 
 });
