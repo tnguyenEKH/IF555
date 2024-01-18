@@ -548,6 +548,9 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					color: #fefefe;
 					background-color: hsl(194, 71%, 42%); /*EKH blau*/
 				}
+				#triggerBtnTagbetrieb.checked {
+					background-color: hsl(194, 71%, 32%); /*EKH blau*/
+				}
 
 				.modalVisuBody [type="button"] {
 					height: 50px;
@@ -575,10 +578,6 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					/*border: 3px inset;*/
 					background-color:#C0C0C0; /*#E0E0E0*/
 					border-style: inset;
-				}
-
-				#triggerBtnTagbetrieb .checked {
-					background-color: hsl(194, 71%, 32%); /*EKH blau*/
 				}
 				
 				/*.btnEinChecked,
