@@ -1284,7 +1284,7 @@ function keydownEventHandler(ev) {
   //console.log(key, ev.type, ev);
   
   //preventScrolling on window overflow!
-  if (key.match(/(arrow)/gi)) {
+  if (key.match(/(arrow)/gi))
     ev.preventDefault();
   
   //Fernbedienung aktiv
@@ -1367,6 +1367,6 @@ function b32(n) {
 //string.replace does not work with the week-year calendar. Because the data contain only 1 and 0. The built-in function won't work
 // we need a new replace function, where we can replace a character at particular postion. 
 //Another point, in Javascript are string immutable, we can't change it "on the go". Best practices is create a new string and assign the changed content to it.
-String.prototype.replaceAt = function(startIndex, replacement, numberOfCharacter){
+String.prototype.replaceAt = function(startIndex, replacement, numberOfCharacter) {
   return this.substr(0, startIndex) + replacement + this.substr(startIndex + numberOfCharacter);
 }
