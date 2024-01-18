@@ -282,7 +282,7 @@ function createControlGroup(el) {
 	const range = (parseFloat(oberGrenze.trim()) - parseFloat(unterGrenze.trim()) + 1) * Math.pow(10, nachKommaStellen);
 	
 	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
-	//if (range <= 4 && !name.includes('kalender')) lblName.innerHTML = '\n' + lblName.innerHTML;
+	if (range <= 4 && !name.match(/(kalender|tagbetrieb)/gi)) lblName.innerHTML = '\n' + lblName.innerHTML;
 	
 	const inpWert = document.createElement('input');				
 	divInpWert.appendChild(inpWert);
