@@ -66,11 +66,25 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 
 
 
-$(document).ready(function () {
+/*$(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	testRequest(`./DATA/vierttx.txt`, 5000);
+});*/
+//VanillaJS
+function ready(fn) {
+  if (document.readyState !== 'loading') {
+    fn();
+  } else {
+    document.addEventListener('DOMContentLoaded', fn);
+  }
+}
+ready(() => {
+  //console.log({QHHeaderFile});
+	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
+	testRequest(`./DATA/vierttx.txt`, 5000);
 });
+
 
 /****test****/
 function testRequest(_url, timeoutOnError) {
