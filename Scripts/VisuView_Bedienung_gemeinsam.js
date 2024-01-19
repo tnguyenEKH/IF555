@@ -179,7 +179,7 @@ function sliderHandler(target) {	//sliderHandler
 }
 function sliderAdjustValueBtnEventHandler(ev) {
 	const {type, target} = ev;
-	console.log(ev.type);
+	//console.log(ev.type);
 	if (type.match(/(touchstart)/))
 		ev.preventDefault();
 	if (!target.timerMousePressed && type.match(/(mousedown|touchstart)/)) {

@@ -6,7 +6,6 @@
     var Steuerung = "";
     var canvas;
     var qctx;
-    var canvasOffset;
     var offsetX;
     var offsetY;
 
@@ -75,9 +74,9 @@ function startQH() {
         canvas.height =630;
         qctx = canvas.getContext('2d');
         qctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvasOffset = $("#myqCanvas").offset();
-        offsetX = canvasOffset.left;
-        offsetY = canvasOffset.top;
+        //canvasOffset = document.querySelector("#myqCanvas").offset();
+        //offsetX = canvasOffset.left;
+        //offsetY = canvasOffset.top;
 
         diagramHeader = loadHeader(QHHeaderFile);
         diagramData = loadData();
@@ -97,7 +96,7 @@ function startQH() {
         //sLastUpdate = dLastUpdate.getDate() + "." + (dLastUpdate.getMonth() + 1) + "." + dLastUpdate.getFullYear();
         //sLastUpdate += " " + dLastUpdate.getHours() + ":" + dLastUpdate.getMinutes() + " Uhr";
 
-        //$("#LabelQHInfo").text("Letzte Aktualisierung: " + sLastUpdate);
+        //document.querySelector("#LabelQHInfo").text("Letzte Aktualisierung: " + sLastUpdate);
 
         InitSettings();
         drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
@@ -184,7 +183,7 @@ function getUserSettings() {
     var res;
     try
     {
-		var Settings = $.parseJSON(readFromTextFile(QHSettingFile));
+		var Settings = JSON.parse(readFromTextFile(QHSettingFile));
 		UserSettings = Settings.UserSettingsObject.UserSettings;
     }
     
@@ -325,7 +324,7 @@ function drawData() {
     for (var j = 0; j < nSpuren; j++) {
 		var spurindex = Spuren[j].index;
 		var isEnabled = Spuren[j].enabled;
-		//var isEnabled = $('#' + "enableTrack_" + spurindex).prop("checked");
+		//var isEnabled = document.querySelector('#' + "enableTrack_" + spurindex).prop("checked");
         var arrDaten = [];
         for (var i = 0; i < nValues; i++) {
             try {
@@ -346,8 +345,8 @@ function drawData() {
 			qctx.fillStyle = Spuren[j].color; 
 			
 
-			//var isLeft = $('#' + "cbSettingsL_" + j).prop("checked");
-			var isLeft = $('#' + "cbSettingsL_" + spurindex).prop("checked");
+			//var isLeft = document.querySelector('#' + "cbSettingsL_" + j).prop("checked");
+			var isLeft = document.querySelector(`#cbSettingsL_${spurindex}`).checked;
 			for (var i = 0; i < nValues; i++) {
 				if (i >=1) {
 					var gXprev = xd + ((i - 1) * didx + 1) * stepX;
@@ -543,9 +542,9 @@ function sortDescending(prop, Items) {
 function SettingsColorHandler(id) {
     inColorMenue = true;
     TrackInEdit = parseInt(id.substring(8));
-    $("#ModalMenuTitle").text("Farbe auswählen");
-    $("#ModalMenuContent").empty();
-    $("#LabelConfirm").text("Entfernen");
+    document.querySelector("#ModalMenuTitle").textContent = "Farbe auswählen";
+    document.querySelector("#ModalMenuContent").replaceChildren();
+    document.querySelector("#LabelConfirm").textContent = "Entfernen";
     var cont = '<div style="float:left;">';
     var i = 0;
 	//console.log(defaultColors);
@@ -555,7 +554,7 @@ function SettingsColorHandler(id) {
         cont += '<div id="col_' + i + '" style="background-color: ' + color + '; width: 28px; height:28px; float:left;" onclick="ColorSelectionHandler(id)">&nbsp</div>';
     }
     cont += '</div></br>';
-    $("#ModalMenuContent").append(cont);
+    document.querySelector("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 
 }
@@ -578,7 +577,7 @@ function ColorSelectionHandler(id) {
     else {
         const Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
         //var nSpuren = UserSettings.qh_Spuren.length;
-        const itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
+        const itemsFound = Spuren.filter(el => el.index === TrackInEdit);
         if (itemsFound.length > 0) {
             //var SpurIndex = 1;
             const item = itemsFound[0];
@@ -588,7 +587,7 @@ function ColorSelectionHandler(id) {
             UserSettings.qh_Spuren[idx].color = sCol;
         }
         else {
-            const isLeft = $(`#cbSettingsL_${TrackInEdit}`).prop("checked");
+            const isLeft = document.querySelector(`#cbSettingsL_${TrackInEdit}`).prop("checked");
             const itm = { bSkala_Links: isLeft, color: sCol, index: TrackInEdit, enabled: true }; //Wenn Spur in Settings ergänzt wird -> enabled setzen!
             UserSettings.qh_Spuren.push(itm);
             UserSettings.qh_Spuren = sortAscending(UserSettings.qh_Spuren.index, UserSettings.qh_Spuren);
@@ -619,7 +618,7 @@ function ConfirmColorMenu() {
     // Color-Eintrag entfernen
     inColorMenue = false;
     var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
-    var itemsFound = $.grep(Spuren, function (e) { return e.index == TrackInEdit; });
+    var itemsFound = Spuren.filter(el => el.index === TrackInEdit);
     if (itemsFound.length > 0) {
         var idx = UserSettings.qh_Spuren.indexOf(itemsFound[0]);
         UserSettings.qh_Spuren.splice(idx, 1);
@@ -632,13 +631,13 @@ function ConfirmColorMenu() {
 }
 
 
-function enableDisableTrack(id) {	
-	var checked = $('#' + id).prop("checked");
-	var idx = id.substr(id.indexOf('_') + 1);
-	var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
-	var itemsFound = $.grep(Spuren, function (e) { return e.index == idx; });
-    if (itemsFound.length > 0) {
-        itemsFound[0].enabled = checked;
+function enableDisableTrack(target) {
+    const {id} = target;
+    const idx = parseInt(id.match(/\d+/));
+	
+	const foundItem = UserSettings.qh_Spuren.find(el => el.index === idx);
+    if (foundItem) {
+        foundItem.enabled = target.checked;
 		InitSettings();
 		drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
 		drawData();
@@ -646,8 +645,9 @@ function enableDisableTrack(id) {
 }
 
 
-function SettingsLeftRightHandler(id) {
-    var checked = $('#' + id).prop("checked");
+function SettingsLeftRightHandler(target) {
+    const {id} = target;
+    var checked = document.querySelector('#' + id).checked;
     var theOther = id;
     var iTrack = id.substring(id.indexOf("_") + 1);
     var idx = theOther.indexOf("L");
@@ -655,7 +655,7 @@ function SettingsLeftRightHandler(id) {
         theOther = theOther.replace('L', 'R');
     else
         theOther = theOther.replace('R', 'L');
-    $('#' + theOther).prop("checked", !checked);
+    document.querySelector('#' + theOther).checked = !checked;
     if (idx >= 0)
         setScaleSelection(iTrack, true);
     else
@@ -664,7 +664,7 @@ function SettingsLeftRightHandler(id) {
 
 function setScaleSelection(idx, bLeft) {
     var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
-    var itemsFound = $.grep(Spuren, function (e) { return e.index == idx; });
+    var itemsFound = Spuren.filter(el => el.index === idx);
     if (itemsFound.length > 0) {
         itemsFound[0].bSkala_Links = bLeft;
         InitSettings();
@@ -675,19 +675,79 @@ function setScaleSelection(idx, bLeft) {
 }
 
 function createSettingsItem(id, enable, color, text, left, avg, sum) {
-	var res = '<div class="QHdivTrack">';// style="float:left; height:14px">';
+	/*
 	var cb1val = left ? "checked" : "";
 	var cb2val = left ? "" : "checked";
 	var enableVal = enable ? "checked" : "";
 	
-	/*
 				<label id="lblHidePin">Hide Pin
 					<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
 					<span class="checkmark"></span>
 				 </label>
 	
-	*/
-	
+    */
+
+    const container = document.createElement(`div`);
+    container.classList.add(`QHdivTrack`);
+        const divVisibility = document.createElement(`div`);
+        container.appendChild(divVisibility);
+        divVisibility.id = `trackVisibleSettings`;
+            const label = document.createElement(`label`);
+            divVisibility.appendChild(label);
+            label.classList.add(`lblcb`);
+                const input = document.createElement(`input`);
+                input.type = `checkbox`;
+                label.appendChild(input);
+                input.id = `enableTrack_${id}`;
+                input.classList.add(`QHcheckbox`);
+                input.checked = enable;
+                input.addEventListener(`change`, ev => enableDisableTrack(ev.target));
+
+                const span = document.createElement(`span`);
+                label.appendChild(span);
+                span.classList.add(`checkmark`);
+        
+        const inpColor = document.createElement(`input`);
+        inpColor.type = `color`;
+        inpColor.value = `#FFFFFF`;
+        container.appendChild(inpColor);
+        inpColor.addEventListener(`change`, ev => colorPickerHandler(ev.target));
+
+        const divColor = document.createElement(`div`);
+        container.appendChild(divColor);
+        divColor.id = `colpick_${id}`;
+        divColor.classList.add(`colpick`);
+        divColor.style.backgroundColor = color;
+        divColor.addEventListener(`click`, ev => SettingsColorHandler(ev.target));
+
+        const divText = document.createElement(`div`);
+        container.appendChild(divText);
+        divText.classList.add(`SettingsText`);
+        divText.innerText = text;
+
+        const divScaleCb = document.createElement(`div`);
+        container.appendChild(divScaleCb);
+        divScaleCb.classList.add(`QHdivCBscale`);
+        for(let i = 1; i <= 2; i++) {
+            const lblcb = document.createElement(`label`);
+            divScaleCb.appendChild(lblcb);
+            lblcb.classList.add(`lblcb`);
+                const cb = document.createElement(`input`);
+                cb.type = `checkbox`;
+                lblcb.appendChild(cb);
+                cb.id = `cbSettings${(i === 1) ? 'L' : 'R'}_${id}`;
+                cb.classList.add(`QHcheckbox`);
+                cb.checked = (i === 1) ? left : !left;
+                cb.addEventListener(`change`, ev => SettingsLeftRightHandler(ev.target));
+
+                const spanCheckmark = document.createElement(`span`);
+                lblcb.appendChild(spanCheckmark);
+                spanCheckmark.classList.add(`checkmark`);
+        }             
+    
+    return container;
+                
+
 	res += '<div id="trackVisibleSettings" class="">';// style="float: left; height: 14px; font-size: 1vh">'
 	res += '<label class="lblcb">';
 	res += '<input id="enableTrack_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
@@ -711,7 +771,7 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
 
 	res += '</div></br>';
 	
-	return res;
+    return res;
 }
 
 var defaultColors =
@@ -743,28 +803,21 @@ var defaultColors =
 ];*/
 
 function InitSettings() {
-    var x = diagramData;
-    var Spuren = UserSettings.qh_Spuren; // bSkala_Links, color, index, enabled
-    var nSpuren = UserSettings.qh_Spuren.length;
-    $("#qSettings").empty();
-    var SettingsContent = "";
-    var n = diagramHeader.length;
-    for (var i = 0; i < n; i++) {
-        var itemsFound = $.grep(Spuren, function (e) { return e.index == i; });
-        if (itemsFound.length > 0) {
-            SettingsContent += createSettingsItem(i, itemsFound[0].enabled, itemsFound[0].color, diagramHeader[i].Bezeichnung.trim()
-                + " [" + diagramHeader[i].Einheit + "]", itemsFound[0].bSkala_Links, 0, 0);
+    const qSettings = document.querySelector("#qSettings");
+    qSettings.replaceChildren();
+    
+    const div = document.createElement(`div`);
+    qSettings.appendChild(div);
+  
+    diagramHeader.forEach((el, i) => {
+        const foundItem = UserSettings.qh_Spuren.find(spur => spur.index === i);
+        if (foundItem) {
+            div.appendChild(createSettingsItem(i, foundItem.enabled, foundItem.color, `${el.Bezeichnung.trim()} [${el.Einheit}]`, foundItem.bSkala_Links, 0, 0));
         }
         else {
-            SettingsContent += createSettingsItem(i, false, "white", diagramHeader[i].Bezeichnung.trim()
-                + " [" + diagramHeader[i].Einheit + "]", true, 0, 0);
+            div.appendChild(createSettingsItem(i, false, "white", `${el.Bezeichnung.trim()} [${el.Einheit}]`, true, 0, 0));
         }
-
-    }
-
-    SettingsContent = "<div>" + SettingsContent + "</div>";
-    $("#qSettings").append(SettingsContent);
-    //$(".insideWrapper").css("background-color", bgColors[bmpIndex]);
+    });
 }
 
 
@@ -1192,11 +1245,24 @@ function saveTrackSelection() {
 
 }
 
-function launchYScaleMenue() {
+/*function launchYScaleMenue() {
     inScaleMenue = true;
-    $("#ModalMenuTitle").text("Y-Skalierung bearbeiten");
-    $("#ModalMenuContent").empty();
-    $("#LabelConfirm").text("Ok");
+    document.querySelector("#ModalMenuTitle").textContent = "Y-Skalierung bearbeiten";
+    document.querySelector("#ModalMenuContent").replaceChildren();
+    document.querySelector("#LabelConfirm").textContent = "Ok";
+    
+    const div = document.createElement(`div`);
+
+    const p = document.createElement(`p`);
+    div.appendChild(p);
+    p.textContent = `Y-Links Max`;
+
+    const input = document.createElement(`input`);
+    div.appendChild(input);
+    input.id = 
+    
+
+
     var cont = '<div>';
     cont += '<p>Y-Links Max</p>';
     cont += '<input id="inpYLMax" type=text value = "' + YLMax + '"></br>';
@@ -1209,7 +1275,7 @@ function launchYScaleMenue() {
     cont += '<p>Y-Rechts Schrittweite</p>';
     cont += '<input id="inpYRStep" type=text value = "' + YRStep + '"</br>';
     cont += '</div></br>';
-    $("#ModalMenuContent").append(cont);
+    document.querySelector("#ModalMenuContent").append(cont);
     location.href = "#ModalMenu";
 	
 	var osk = showElemementById('osk');
@@ -1218,12 +1284,12 @@ function launchYScaleMenue() {
 	osk.style.top = modal.offsetTop + modal.offsetHeight + 40 + 'px';
 	
 	//Set Focus to End of first Inputfield of ScaleMenue
-	var focusedInput = $('#inpYLMax');
+	var focusedInput = document.querySelector('#inpYLMax');
 	var strLength = focusedInput.val().length * 2;
 
 	focusedInput.focus();
 	focusedInput[0].setSelectionRange(strLength, strLength);
-}
+}*/
 
 function isValidFloat(fString) {
     var f = parseFloat(fString);
@@ -1231,11 +1297,11 @@ function isValidFloat(fString) {
 }
 
 function YScaleMenuConfirm() {
-    var sf = $("#inpYLMax").val().trim().replace(",", "."); var fYLMax = parseFloat(sf);
-    sf = $("#inpYLMin").val().trim().replace(",", "."); var fYLMin = parseFloat(sf);
-    sf = $("#inpYLStep").val().trim().replace(",", "."); var fYLStep = parseFloat(sf);
-    sf = $("#inpYRMax").val().trim().replace(",", "."); var fYRMax = parseFloat(sf);
-    sf = $("#inpYRStep").val().trim().replace(",", "."); var fYRStep = parseFloat(sf);
+    var sf = document.querySelector("#inpYLMax").val().trim().replace(",", "."); var fYLMax = parseFloat(sf);
+    sf = document.querySelector("#inpYLMin").val().trim().replace(",", "."); var fYLMin = parseFloat(sf);
+    sf = document.querySelector("#inpYLStep").val().trim().replace(",", "."); var fYLStep = parseFloat(sf);
+    sf = document.querySelector("#inpYRMax").val().trim().replace(",", "."); var fYRMax = parseFloat(sf);
+    sf = document.querySelector("#inpYRStep").val().trim().replace(",", "."); var fYRStep = parseFloat(sf);
 
     if (!isNaN(fYLMax) & !isNaN(fYLMin) & !isNaN(fYLStep) & !isNaN(fYRMax) & !isNaN(fYRStep)) {
         YLMax = fYLMax;
@@ -1425,7 +1491,7 @@ function ButtonHandler(id) {
         diagramZeitraum = "y";
 
     if (id == "cbForceQH") {
-        var checked = $('#cbForceQH').prop('checked');
+        var checked = document.querySelector('#cbForceQH').checked;
         diagramForceQH = checked;
     }
 
@@ -1434,7 +1500,7 @@ function ButtonHandler(id) {
     }
 
     if (id == "btnYScale") {
-        launchYScaleMenue();
+        //launchYScaleMenue();
     }
 
     if (id.includes("btnDauerlinie")) {
@@ -1547,4 +1613,9 @@ function DatenHolen() {
 	} while (!error && (date.d != lastQHDatum[0] || date.m != lastQHDatum[1] || date.y != lastQHDatum[2])); 
 	if (error) alert('inkonsitente Daten!');
 	return updated;
+}
+
+//////////////////////EventListeners//////////////////////
+function colorPickerHandler(target) {
+    console.log(target.value);
 }

@@ -433,14 +433,14 @@ function initCanvas(canvasName, canvasContext){
 		}
 	  }
 	  if (stat1 == '1') {
-	    $('#DisplayCanvas').css('cursor', 'default');
+	    document.querySelector('#DisplayCanvas').style.cursor = 'default';
 		var x = evt.clientX - rect.left;
 		var y = 8 + evt.clientY - rect.top;
 		var xr = Math.round(x / 16)   //   /16 Zeichenbreite (spalte column)
 		var yr = Math.round(y / 30)   //   /30 Zeilenhoehe (zeile row)
 		for (var i = 0; i < ASCII127PositionCurrentPage.length; i++) {
 				if ((yr == ASCII127PositionCurrentPage[i].row) && (x < 530)) {
-					$('#DisplayCanvas').css('cursor', 'pointer');
+					document.querySelector('#DisplayCanvas').style.cursor = 'pointer';
 				}
 			}
 		}

@@ -17,7 +17,6 @@ var visudata;
 var bmpIndex = 0;
 var VisuDownload = {};
 var LinkButtonList = [];
-var canvasOffset;
 var canvasOffsetX;
 var canvasOffsetY;
 var requestDrawingFlag = false;
@@ -130,14 +129,14 @@ function initVisu()
 	vtipCanvas.style.left = "-2000px";
 	tipvctx = vtipCanvas.getContext("2d");
 
-	canvasOffset = $("body").offset(); //$("vinsideWrapper").offset();
-	canvasOffsetX = canvasOffset.left;
-	canvasOffsetY = canvasOffset.top + $(".tab").height() + 2 * parseInt($(".tab").css('border-bottom-width')) + parseInt($(".tab").css('margin-bottom'));	// + $(".tab").marginBottom;
+	canvasOffsetX = document.body.offsetLeft;
+	const tab = document.querySelector(".tab");
+	canvasOffsetY = document.body.offsetTop + tab.clientHeight + 2 * parseInt(getComputedStyle(tab)['border-bottom-width']) + parseInt(getComputedStyle(tab)['margin-bottom']);	// + document.querySelector(".tab").marginBottom;
 	
 	
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
-	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
+	visudata = JSON.parse(readFromTextFile(deployedVisuFile));
 	if (visudata != ''){
 		prj = visudata.VCOData.Projektnumer;
 	}
@@ -152,14 +151,10 @@ function initVisu()
 	initTooltips();
 	
 	// Mouse-hover-handler für ToolTip dynamischer Elemente
-	$("#vimgArea").mousemove(function (e) {
-		handleMouseMove(e);
-	});
+	document.querySelector("#vimgArea").addEventListener(`mousemove`, handleMouseMove);
 	
 	// Mouse-down-handler für bmp wechsel (statische Elemente)
-	$("#vStatCanvas").mousedown(function (e) {
-		handleMouseDown(e);
-	});	
+	document.querySelector("#vStatCanvas").addEventListener(`mousedown`, handleMouseDown);	
 	setBitmap(bmpIndex);
 }
 
@@ -1454,11 +1449,11 @@ function handleMouseMove(e) {
 		
 	}
 	
-	if (match) $(".vinsideWrapper").css("cursor", "pointer");	//Vorarbeit: Pointer als Cursor für zukünftige Visu Bedienung
+	if (match) document.querySelector(".vinsideWrapper").style.cursor = "pointer";	//Vorarbeit: Pointer als Cursor für zukünftige Visu Bedienung
 	
 	if (!matchTT) vtipCanvas.style.left = "-2000px";
 	
-	if (!match && !matchTT) $(".vinsideWrapper").css("cursor", "default");
+	if (!match && !matchTT) document.querySelector(".vinsideWrapper").style.cursor = "default";
 	
 }
 
@@ -1871,9 +1866,15 @@ function initBGColors() {
 
 // Bitmap setzen
 function setBitmap(idx) {
-	$("#vimgTarget").remove();
-	$("#vimgArea").prepend("<img id='vimgTarget' src='" + visudata.VCOData.Bitmaps[idx].URL + "' class='vcoveredImage'>");
-	$(".vinsideWrapper").css("background-color", bgColors[bmpIndex]);
+	const vimgTarget = document.querySelector("#vimgTarget");
+	if (vimgTarget) vimgTarget.remove();
+	const img = document.createElement(`img`);
+	img.id = `vimgTarget`;
+	img.classList.add(`vcoveredImage`);
+	img.src = visudata.VCOData.Bitmaps[idx].URL;
+	document.querySelector("#vimgArea").prepend(img);
+	//document.querySelector("#vimgArea").prepend(<img id='vimgTarget' src='`${visudata.VCOData.Bitmaps[idx].URL}`' class='vcoveredImage'>);
+	document.querySelector(".vinsideWrapper").style.backgroundColor = bgColors[bmpIndex];
 }
 
 
@@ -2266,7 +2267,7 @@ function drawTextList() {
 
 // Loggen
 function log(s) {
-	$('#output').append(new Date().toLocaleTimeString() + " " + s + "<br />");
+	document.querySelector('#output').append(new Date().toLocaleTimeString() + " " + s + "<br />");
 	//var objDiv = document.getElementById("output");
 	//objDiv.scrollTop = objDiv.scrollHeight;
 }
@@ -2309,11 +2310,11 @@ function toggleBools() {
 
 
 function UpdateLabelMouseOverHandler() {
-	$('#xlabel').css("background-color", "red");
+	document.querySelector('#xlabel').style.backgroundColor = "red";
 }
 
 function UpdateLabelMouseOutHandler() {
-	$('#xlabel').css("background-color", "lightgrey");
+	document.querySelector('#xlabel').style.backgroundColor = "lightgrey";
 
 }
 
@@ -2458,7 +2459,7 @@ function sendDataToRtosNEW(target) {
 			console.error(ans);
 	}); 
 	
-	if (id.sectionIndicator.match(/(confirm|send)/gi)) closeFaceplate();
+	if (id.match(/(confirm|send)/gi)) closeFaceplate();
 }
 
 
