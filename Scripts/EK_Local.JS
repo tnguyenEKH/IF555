@@ -1,13 +1,19 @@
 /********************* URL SETTINGS *********************/
-var dataUrl = 'http://172.16.0.102/JSONADD/GET?p=2&Var=all';
-var kalenderUrl = 'http://172.16.0.102/JSONADD/GET?p=3&Var=all';
-var benachrichtigungsUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V064';
-var getSteuerungNameUrl = 'http://172.16.0.102/JSONADD/GET?p=4&Var=sel&V065';
-var uploadSkriptUrl = 'http://172.16.0.101/Data/upload.php';
-var menuLink = 'http://172.16.0.102/JSONADD/PUT?V004=';
-var TastURL = 'http://172.16.0.102/JSONADD/PUT?V010=';
-var textInputUrl = 'http://172.16.0.102/JSONADD/PUT?V007=';
-var QHDataFile = 'http://172.16.0.101/Data/2001.bin';
+const mpcJsonAddUrl = `http://172.16.0.102/JSONADD/`;
+const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
+const mpcJsonPutUrl = `${mpcJsonAddUrl}PUT?`;
+
+const dataUrl = `${mpcJsonGetUrl}p=2&Var=all`;
+const kalenderUrl = `${mpcJsonGetUrl}p=3&Var=all`;
+const benachrichtigungsUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
+const getSteuerungNameUrl = `${mpcJsonGetUrl}p=4&Var=sel&V065`;
+
+const menuLink = `${mpcJsonPutUrl}V004=`;
+const TastURL = `${mpcJsonPutUrl}V010=`;
+const textInputUrl = `${mpcJsonPutUrl}V007=`;
+
+const piDataUrl = `http://172.16.0.101/Data/`;
+const uploadSkriptUrl = `${piDataUrl}upload.php`;
 const HASH_FILE = '../SD_DATA/hash.txt';
 
 /********************* Projekt SETTINGS *********************/
@@ -60,12 +66,50 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 
 
 
-
 $(document).ready(function () {
-  /*Initialize layout, static variable....*/
+	//console.log({QHHeaderFile});
+	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
+	testRequest(`./DATA/vierttx.txt`, 5000);
+});
+
+/****test****/
+function testRequest(_url, timeoutOnError) {
+  //console.log({_url});
+  const url = (_url) ? _url : `./DATA/vierttx.txt`; //QHHeaderFile, cuz this causes the error
+	const xhr = new XMLHttpRequest();
+	const method = "GET";
+	
+	xhr.overrideMimeType('text/plain; charset=Windows-1252');
+	//console.log(`open`);
+	xhr.open(method, url, true); //async
+	
+	xhr.onreadystatechange = () => {
+	  // In local files, status is 0 upon success in Mozilla Firefox
+	  if (xhr.readyState === XMLHttpRequest.DONE) {
+		const status = xhr.status;
+		if (status === 0 || (status >= 200 && status < 400)) {
+		  // The request has been completed successfully
+		  //console.log(xhr.responseText);
+		  init();
+		} else {
+		  // Oh no! There has been an error with the request!
+      if (timeoutOnError > 0)
+        setTimeout(testRequest, timeoutOnError, url, timeoutOnError);
+		}
+		//console.log(`done: ${status}`);
+	  }
+	};
+	//console.log(`send`);
+	xhr.send();
+}
+
+function init() {
+  document.querySelector(`.loaderIcon`).classList.remove(`loader`);
+	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
+	/*Initialize layout, static variable....*/	
 	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
 	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
-	QHDataFile = "http://172.16.0.101/Data/" + projektNummer.substr(1) + ".bin";
+	const QHDataFile = `${piDataUrl}${projektNummer.substr(1)}.bin`;
 
 	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
 	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
@@ -100,11 +144,24 @@ $(document).ready(function () {
 	
 	/*******************************/
     callReader(bedien_pdf);
-	callReader(slp_pdf);
+	callReader(slp_pdf);	
+}
 
-});
+
 
 /***********************Kommunikation*************************************/
+async function fetchData(url) {
+  try {
+    const res = await fetch(url);
+    //console.log(res.ok);
+    const data = await res.json();
+    return data;
+  }
+  catch(err) {
+    console.error(err);
+  }
+}
+
 function getData(url) {
 	var res;
     var xhr = new XMLHttpRequest();
@@ -1251,6 +1308,12 @@ $(document).keydown(function (event) {
 
 
 /*************Hilfsfunktionen------------------*/
+function constrain(_in, _min, _max) {
+  const min = Math.min(parseFloat(_min), parseFloat(_max));
+  const max = Math.max(parseFloat(_min), parseFloat(_max));
+  return Math.max(Math.min(parseFloat(_in), max), min);
+}
+
 
 function hideElemementById(id)
 {

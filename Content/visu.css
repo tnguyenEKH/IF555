@@ -1,3 +1,21 @@
+/*******************24016 JW: cursor appearance start*******************/
+[cursorStyle = "progress"] {
+    cursor: progress;
+}
+[cursorStyle = "wait"] {
+    cursor: wait;
+}
+[cursorStyle = "pointer"] {
+    cursor: pointer;
+}
+[cursorStyle = "grab"] {
+    cursor: grab;
+}
+[cursorStyle = "grabbing"] {
+    cursor: grabbing;
+}
+/*******************24016 JW: cursor appearance end*********************/
+
 h5 {				/*Für Sektorüberschriften Faceplate*/
 	margin: 0px;
 	margin-top: 1vw;/*5px;*/
@@ -523,12 +541,15 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 					
 				
 				#btnWochenkalender,
-				#calenderBtn{
+				#calenderBtn,
+				#triggerBtnTagbetrieb {
 					height: 24px;
 					width: 205px;
-					/*background-color: #fefefe;*/
 					color: #fefefe;
-					background-color: #1F94B9; /*EKH blau*/
+					background-color: hsl(194, 71%, 42%); /*EKH blau*/
+				}
+				#triggerBtnTagbetrieb.checked {
+					background-color: hsl(194, 71%, 32%); /*EKH blau*/
 				}
 
 				.modalVisuBody [type="button"] {

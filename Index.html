@@ -20,6 +20,11 @@
 </head>
 
 <body lang="en">
+	<div class="connectingToMPCcontainer">
+		<div class="loaderIcon loader"></div>
+		<h1 class="loaderText"></h1>
+	</div>
+
 	<div class="tab">
 		<ul>
 			<li id="fernbedienung" class="tablink active" onclick="tabIdHanlder(event, id)">
@@ -62,7 +67,7 @@
 			<div class="hauptDisplay">
 				<!-- Hauptmenü -->
 				<div class="panelContent" id="displayPanel">
-					 <canvas id="DisplayCanvas"</canvas>
+					 <canvas id="DisplayCanvas"></canvas>
 				</div>
 
 				<!-- Button Group -->
@@ -178,7 +183,7 @@
 	   
 	   <!-- Modal für Einstellwerte-->
 		 <div id="fpBg" class="modalVisuBg" >
-		  <!-- <div id="visLoader" class="loader"></div>-->
+		  <!-- <div id="visLoader" class="loader"></div> -->
 		  <!-- FP content -->
 		  <div id="fpContent" class="modalVisuContent">
 			<div id="fpHeader" class="modalVisuHeader">
@@ -188,7 +193,7 @@
 			<div id="fpBody" class="modalVisuBody">
 			</div>
 			<div id="fpFooter" class="modalVisuFooter">
-			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosNEW(event)">Übernehmen</button>
+			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosEventHandler(event)">Übernehmen</button>
 			  <button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
 			</div>
 		  </div>
@@ -204,7 +209,7 @@
 					<h4 id="txtWochenKalenderImVisuHeader">Wochenkalender </h4>
 				</div>
 				<div class="modalVisuBody" id="wochenKalenderImVisuBody">
-				<canvas id="settingFromVisuCanvas"</canvas>
+				<canvas id="settingFromVisuCanvas"></canvas>
 				</div>
 				<div class="modalVisuFooter" id="wochenKalenderImVisuFooter">
 					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
@@ -225,7 +230,7 @@
 
 
 	<div id="datenauswertungDisplay" class="tabcontent">
-		<!--<div id="qimage"> <!--style="height: 90vh"><!--600px">-->
+		<!--<div id="qimage"> style="height: 90vh">600px">-->
 			<div id="qoutsideWrapper" class="qoutsideWrapper">
 				<!--<button id="qbtnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>-->
 				
@@ -433,8 +438,8 @@
 
   
 	<script src="Scripts/jquery-3.5.1.min.js"></script>
-	<script src="Scripts/popper.min.js"</script>
-	<script src="Scripts/bootstrap.min.js"</script>
+	<script src="Scripts/popper.min.js"></script>
+	<script src="Scripts/bootstrap.min.js"></script>
 	<script src="Scripts/pdfReader.js"></script>	
 	
 	<script src="Scripts/sidebar.js"></script>

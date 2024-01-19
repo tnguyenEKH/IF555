@@ -53,7 +53,7 @@ var match;
 //Einstellungen Visualisierungen
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
-var readParameterOfClickableElementUrl = 'http://172.16.0.102/JSONADD/GET?p=5&Var=all';   /*SettingsFromVisualisierung*/
+var readParameterOfClickableElementUrl = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
@@ -188,7 +188,7 @@ function startVisu() {
 
 function createLinkForClickableElement(id) {
 	try{
-		var link = 'http://172.16.0.102/JSONADD/PUT?V008=Qz' +id ;
+		var link = `${mpcJsonPutUrl}V008=Qz${id}`;
 		ClickableElementUrlList.push(link);
 	}
 	catch(e){
@@ -324,10 +324,10 @@ function createVisudata(sText){
 			if (idx >= 0)
 			{
 				item.Bezeichnung = "HKNA";
-				item.Kanal = sText.substring(idx + 4, idx +6);
+				item.Kanal = sText.substring(idx + 4, idx + 6);
 				item.isBool = false;
 				item.BoolVal = false;
-				item.sWert = sText.substring(idx + 7, idx + 26);
+				item.sWert = sText.substring(idx + 6, idx + 26);
 				Items.push(item);
 				var textToCut = sText.substring(idx, idx + 26);
 				sText = sText.replace(textToCut,'');
@@ -2423,6 +2423,7 @@ function sleep(miliseconds) {
    }
 }
 
+/*
 function sendValueFromVisuToRtos(option) {
 	var sendBackToRtosUrlList = [];
 	var faceplateBody = document.getElementById('fpBody');
@@ -2440,7 +2441,7 @@ function sendValueFromVisuToRtos(option) {
 		faceplateBodyList.forEach(function(div) {
 			var idx = parseInt(div.id.slice(-3)) - 90;
 			div.childNodes.forEach(function(el) {
-				if (el.className == 'inputWert'/*el.id.includes('inputWert')*/) {
+				if (el.className == 'inputWert') {//el.id.includes('inputWert')) {
 					if (idx == 0) {
 						ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
 					}
@@ -2514,15 +2515,15 @@ function sendValueFromVisuToRtos(option) {
 			var link = ''
 			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
 			//1.Zeile auffüllen auf 60 Zeichen
-			if(i == 0) {
+			if (i == 0) {
 				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
-				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
 				sendBackToRtosUrlList.push(link);
 			}
 			else {		
 				sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
 				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].sectionIndicator;
-				link = 'http://172.16.0.102/JSONADD/PUT?' + idForTranfer + '='  + encodeURIComponent('"' + sendBackData + '"');
+				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
 				sendBackToRtosUrlList.push(link);
 			}
 		}
@@ -2539,71 +2540,43 @@ function sendValueFromVisuToRtos(option) {
 		return -100;
 	}
 }
+*/
+function sendDataToRtosEventHandler(ev) {
+	sendDataToRtosNEW(ev.target);
+}
 
-function sendDataToRtosNEW(event) {
-	if (event == null || event == undefined) return event;
-	
-	var btn;
-	(typeof event) == 'string' ? btn = document.getElementById(event) : btn = event.target;
-	if (btn == null || btn == undefined) return btn;
-	
-	var errorString = '';
-	
+function sendDataToRtosNEW(target) {	
+	const {id, idx} = target;
+
 	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
-	if (btn.id.toUpperCase().includes('CALENDER')) {
-		ClickableElement.forEach(function (el) {
-			if (btn.idx == el.idx) el.wert = el.wert.replace('0', btn.wert);
-		});		
+	if (id === `calenderBtn` || id === `triggerBtnTagbetrieb`) {
+		const foundEl = ClickableElement.find(el => idx === el.idx);
+		//console.log(parseInt(foundEl.wert.trim()), parseInt(foundEl.wert));
+		const divRtosVar = target.closest(`.divRtosVar`);
+		//console.log(divRtosVar, divRtosVar.wert);
+		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
 	}
 	else {
-		var rtosVars = Array.from(document.getElementsByClassName('divRtosVar'));
-		var changedRtosVars = [];
-		rtosVars.forEach(function (el) {
-			if(el.wert != undefined) changedRtosVars.push(el);
-		});
+		const divRtosVar = Array.from(document.querySelectorAll(`.divRtosVar`));
+		const changedRtosVars = divRtosVar.filter(el => el.wert != undefined);
 		
-		changedRtosVars.forEach(function (changedEl) {
-			ClickableElement.forEach(function (el) {
-				if (changedEl.idx == el.idx) {
-					var changedVal = parseFloat(changedEl.wert);
-					//console.log(typeof changedEl.wert);
-					if (isNaN(changedVal) || changedEl.wert.toString().trim() == '') {
-						changedEl.style.color = '#C31D64';
-						errorString += changedEl.firstElementChild.textContent + ': ' + 'ungültige Zahl!' + '\n';
-					}
-					else if (changedVal > parseFloat(el.oberGrenze)) {
-						changedEl.style.color = '#C31D64';
-						errorString += changedEl.firstElementChild.textContent + ': ' + 'max = ' + el.oberGrenze + '\n';
-					}
-					else if (changedVal < parseFloat(el.unterGrenze)) {
-						changedEl.style.color = '#C31D64';
-						errorString += changedEl.firstElementChild.textContent + ': ' + 'min = ' + el.unterGrenze + '\n';
-					}
-					else {
-						el.wert = changedVal.toFixed(4).padStart(10).padEnd(12);
-					}
-				}
-			});
+		changedRtosVars.forEach(changedEl => {
+			const foundEl = ClickableElement.find(el => changedEl.idx == el.idx);
+			foundEl.wert = parseFloat(changedEl.wert).toFixed(4).padStart(10).padEnd(12);
 		});
 	}
 	
-	if (errorString != '') {
-		alert(errorString);
-	}
-	else {
-		var sendErrors = '';
-		ClickableElement.forEach(function (el) {
-			var	rtosVar = '"' + el.name + el.wert + el.oberGrenze + el.unterGrenze + el.nachKommaStellen + el.einheit + el.sectionIndicator + '"';
-			//console.log(rtosVar);
-			var url = 'http://172.16.0.102/JSONADD/PUT?v' + el.idx.toString().padStart(3, '0') + '=' + encodeURIComponent(rtosVar);
-			var ans = sendData(url);
-			//console.log(url);
-			if (!ans.includes('OK')) sendErrors += ans;
-		});
-		if (sendErrors != '') console.log(sendErrors);
-	}
+	ClickableElement.forEach(el => {
+		const rtosVar = `"${el.name}${el.wert}${el.oberGrenze}${el.unterGrenze}${el.nachKommaStellen}${el.einheit}${el.sectionIndicator}"`;
+		//console.log(rtosVar);
+		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
+		const ans = sendData(url);
+		//console.log(url);
+		if (!ans.includes('OK'))
+			console.error(ans);
+	}); 
 	
-	if (btn.id.toUpperCase().includes('CONFIRM') || btn.id.toUpperCase().includes('SEND')) closeFaceplate();
+	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
 }
 
 
