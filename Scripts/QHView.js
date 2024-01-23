@@ -68,12 +68,14 @@
 function startQH() {
         
 		//defaultColors = generateDefaultColors();
-		
+        
+        /*
         canvas = document.getElementById('myqCanvas');
         canvas.width = 1120;
         canvas.height =630;
         qctx = canvas.getContext('2d');
         qctx.clearRect(0, 0, canvas.width, canvas.height);
+        */
         //canvasOffset = document.querySelector("#myqCanvas").offset();
         //offsetX = canvasOffset.left;
         //offsetY = canvasOffset.top;
@@ -274,6 +276,7 @@ function loadData() {
 }
 
 function drawData() {
+    return;
     if (diagramData == null)
         return;
     if (diagramData.length == 0)
@@ -674,51 +677,17 @@ function setScaleSelection(idx, bLeft) {
 
 }
 
-function createSettingsItem(id, enable, color, text, left, avg, sum) {
-	/*
-	var cb1val = left ? "checked" : "";
-	var cb2val = left ? "" : "checked";
-	var enableVal = enable ? "checked" : "";
-	
-				<label id="lblHidePin">Hide Pin
-					<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
-					<span class="checkmark"></span>
-				 </label>
-	
-    */
+function createSettingsItem(id, text, useLeftScale, color) {
+    //console.log(color);
 
     const container = document.createElement(`div`);
     container.classList.add(`QHdivTrack`);
-        const divVisibility = document.createElement(`div`);
-        container.appendChild(divVisibility);
-        divVisibility.id = `trackVisibleSettings`;
-            const label = document.createElement(`label`);
-            divVisibility.appendChild(label);
-            label.classList.add(`lblcb`);
-                const input = document.createElement(`input`);
-                input.type = `checkbox`;
-                label.appendChild(input);
-                input.id = `enableTrack_${id}`;
-                input.classList.add(`QHcheckbox`);
-                input.checked = enable;
-                input.addEventListener(`change`, ev => enableDisableTrack(ev.target));
-
-                const span = document.createElement(`span`);
-                label.appendChild(span);
-                span.classList.add(`checkmark`);
-        
         const inpColor = document.createElement(`input`);
         inpColor.type = `color`;
-        inpColor.value = `#FFFFFF`;
+        inpColor.value = color;
         container.appendChild(inpColor);
+        inpColor.classList.add(`colpick`);
         inpColor.addEventListener(`change`, ev => colorPickerHandler(ev.target));
-
-        const divColor = document.createElement(`div`);
-        container.appendChild(divColor);
-        divColor.id = `colpick_${id}`;
-        divColor.classList.add(`colpick`);
-        divColor.style.backgroundColor = color;
-        divColor.addEventListener(`click`, ev => SettingsColorHandler(ev.target));
 
         const divText = document.createElement(`div`);
         container.appendChild(divText);
@@ -732,13 +701,14 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
             const lblcb = document.createElement(`label`);
             divScaleCb.appendChild(lblcb);
             lblcb.classList.add(`lblcb`);
-                const cb = document.createElement(`input`);
-                cb.type = `checkbox`;
-                lblcb.appendChild(cb);
-                cb.id = `cbSettings${(i === 1) ? 'L' : 'R'}_${id}`;
-                cb.classList.add(`QHcheckbox`);
-                cb.checked = (i === 1) ? left : !left;
-                cb.addEventListener(`change`, ev => SettingsLeftRightHandler(ev.target));
+                const rBtn = document.createElement(`input`);
+                rBtn.type = `radio`;
+                lblcb.appendChild(rBtn);
+                rBtn.id = `cbSettings${(i === 1) ? 'L' : 'R'}_${id}`;
+                rBtn.classList.add(`QHcheckbox`);
+                rBtn.name = `qhScale${id}`;
+                rBtn.checked = (i === 1) ? useLeftScale : !useLeftScale;
+                //rBtn.addEventListener(`change`, ev => SettingsLeftRightHandler(ev.target));
 
                 const spanCheckmark = document.createElement(`span`);
                 lblcb.appendChild(spanCheckmark);
@@ -746,32 +716,6 @@ function createSettingsItem(id, enable, color, text, left, avg, sum) {
         }             
     
     return container;
-                
-
-	res += '<div id="trackVisibleSettings" class="">';// style="float: left; height: 14px; font-size: 1vh">'
-	res += '<label class="lblcb">';
-	res += '<input id="enableTrack_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + enableVal + ' onchange="enableDisableTrack(id)" />';
-	res += '<span class="checkmark"></span>';
-	res += '</label>';
-	res += '</div>';
-	
-	res += '<div id="colpick_' + id + '" class="colpick" style="background-color: ' + color + ';" onclick="SettingsColorHandler(id)">&nbsp</div>'; // width: 14px; height:14px; float:left;
-	res += '<div class="SettingsText">' + text + '</div>';
-
-	res += '<div class="QHdivCBscale">';
-	res += '<label class="lblcb">';
-	res += '<input id="cbSettingsL_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb1val + ' onchange="SettingsLeftRightHandler(id)" />';
-	res += '<span class="checkmark"></span>';
-	res += '</label>';
-	res += '<label class="lblcb">';
-	res += '<input id="cbSettingsR_' + id + '" class="QHcheckbox" type ="checkbox" value="" ' + cb2val + ' onchange="SettingsLeftRightHandler(id)" />';
-	res += '<span class="checkmark"></span>';
-	res += '</label>';
-	res += '</div>';
-
-	res += '</div></br>';
-	
-    return res;
 }
 
 var defaultColors =
@@ -811,12 +755,9 @@ function InitSettings() {
   
     diagramHeader.forEach((el, i) => {
         const foundItem = UserSettings.qh_Spuren.find(spur => spur.index === i);
-        if (foundItem) {
-            div.appendChild(createSettingsItem(i, foundItem.enabled, foundItem.color, `${el.Bezeichnung.trim()} [${el.Einheit}]`, foundItem.bSkala_Links, 0, 0));
-        }
-        else {
-            div.appendChild(createSettingsItem(i, false, "white", `${el.Bezeichnung.trim()} [${el.Einheit}]`, true, 0, 0));
-        }
+        const useLeftScale = (foundItem) ? foundItem.bSkala_Links : true;
+        const color = (foundItem) ? foundItem.color : `#EFEFEF`;
+        div.appendChild(createSettingsItem(i, `${el.Bezeichnung.trim()} [${el.Einheit}]`, useLeftScale, color));
     });
 }
 
@@ -1114,6 +1055,7 @@ function dayInMonth(month, year) {
 }
 
 function drawGrid(x, y, w, h, Zeitraum, Datum) {
+    return;
 
     if (Zeitraum == "d") {
         var nDivsX = 4;

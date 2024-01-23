@@ -8,8 +8,6 @@
 	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
 		  integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 	<link href="Content/main.css" rel="stylesheet" />
-	<link href="Content/sidebar.css" rel="stylesheet" />
-	<!--<link href="Content/bootstrap.min.css" rel="stylesheet" />-->
 	<link href="Content/visu.css" rel="stylesheet" />
 	<link href="Content/QHView.css" rel="stylesheet" />
 	<link href="Content/pdfReader.css" rel="stylesheet" />
@@ -27,25 +25,25 @@
 
 	<div class="tab">
 		<ul>
-			<li id="fernbedienung" class="tablink active" onclick="tabIdHanlder(event, id)">
+			<li id="fernbedienung" class="tabLink">
 				Fernbedienung
 			</li>
-			<li id="visualisierung" class="tablink" onclick="tabIdHanlder(event, id)">
+			<li id="visualisierung" class="tabLink">
 				Visualisierung
 			</li>
-			<li id="datenauswertung" class="tablink" onclick="tabIdHanlder(event, id)">
+			<li id="datenauswertung" class="tabLink">
 				1/4h Datenauswertung
 			</li>
-			<li id="bedienungsAnleitung" class="tablink" onclick="tabIdHanlder(event, id)">
+			<li id="bedienungsAnleitung" class="tabLink">
 				Bedienungsanleitung
 			</li>
-			<li id="verdrahtungsplan" class="tablink" onclick="tabIdHanlder(event, id)">
+			<li id="verdrahtungsplan" class="tabLink">
 				Verdrahtungsplan
 			</li>
-			<li id="hilfe" class="tablink" onclick="tabIdHanlder(event, id)">
+			<li id="hilfe" class="tabLink">
 				Hilfe
 			</li>
-			<!--<li class="tablink">
+			<!--<li class="tabLink">
 				<a href="https://energiekontor-hannover.de" target="_blank">Energiekontor Hannover</a>
 			</li>-->
 		</ul>
@@ -58,7 +56,7 @@
 	<!-- virtual keyboard itself -->
 	<div id="osk" class="simple-keyboard" style="display:none"></div>
 
-	<div id="fernbedienungDisplay" class="tabcontent" style="display:block">
+	<div id="fernbedienungDisplay" class="tabContent">
 		<div class="container">
 			<div id="sidebar" class="sidebar sidebar-item sidebar-menu">
 				
@@ -112,7 +110,7 @@
 	</div>
 
 
-	<div id="visualisierungDisplay" class="tabcontent">
+	<div id="visualisierungDisplay" class="tabContent">
 		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
 		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
 		<button id="vbtnVirtualKeyboard" class="btnOSK" onclick="EthernetButtonHanlder(id)">Tastatur</button>
@@ -229,138 +227,35 @@
 	</div>
 
 
-	<div id="datenauswertungDisplay" class="tabcontent">
-		<!--<div id="qimage"> style="height: 90vh">600px">-->
-			<div id="qoutsideWrapper" class="qoutsideWrapper">
-				<!--<button id="qbtnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>-->
-				
-				<div id="qimgArea" class="qinsideWrapper">
-					
-					<canvas id="myqCanvas" class="qcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
-					<!--<canvas id="qtipCanvas" width="200" height="25"></canvas>-->
-                          <menu id="controls">
-                                <table id="tblbuttons">
-                                    <tr>
-                                        <td>
-                                            <input id="btnYScale" type="button" value="Y-Skala" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-										</td>
-                                        <td>
-                                            <input id="btnTagesgang" type="button" value="Tagesgang" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnDecTag" type="button" value="- Tag" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnIncTag" type="button" value="+ Tag" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnSaveSelection" type="button" value="Spurauswahl speichern" class="qcmdButtonLarge" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                           
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            <input id="btnDauerlinie" type="button" value="Dauerlinie" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnWochengang" type="button" value="Wochengang" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnDecWoche" type="button" value="- Woche" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnIncWoche" type="button" value="+ Woche" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                             <input id="btnGetData" type="button" value="Daten holen" class="qcmdButtonLarge" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                           
-                                        </td>
-
-                                    </tr>
-                                    <tr>
-                                        <td></td>
-                                        <td>
-                                            <input id="btnAvgTagesgang" type="button" value="d Tagesgang" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnMonatsgang" type="button" value="Monatsgang" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnDecMonat" type="button" value="- Monat" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnIncMonat" type="button" value="+ Monat" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                           
-                                        </td>
-                                        <td>
-                                            
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>
-											<div id="divForceQH" style="width: 170px;">
-												<label id="lblcbQHtoggle" class="lblcb">
-												<input id="cbForceQH" class="QHcheckbox" type="checkbox" value="" onchange="ButtonHandler(id)" />
-												<span class="checkmark"></span>
-												</label>
-												<bdi id="bdiForceQH"> immer 1/4h anzeigen </bdi>
-											</div>
-                                        </td>
-                                        <td></td>
-                                        <td>
-                                            <input id="btnJahresgang" type="button" value="Jahresgang" class="qcmdButtonMedium" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnDecJahr" type="button" value="- Jahr" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="btnIncJahr" type="button" value="+ Jahr" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-                                        </td>
-                                        <td>
-                                            <input id="qbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
-                                        </td>
-                                        <td>
-                                            
-                                        </td>
-                                    </tr>
-                                </table>
-                            </menu>
-
-					<menu id="qSettings">
-					</menu>
-					<div id="ModalMenu" class="ModalMenu">
-						<div id="ModalMenuDiv">
-							<p class="Title" id="ModalMenuTitle"></p>
-							<div id="ModalMenuContent">
-							</div>
-							
-							<label id="LabelConfirm" class="draglabel" onclick="ConfirmModalMenu()" style="width: 90px;">Übernehmen</label>
-							<label id="LabelCancel" class="draglabel" onclick="CancelModalMenu()" style="width: 90px;">Abbrechen</label>
-						</div>
-					</div>
-
-					<div id="ModalQH" class="modal">
-						<div class="modal-content">
-							<div id="QHLoader" class="loader"></div>
-							<div id="modalbody" class="modal-body">
-							</div>
-						</div>
-					</div>
-				</div>
-			</div>
-		<!--</div>-->
+	<div id="datenauswertungDisplay" class="tabContent tabContentQh">
+		<div class="diagramArea">
+			<canvas class="canvasDiagram"></canvas>
+		</div>
+		<menu id="qSettings" class="menuDataTracks"></menu>
+		<menu id="controls" class="menuControls">
+			<label class="lblcb cbDauerlinie">
+				<input type="checkbox" class="QHcheckbox">
+				<span class="checkmark"></span>
+				<span class="lblcbSpan">Dauerlinie</span>
+			</label>
+			<select id="betrachtungszeitraum">
+				<option value="tagesgang" selected>Tagesgang</option>
+				<option value="wochengang">Wochengang</option>
+				<option value="monatsgang">Monatsgang</option>
+				<option value="jahresgang">Jahresgang</option>
+				<option value="avgTagesgang">⌀ Tagesgang</option>
+			</select>
+			<input type="button" class="btnRefreshQhData" value="Datenupdate">
+			<input type="button" class="btnSaveSelection" value="Spurauswahl speichern">
+			<label class="lblcb cbForceQH">
+				<input type="checkbox" class="QHcheckbox">
+			  	<span class="checkmark"></span>
+			  	<span class="lblcbSpan">immer 1/4 Daten anzeigen</span>
+			</label>
+		</menu>
 	</div>
 
-	<div id="bedienungsAnleitungDisplay" class="tabcontent">
+	<div id="bedienungsAnleitungDisplay" class="tabContent">
 		<div class="pdf-top-bar">
 			<span class="page-info">
 			  Page <span id="bedien-page-num"></span> of <span id="bedien-page-count"></span>
@@ -396,7 +291,7 @@
 		</div>
 	</div>
 	
-	<div id="verdrahtungsplanDisplay" class="tabcontent">
+	<div id="verdrahtungsplanDisplay" class="tabContent">
 		<div class="pdf-top-bar">
 			<span class="page-info">
 			  Page <span id="slp-page-num"></span> of <span id="slp-page-count"></span>
@@ -432,7 +327,7 @@
 		</div>
 	</div>
 
-	<div id="hilfe" class="tabcontent">
+	<div id="hilfe" class="tabContent">
 		
 	</div>
 

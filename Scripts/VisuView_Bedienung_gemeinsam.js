@@ -597,7 +597,7 @@ function jumpToWochenKalender(target){
 	const sendError = sendDataToRtosNEW(target);
 	if (!sendError) {
 		showWochenKalenderVisu();
-		activeTabID = 'wochenKalenderImVisu';
+		window.activeTabID = 'wochenKalenderImVisu';
 		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
 	}
 }

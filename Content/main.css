@@ -1,6 +1,27 @@
-//Allgemeine Styles (hauptsächlich für Kopfzeile [Tab-Auswahl] & Fernbedienungstab)
-//Visu- QH- & pdfReader-Tabs haben eigene .css
 
+
+:root {
+	/*********************Colors*********************/
+	--colorEkhCyan: hsl(194, 71%, 42%);
+	--colorEkhMagenta:  hsl(334, 74%, 44%);
+		/*********************BrightTheme*********************/
+		--colorEkhLightestgray:  hsl(0, 0%, 94%);
+		--colorEkhLightergray:  hsl(0, 0%, 88%);
+		--colorEkhLightgray:  hsl(0, 0%, 81%);
+		--colorEkhGray:  hsl(0, 0%, 75%);
+		--colorEkhDarkgray: hsl(0, 0%, 68%);
+		--colorEkhDarkergray: hsl(0, 0%, 62%);
+		--colorEkhDarkestgray: hsl(0, 0%, 55%);
+}
+
+.tabContent:not(.active) {
+	display: none;
+}
+
+
+
+
+/*********************ab hier Bestand*********************/
 html {
     scroll-behavior: smooth;
 }
@@ -13,7 +34,6 @@ html {
 ::before,
 ::after {
     box-sizing: inherit;
-
 }
 
 body {
@@ -122,8 +142,8 @@ button:disabled,
 
 
 /* Style the tab content */
-.tabcontent {
-    display: none;
+.tabContent {
+    /*display: block;*/
     /*border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
     border-radius: .5em;
 	/*font-size: 3vh;									<<<AUSKOMMENTIERT JW*/ 

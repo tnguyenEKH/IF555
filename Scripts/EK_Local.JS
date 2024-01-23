@@ -46,7 +46,6 @@ var statTastzeich;        // 1: aktuelles Menue bietet die Moeglichkeit ueber Ei
 var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
 var mousex;               // 1: xPosition der Maus im Canvas
 var mousey;               // 1: yPosition der Maus im Canvas
-var activeTabID = "fernbedienung";
 var toclipboard;              // Communikation Klick->Clipboard
 var statmouseweek;
 
@@ -83,6 +82,8 @@ ready(() => {
   //////////////////////addEventListeners//////////////////////
   document.addEventListener(`keydown`, keydownEventHandler)
   document.addEventListener(`keypress`, keypressEventHandler)
+  document.querySelectorAll(`.tabLink`).forEach(tabLink => tabLink.addEventListener(`click`, ev => tabClickHanlder(ev.target)));
+
 
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	testRequest(`./DATA/vierttx.txt`, 5000);
@@ -1144,33 +1145,19 @@ function AnchorHandler(id) {
   refreshTextAreaWithoutParameterLocal(fernbedienungCanvasContext, fernbedienungCanvas, data);  
 }
 
-function tabIdHanlder(evt, id)
-{
-    var i, tabcontent, tablinks, divBenachrichtigung;
-	activeTabID = id;
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) { 
-        tabcontent[i].style.display = "none";
-    }
-     // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablink");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    var neutabID = id + "Display";
-    document.getElementById(neutabID).style.display = "block";
-    evt.currentTarget.className += " active";
+function tabClickHanlder(target) {
+  const {id} = target;
+  window.activeTabID = id;
 
+  document.querySelectorAll(`.tabContent, .tabLink`).forEach(el => el.classList.toggle(`active`, el.id.includes(target.id)));
+  
 	if (id == "fernbedienung") {
 		resetNumlock();							//osk-Numpad-layout zurücksetzen
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
 		clearInterval(wochenKalenderImVisuAutoReload);
-		showElemementById("benachrichtigung");
-		
+		showElemementById("benachrichtigung");	
 	}
   
     if (id == "visualisierung") {
@@ -1194,16 +1181,6 @@ function tabIdHanlder(evt, id)
 		hideElemementById("benachrichtigung");
     }
 	
-  if (id == "bedienungsAnleitung") {
-
-	//callReader(bedien_pdf);//'../SD_DATA/Bedien.pdf', 'bedien');
-  }
-
-  if (id == "verdrahtungsplan") {
-
-	//callReader(slp_pdf);
-  }
-
 }
 
 function updateBenachrichtigung (){
@@ -1264,10 +1241,10 @@ function keypressEventHandler(ev) {
 
   //Fernbedienung aktiv
   let charCode;
-  if ((activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi))) {
+  if ((window.activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi))) {
     charCode = (key.match(/(enter)/gi)) ? 13 : key.charCodeAt(0);
   }
-  else if (activeTabID.match(/(datenauswertung)/gi)) {
+  else if (window.activeTabID.match(/(datenauswertung)/gi)) {
     if (key.match(/(enter)/gi))
       ConfirmModalMenu();			//Enter Handling
   }
@@ -1289,7 +1266,7 @@ function keydownEventHandler(ev) {
   
   //Fernbedienung aktiv
   let charCode;
-  if (activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi)) {
+  if (window.activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi)) {
     if (key.match(/(arrowUp)/gi))
       charCode = 11;        
     if (key.match(/(arrowDown)/gi))
@@ -1307,7 +1284,7 @@ function keydownEventHandler(ev) {
     zykzaehler = Math.min(zykzaehler, einmalholen);
     tastzaehler = (zykzaehler === einmalholen) ? 0 : einmalholen;    
   }
-  else if (activeTabID.match(/(datenauswertung)/gi)) {
+  else if (window.activeTabID.match(/(datenauswertung)/gi)) {
     if (key.match(/(esc)/gi))
       location.href = '#';
   }

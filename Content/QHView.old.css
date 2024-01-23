@@ -1,0 +1,347 @@
+#datenauswertungDisplay {
+	overflow: hidden;
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+}
+
+.qoutsideWrapper {
+	/*Diagramm im Format 1120x630px (16:9) gezeichnet
+	=> Proportionen beibehalten bei Höhe = 90% * Screenheight*/
+	height: 87vh;
+	width: 155vh;
+	
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+    padding: 0px;
+    border-radius: .5em;
+	
+	font: 1.8vh Arial;
+}
+
+.qinsideWrapper {
+	/*border: 1px solid red;*/
+    width: 100%;
+    height: 100%;
+    position: relative;
+    background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+    border-radius: .5em;
+}
+
+.qcoveringCanvas {
+    /*border: 1px solid yellow;*/
+	width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+    border-radius: .5em;
+    /*box-shadow: 10px 10px 5px #888888;*/
+}
+
+
+
+#controls {
+    top: 70.7vh;/*560px;*/
+	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+    left: 1vh;/*0px;*/
+    position: absolute;
+    width: 86vh;
+	margin: 0;
+	padding: 0;
+}
+
+	#controls [type=button] {
+		cursor: pointer;
+		padding: 2px;
+		height: 30px;/*20px;*/
+		background-color: #F1F1F1; /*rgb(224, 224, 224);*/
+		border: 1px solid; /*1px solid #1F94B9; /*EKH blau*/
+		border-radius: 3px;
+		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
+		/*margin-bottom: 5px;*/
+		margin: 1px 2px;
+	}
+
+	#controls [type=button]:hover,
+	#controls [type=button]:active	{
+		background-color: #1F94B9; /*EKH blau*/
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+		border: 1px solid #F1F1F1;
+	}
+
+	#controls [type=button]:active {
+		box-shadow: 4px 4px #666;
+		transform: translateY(2px);
+	}
+
+	.qcmdButtonSmall {
+		/*margin-left: 1px;*/
+		width: 60px;
+	}
+
+	.qcmdButtonMedium {
+		/*margin-left: 10px;
+		margin-right: 10px;*/
+		width: 85px;
+	}
+
+	#controls #btnDauerlinieChecked {
+		/*margin-left: 10px;
+		margin-right: 10px;*/
+		width: 85px;
+		background-color: #C31D64; /*EKH rot*/
+		border: 1px inset #F1F1F1;
+		color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
+	}
+
+	.qcmdButtonLarge {
+		/*margin-left: 10px;*/
+		width: 150px;
+	}
+	
+	#qbtnVirtualKeyboard {
+		margin-left: 44vh;
+	}
+
+	#cbForceQH {
+		height: auto;
+		margin: 0vh 1vh;
+	}
+
+	#bdiForceQH {
+		/*font-family: Arial;
+		font-size: 2.5vh;*/
+	}
+	
+	
+
+#qSettings {
+    top: 1.3vh;/*5px;*/
+    left: 86vh;
+    position: absolute;
+	background-color: #C0C0C0;
+    /*width: 300px;width wird durch Inhalt festgelegt!*/
+    height: 88vh;/*70.6vh;/*540px;*/
+    overflow-x: hidden;
+    overflow-y: scroll;
+    float: left;
+	padding: 0;
+	margin: 0;
+}
+
+	.QHdivTrack {
+		float: left;
+		height: 3vh;/*1.56vh;/*14px;*/
+		/*font-size: 1.8vh;*/
+		margin-bottom: 1vh;
+	}
+	
+	/*.QHdivTrack:before {
+		content: "";
+		float: left;
+		padding-left: 100%;
+	}*/
+		
+		#trackVisibleSettings,
+		.QHdivCBscale {
+			float: inherit;
+			height: inherit;
+			font-size: inherit;
+			padding-left: 0.5vh;
+		}
+
+		/*.QHcheckbox {
+			height: 100%;
+			transform: scale(1.8);
+			margin: 0vh 1.5vh 0vh 1vh;
+		}*/
+		
+		/* Hiding the initial checkbox */
+		.QHcheckbox {
+			visibility: hidden;
+			width: auto;
+			/*margin-left: 30px;
+			margin-right: 20px;
+			transform: scale(1.8);*/
+		}
+		
+			.lblcb {
+				display: inline-block;
+				position: relative;
+				padding-left: 7px;
+				margin-top: 2px;
+				cursor: pointer;
+			}
+			
+			#lblcbQHtoggle {
+				padding-left: 0px;
+				width: 25px
+			}
+		  
+			/* Creating a custom checkbox based on demand */
+			.checkmark {
+				position: absolute;
+				top: 0;
+				left: 0;
+				height: 23px;
+				width: 23px;
+				font-size: 2.5vh;
+			}
+			
+			.lblcb input ~ .checkmark {
+				border: 3px solid #939393;
+				border-radius: 4px;
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when hovering over checkbox */
+			.lblcb:hover input ~ .checkmark {
+				border: 3px solid #666;
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when checkbox is active */
+			.lblcb input:active ~ .checkmark {
+				background-color: white;
+			}
+			
+			/* Specify the background color to be shown when checkbox is checked */
+			.lblcb input:checked ~ .checkmark {
+				background-color: #1F94B9;
+				border: none;
+			}
+			
+			/* Checkmark to be shown in checkbox */
+			/* It is not be shown when not checked */
+			.checkmark:after {
+				content: "\2713";
+				display: none;
+				position: absolute;
+				color: white;
+				font-weight: bold;
+				left: 3px;
+				/*top: -2px;*/
+			}
+			
+			/* Display checkmark when checked */
+				.lblcb input:checked ~ .checkmark:after {
+				display: block;
+			}
+			
+			/* Styling the checkmark using webkit */
+			/* Rotated the rectangle by 45 degree and showing only two border to make it look like a tickmark */
+			.lblcb .checkmark:after {
+				/*left: 10px;
+				bottom: 5px;
+				width: 8px;
+				height: 12px;
+				border: solid white;
+				border-width: 0 4px 4px 0;
+				/*-webkit-transform: rotate(45deg);
+				-ms-transform: rotate(45deg);
+				transform: rotate(45deg);*/
+			}
+		
+		
+		.colpick {
+			float: inherit;
+			height: inherit;
+			aspect-ratio: 1;	/*1:1->square*/
+		}
+
+		.SettingsText {
+			color: black;
+			background-color: lightgrey;
+			overflow: hidden;
+			width: 200px;
+			height: inherit;
+			float: inherit;
+			padding-left: 0.5vh;
+			font-family: Arial;
+			font-size: inherit;/*12px;*/
+			padding-top: 0.4vh;
+		}
+		
+		
+
+
+/* --- Modales Menue: ---*/
+#ModalMenu {
+	font-size: 1.5vh;
+    position: fixed;
+    font-family: Arial, Helvetica, sans-serif;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(111,111,111,0.3);
+    z-index: 888;
+    opacity: 0;
+    /*transition: opacity 400ms ease-in;*/
+    pointer-events: none;
+}
+
+    #ModalMenu:target {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+
+    #ModalMenu > div {
+        width: 380px;
+        left: 400px;
+        top: 0px;
+        position: absolute;
+        margin: 10% auto;
+        padding: 5px 20px 13px 20px;
+        border-radius: 10px;
+        background: #fff;
+        background: -moz-linear-gradient(#fff, #999);
+        background: -webkit-linear-gradient(#fff, #999);
+        background: -o-linear-gradient(#fff, #999);
+        box-shadow: 10px 10px 5px #888888;
+    }
+
+
+
+/*Update modal windows 02.09.2019*/
+.modal {
+    display: none; /* Hidden by default */
+    position: fixed; /* Stay in place */
+    z-index: 1; /* Sit on top */
+    left: 0px;
+    top: 0px;
+    width: 100%; /* Full width */
+    height: 100%;
+    overflow: auto; /* Enable scroll if needed */
+    background-color: #f2f2f2;
+    opacity: 0.9;
+}
+
+	.modal-content {
+		width: 100%;
+		position: absolute;
+		top: 45%;
+		left: 45%;
+		transform: translate(-50%, -50%) !important;
+		text-align: center;
+	}
+
+	@-webkit-keyframes spin {
+		0% {
+			-webkit-transform: rotate(0deg);
+		}
+
+		100% {
+			-webkit-transform: rotate(360deg);
+		}
+	}
+
+	@keyframes spin {
+		0% {
+			transform: rotate(0deg);
+		}
+
+		100% {
+			transform: rotate(360deg);
+		}
+	}
