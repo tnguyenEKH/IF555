@@ -5,71 +5,28 @@ const mpcJsonPutUrl = `${mpcJsonAddUrl}PUT?`;
 
 const dataUrl = `${mpcJsonGetUrl}p=2&Var=all`;
 const kalenderUrl = `${mpcJsonGetUrl}p=3&Var=all`;
-const benachrichtigungsUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
-const getSteuerungNameUrl = `${mpcJsonGetUrl}p=4&Var=sel&V065`;
+const remoteUserConnectionUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
+const prjNameUrl = `${mpcJsonGetUrl}p=4&Var=sel&V065`;
+const FBviertdatURL = `${mpcJsonGetUrl}p=1&Var=sel&V012`;
 
 const menuLink = `${mpcJsonPutUrl}V004=`;
 const TastURL = `${mpcJsonPutUrl}V010=`;
 const textInputUrl = `${mpcJsonPutUrl}V007=`;
+const QHUpdateURL = `${textInputUrl}Q2`;
 
 const piDataUrl = `http://172.16.0.101/Data/`;
 const uploadSkriptUrl = `${piDataUrl}upload.php`;
-const HASH_FILE = '../SD_DATA/hash.txt';
+const QHSettingFile = `${piDataUrl}QHSetting.txt`;
 
-/********************* Projekt SETTINGS *********************/
-var projektName = '';
-var projektNummer ="";
-var numberOfDataTrack;
-var allQHDataRecords  = [];
+const HASH_FILE = `../SD_DATA/hash.txt`;
+const bedienFile = `../SD_DATA/Bedien.pdf`;
+const slpFile = `../SD_DATA/SLP.pdf`;
 
-/********************* Autoreload SETTINGS *********************/
-var fernbedienungAutoReload;
-var benachrichtigungAutoReload;
-var visuAutoReload;
-var wochenKalenderImVisuAutoReload;
-
-/********************* Operating SETTINGS *********************/
-var zyklus;               // ZUM SUCHEN <<< 
-var einmalholen;          // ZUM SUCHEN <<< 
-var zykzaehler;           // ZUM SUCHEN <<<
-var tastzaehler;          // ZUM SUCHEN <<< 
-var tastkey;              // ZUM SUCHEN <<< 
-var tastcode;             // ZUM SUCHEN <<< 
-var tastkeylength;        // ZUM SUCHEN <<< 
-var tastascii;            // ZUM SUCHEN <<< 
-var stat1;                // 1: normale Ausgabe rot ab x,y fuer z Zeichen 
-var stat2;                // 1: normale Ausgabe rot ab x > 20 
-var stat3;                // 1: Ausgabe auf grossen Bildschirm (80*22 rot ab x,y fuer z Zeichen) 
-var stat4;                // 1: Ausgabe Wochenkalender in grafischer Form auf CANVAS Element                     
-var statTastzahl;         // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zahleneingabe zu machen 
-var statTastzeich;        // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
-var stat14haktiv;        // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
-var mousex;               // 1: xPosition der Maus im Canvas
-var mousey;               // 1: yPosition der Maus im Canvas
-var toclipboard;              // Communikation Klick->Clipboard
-var statmouseweek;
-
-var currentDataSet;
-var ASCII127PositionCurrentPage = [];  
-
-//Canvas für die Darstellung auf "Ferbedienung" Reiter
-var fernbedienungCanvas;
-var fernbedienungCanvasContext;
-
-//Canvas für die Darstellung der WochenKalender auf "Visualisierung" Reiter
-var wochenKalenderImVisuCanvas;
-var wochenKalenderImVisuCanvasContext;
-
-var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
-var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
+const QHHeaderFile = `./DATA/vierttx.txt`;
+const QHUpdateFile = `./DATA/viertdat.txt`;
 
 
-
-/*$(document).ready(function () {
-	//console.log({QHHeaderFile});
-	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	testRequest(`./DATA/vierttx.txt`, 5000);
-});*/
+//////////////////////Doc Ready//////////////////////
 //VanillaJS
 function ready(fn) {
   if (document.readyState !== 'loading') {
@@ -78,102 +35,90 @@ function ready(fn) {
     document.addEventListener('DOMContentLoaded', fn);
   }
 }
-ready(() => {
+ready(async () => {
+	document.querySelector(`.loaderText`).innerText = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
   //////////////////////addEventListeners//////////////////////
   document.addEventListener(`keydown`, keydownEventHandler)
   document.addEventListener(`keypress`, keypressEventHandler)
-  document.querySelectorAll(`.tabLink`).forEach(tabLink => tabLink.addEventListener(`click`, ev => tabClickHanlder(ev.target)));
+  document.querySelectorAll(`.tab`).forEach(tab => tab.addEventListener(`click`, ev => tabClickHanlder(ev.target)));
 
+  //////////////////////get relevant Data to init//////////////////////
+  const prjNameObject = await fetchData(prjNameUrl);
+  const prjName = prjNameObject.V065;
+  const qhHeaderBuffer = await fetchData(QHHeaderFile, `array`);
+  const decoder = new TextDecoder(`Windows-1252`);
+  const qhHeaderData = decoder.decode(qhHeaderBuffer);
+  //console.log(qhHeaderData);
+  const prjNo = qhHeaderData.substr(0,5);
+  const qhDataFile = `${piDataUrl}${prjNo.substr(1)}.bin`;
+  const qhDataBuffer = await fetchData(qhDataFile, `array`);
+  const qhDataRaw = new Float32Array(qhDataBuffer);
+  const noOfQhDataTracks = qhHeaderData.substr(41,3).trim(); //+10
+  //console.log(qhDataRaw);
 
-	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	testRequest(`./DATA/vierttx.txt`, 5000);
+  
+  //////////////////////init//////////////////////
+  updateConnectionStatus(true);
+  //initVisu();
+  //initFb();
+  initQh(qhHeaderData, qhDataRaw);
+  initPdfs();
+  tabClickHanlder(document.querySelector(`.tab3`));
 });
 
-
-/****test****/
-function testRequest(_url, timeoutOnError) {
-  //console.log({_url});
-  const url = (_url) ? _url : `./DATA/vierttx.txt`; //QHHeaderFile, cuz this causes the error
-	const xhr = new XMLHttpRequest();
-	const method = "GET";
-	
-	xhr.overrideMimeType('text/plain; charset=Windows-1252');
-	//console.log(`open`);
-	xhr.open(method, url, true); //async
-	
-	xhr.onreadystatechange = () => {
-	  // In local files, status is 0 upon success in Mozilla Firefox
-	  if (xhr.readyState === XMLHttpRequest.DONE) {
-		const status = xhr.status;
-		if (status === 0 || (status >= 200 && status < 400)) {
-		  // The request has been completed successfully
-		  //console.log(xhr.responseText);
-		  init();
-		} else {
-		  // Oh no! There has been an error with the request!
-      if (timeoutOnError > 0)
-        setTimeout(testRequest, timeoutOnError, url, timeoutOnError);
-		}
-		//console.log(`done: ${status}`);
-	  }
-	};
-	//console.log(`send`);
-	xhr.send();
+function initFb() {
+  //globals
+  //window.stat1;                           // 1: normale Ausgabe rot ab x,y fuer z Zeichen 
+  //window.stat2;                           // 1: normale Ausgabe rot ab x > 20 
+  //window.stat3;                           // 1: Ausgabe auf grossen Bildschirm (80*22 rot ab x,y fuer z Zeichen) 
+  //window.stat4;                           // 1: Ausgabe Wochenkalender in grafischer Form auf CANVAS Element                     
+  //window.statTastzahl;                    // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zahleneingabe zu machen 
+  //window.statTastzeich;                   // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
+  //window.stat14haktiv;                    // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
+  //window.mousex;                          // 1: xPosition der Maus im Canvas
+  //window.mousey;                          // 1: yPosition der Maus im Canvas
+  window.toclipboard = false;               // Communikation Klick->Clipboard
+  window.statmouseweek = false;             // Maus befindet sich im Wochenkalenderfenster 
+  window.ASCII127PositionCurrentPage = [];
+  window.zyklus = 40; 
+	window.zykzaehler = 10;
+	window.einmalholen = 7;
+  const fernbedienungCanvas = document.getElementById('DisplayCanvas');    
+  const ctx = fernbedienungCanvas.getContext('2d');                    
+  initCanvas(fernbedienungCanvas, ctx);
+  window.timerReloadFb = setInterval(refreshTextAreaWithoutParameterLocal, 50, ctx, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 }
 
-function init() {
-  document.querySelector(`.loaderIcon`).classList.remove(`loader`);
-	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
-	/*Initialize layout, static variable....*/	
-	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
-	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
-	const QHDataFile = `${piDataUrl}${projektNummer.substr(1)}.bin`;
-
-	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
-	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
-	var dynamicSLP = '../SD_DATA/SLP.pdf' + '?' + Date.now();
-	const slp_pdf = new PDF_file(dynamicSLP, 'slp');
-	
-	fernbedienungCanvas = document.getElementById('DisplayCanvas');    
-	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');                    
-	initCanvas(fernbedienungCanvas, fernbedienungCanvasContext);
-	
-	wochenKalenderImVisuCanvas = document.getElementById('settingFromVisuCanvas');    
-	wochenKalenderImVisuCanvasContext = wochenKalenderImVisuCanvas.getContext('2d');                    
-	initCanvas(wochenKalenderImVisuCanvas, wochenKalenderImVisuCanvasContext);
-	
-  /***********Operating******************/
-	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-    benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
-	
-  /**********Visualization*/
-	initVisu();
-	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
-	handleConfirmBtn(locked);		//Visubedienung verriegeln
-   
-  /*********Data evaluation********/
-	//jw startQH();
-	readQHFromFile(QHDataFile);
-	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
-
-	zyklus=40;             // <<< 
-	zykzaehler=10;         // <<<
-	einmalholen=7;         // <<<
-	
-	/*******************************/
-    callReader(bedien_pdf);
-	callReader(slp_pdf);	
+function initPdfs() {
+  const bedien_pdf = new PDF_file(`${bedienFile}?${Date.now()}`, `bedien`);
+	const slp_pdf = new PDF_file(`${slpFile}?${Date.now()}`, 'slp');
+  callReader(bedien_pdf);
+	callReader(slp_pdf);
 }
-
 
 
 /***********************Kommunikation*************************************/
-async function fetchData(url) {
+async function fetchData(url, responseType = `json`) {
   try {
     const res = await fetch(url);
-    //console.log(res.ok);
-    const data = await res.json();
-    return data;
+    if (!res.ok) {
+      console.error(`fetch responses with status: ${res.status}`);
+      return null;
+    }
+    else {
+      let data;
+      if (responseType.match(/(json)/i)) {
+        data = await res.json();
+      }
+      else if (responseType.match(/(array)/i)) {
+        data = await res.arrayBuffer();
+      }
+      else {
+        data = await res.text();
+      }
+      //console.log(data);
+      return data;
+    }
   }
   catch(err) {
     console.error(err);
@@ -284,7 +229,7 @@ function readFromTextFile(fileName) {
       record.Datum = datum.toLocaleString().split(',')[0];
       record.Index = index;
       record.nValues = numberOfDataTrack;
-      record.Projektnumer = projektNummer;
+      record.Projektnumer = prjNo;
 	  record.Values = dataRaw.slice(4, recordTotalLength);
       allQHDataRecords.push(record);
     }
@@ -316,7 +261,7 @@ function initCanvas(canvasName, canvasContext){
     canvasName.addEventListener("click", function (evt) {
         var rect = canvasName.getBoundingClientRect();
 
-        if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
+        if (window.stat4 == '1' && window.statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
             var x = evt.clientX - rect.left;
             var y = evt.clientY - rect.top;
             var ypos = Math.round((y - 76) / 30) - 1;
@@ -347,9 +292,9 @@ function initCanvas(canvasName, canvasContext){
 
             // reorganizize der Postition of ASCII 127 wird im globalen Variable
             var allASCII127ColumnInRow = []
-            for (var m = 0; m < ASCII127PositionCurrentPage.length; m++) {
-                if (yr == ASCII127PositionCurrentPage[m].row) {
-                    allASCII127ColumnInRow.push(ASCII127PositionCurrentPage[m].column);
+            for (var m = 0; m < window.ASCII127PositionCurrentPage.length; m++) {
+                if (yr == window.ASCII127PositionCurrentPage[m].row) {
+                    allASCII127ColumnInRow.push(window.ASCII127PositionCurrentPage[m].column);
                 }
             }
             var columnsCount = allASCII127ColumnInRow.length
@@ -364,13 +309,13 @@ function initCanvas(canvasName, canvasContext){
                 for (var n = 0; n < allASCII127ColumnInRow.length; n++) {
                     //Click event zwischen 2 ASCII127
 
-                    if (stat4 != '1') {
+                    if (window.stat4 != '1') {
                         if ((allASCII127ColumnInRow[n] < xr) && (xr <= allASCII127ColumnInRow[(n + 1)])) {
                             anchor = allASCII127ColumnInRow[n+1];
                         }
                     }
 
-                    //stat4 =1 bedeutet größeres Display für Wochenkalender, die ASCII127 liegen am Anfang der Zeile, muss sonder behandelt werden
+                    //window.stat4 =1 bedeutet größeres Display für Wochenkalender, die ASCII127 liegen am Anfang der Zeile, muss sonder behandelt werden
                     else {
                         if ((allASCII127ColumnInRow[n] < xr) && (xr < allASCII127ColumnInRow[(n + 1)])) {
                             anchor = allASCII127ColumnInRow[n];
@@ -401,16 +346,16 @@ function initCanvas(canvasName, canvasContext){
 		var data = getData(TastURLId);
 	  }
 
-	  if (zykzaehler > einmalholen) {
-		zykzaehler=einmalholen;
-		tastzaehler=0;
+	  if (window.zykzaehler > window.einmalholen) {
+		window.zykzaehler=window.einmalholen;
+		window.tastzaehler=0;
 	  }
 	  else  {
-		tastzaehler=einmalholen;
+		window.tastzaehler=window.einmalholen;
 	  }
 
 	  if (xr > 54 && yr < 3) {
-		toclipboard=true;
+		window.toclipboard=true;
 	  }
 	  
 	}, false);
@@ -423,24 +368,24 @@ function initCanvas(canvasName, canvasContext){
 	  var xr = Math.round(x/1) 
 	  var yr = Math.round(y/1) 
 
-	  statmouseweek=false;
+	  window.statmouseweek=false;
 
-	  if (stat4 == '1') {    //status 4:  Wochenkalender in CANVAS anzeigen 
+	  if (window.stat4 == '1') {    //status 4:  Wochenkalender in CANVAS anzeigen 
 		if (xr > 50 && xr < 768 && yr > 91 && yr < 300) { 
-		  statmouseweek=true;
-		  mousex=xr;
-		  mousey=yr;
+		  window.statmouseweek=true;
+		  window.mousex=xr;
+		  window.mousey=yr;
 		  timeweek(canvasContext);
 		}
 	  }
-	  if (stat1 == '1') {
+	  if (window.stat1 == '1') {
 	    document.querySelector('#DisplayCanvas').style.cursor = 'default';
 		var x = evt.clientX - rect.left;
 		var y = 8 + evt.clientY - rect.top;
 		var xr = Math.round(x / 16)   //   /16 Zeichenbreite (spalte column)
 		var yr = Math.round(y / 30)   //   /30 Zeilenhoehe (zeile row)
-		for (var i = 0; i < ASCII127PositionCurrentPage.length; i++) {
-				if ((yr == ASCII127PositionCurrentPage[i].row) && (x < 530)) {
+		for (var i = 0; i < window.ASCII127PositionCurrentPage.length; i++) {
+				if ((yr == window.ASCII127PositionCurrentPage[i].row) && (x < 530)) {
 					document.querySelector('#DisplayCanvas').style.cursor = 'pointer';
 				}
 			}
@@ -453,9 +398,9 @@ function timeweek (canvasContext) {
   ctx.fillStyle = "#E0E0E0";
   ctx.fillRect(775, 90, 70, 220);
 
-  var ypos = 85 + 30*(Math.round((mousey-76)/30));
-  var timehour = Math.round((mousex-64)/30);
-  var timemin = 10*Math.round((mousex-50-timehour*30)/5);
+  var ypos = 85 + 30*(Math.round((window.mousey-76)/30));
+  var timehour = Math.round((window.mousex-64)/30);
+  var timemin = 10*Math.round((window.mousex-50-timehour*30)/5);
   ctx.fillStyle = "#000000";
   if (timemin > 50) {
     timemin=50; 
@@ -479,21 +424,21 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
  // ctx.fillStyle = "#E0E0E0";              // Testausgabe fuers Timing
  // ctx.fillRect(900, 20, 60, 40);
  // ctx.fillStyle = "#000000";
- // ctx.fillText(zykzaehler, 910, 40); 
+ // ctx.fillText(window.zykzaehler, 910, 40); 
 
 
-    if (tastzaehler > 0) {                  // <<< 
-      tastzaehler=tastzaehler-1;
-      if (tastzaehler < 1) {
-        zykzaehler=0;
+    if (window.tastzaehler > 0) {                  // <<< 
+      window.tastzaehler=window.tastzaehler-1;
+      if (window.tastzaehler < 1) {
+        window.zykzaehler=0;
       } 
     }
-    if (zykzaehler > 1) {
-      zykzaehler=zykzaehler-1;
+    if (window.zykzaehler > 1) {
+      window.zykzaehler=window.zykzaehler-1;
     }
     else {                                   // <<< 
-      if (tastzaehler < 2) {                             
-        tastzaehler=0;
+      if (window.tastzaehler < 2) {                             
+        window.tastzaehler=0;
       } 
 	  if(data == undefined){
 		  jsonData = getData(dataUrl);
@@ -515,46 +460,46 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
       var str = b32(s);
       var xpos= 1;                  //  Positionsvariable auf dem CANVAS  x (Pixel) 
       var ypos= 1;                  //  Positionsvariable auf dem CANVAS  y (Pixel)
-      stat1=str.charAt(0);          // 1: normale Ausgabe rot ab x,y fuer z Zeichen 
-      stat2=str.charAt(1);          // 1: normale Ausgabe rot ab x > 20 
-      stat3=str.charAt(2);          // 1: Ausgabe auf grossen Bildschirm (80*22 rot ab x,y fuer z Zeichen) 
-      stat4=str.charAt(3);          // 1: Ausgabe Wochenkalender in grafischer Form auf CANVAS Element                     
-      statTastzahl=str.charAt(30);  // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" ode "T" eine Zahleneingabe 
-      statTastzeich=str.charAt(31); // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
-      stat14haktiv=str.charAt(29);  // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
+      window.stat1=str.charAt(0);          // 1: normale Ausgabe rot ab x,y fuer z Zeichen 
+      window.stat2=str.charAt(1);          // 1: normale Ausgabe rot ab x > 20 
+      window.stat3=str.charAt(2);          // 1: Ausgabe auf grossen Bildschirm (80*22 rot ab x,y fuer z Zeichen) 
+      window.stat4=str.charAt(3);          // 1: Ausgabe Wochenkalender in grafischer Form auf CANVAS Element                     
+      window.statTastzahl=str.charAt(30);  // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" ode "T" eine Zahleneingabe 
+      window.statTastzeich=str.charAt(31); // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
+      window.stat14haktiv=str.charAt(29);  // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
 
       //status 4:  Wochenkalender in CANVAS anzeigen    600 * 350                             
-      // zykzaehler=zyklus; 
-      if (stat4 == '1') {
+      // window.zykzaehler=window.zyklus; 
+      if (window.stat4 == '1') {
 				
 		var row = 15;
 		var column = 2;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		var row = 15;
 		var column = 35;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 
 		var row = 16;
 		var column = 2;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		var row = 16;
 		var column = 35;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 
 		var row = 17;
 		var column = 2;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		var row = 17;
 		var column = 35;
 		var coordinateOfClickButton = { row, column };
-		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+		window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		  
-        zykzaehler=zyklus;
+        window.zykzaehler=window.zyklus;
         jsonData = getData(kalenderUrl);
         data = JSON.parse(jsonData);
         ctx.fillStyle = "#E0E0E0";
@@ -632,7 +577,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
         ypos=ypos+30;
         ctx.fillText("SO",  xpos, ypos); 
 
-        if (statmouseweek) {
+        if (window.statmouseweek) {
           timeweek(canvasContext);
         }
 
@@ -919,11 +864,11 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
       else {
 
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
-		if (stat1 == '1') {
-			ASCII127PositionCurrentPage = [];
+		if (window.stat1 == '1') {
+			window.ASCII127PositionCurrentPage = [];
 			ctx.fillStyle = "#D0D0D0";
 			ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
-			zykzaehler = zyklus;
+			window.zykzaehler = window.zyklus;
 			xpos = 1;
 			ypos = 1;
 			ctx.font = "bold 26px Courier New";
@@ -949,7 +894,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 							var row = i - 15;
 							var column = k + 1;
 							var coordinateOfClickButton = { row, column };
-							ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+							window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 						}
 						else {                                                //  /= 127  dann Zeichen hinschreiben
 							if ((k > x - 1) && (k < x + z)) {                       //  liegt im Bereich rote Darstellung ?
@@ -978,7 +923,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 							var row = i - 15;
 							var column = k + 1;
 							var coordinateOfClickButton = { row, column };
-							ASCII127PositionCurrentPage.push(coordinateOfClickButton);
+							window.ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 						}
 						else {
 							ctx.fillText(textToReplace, xpos, ypos);
@@ -987,7 +932,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 					}
 				}
 			}
-			if (toclipboard) {
+			if (window.toclipboard) {
 				var texttoclip = "";
 				for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
 					variableName = "v0" + i;
@@ -1002,16 +947,16 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 				el.select();
 				document.execCommand('copy');
 				document.body.removeChild(el);
-				toclipboard = false;
+				window.toclipboard = false;
 			}
 		}
     
         else {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
-          if (stat2 == '1'){
+          if (window.stat2 == '1'){
           	ctx.fillStyle = "#D0D0D0";
             ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);          // damit wird der CANVAS-Inhalt geloescht
-            zykzaehler=zyklus;
+            window.zykzaehler=window.zyklus;
             xpos= 1;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
             ypos=-5;    //  Positionsvariable auf dem CANVAS  y (Pixel)
             ctx.font = "bold 26px Courier New";
@@ -1045,7 +990,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
               } 
 
             }
-            if (toclipboard) {
+            if (window.toclipboard) {
               var texttoclip="";
               for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
                 variableName = "v0" + i;
@@ -1060,14 +1005,14 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
               el.select();
               document.execCommand('copy');
               document.body.removeChild(el);
-              toclipboard=false;
+              window.toclipboard=false;
             }
           }
         
           else {
 
             //status 3:  grosser Bildschirm
-            if (stat3 == '1') {
+            if (window.stat3 == '1') {
               jsonData = getData(kalenderUrl);
               data = JSON.parse(jsonData);
               x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
@@ -1075,7 +1020,7 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
               z = data['v063'];   /*Anzahl der Zeichen, die rot markiert werden soll*/
             	ctx.fillStyle = "#D0D0D0";
               ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
-              zykzaehler=zyklus;
+              window.zykzaehler=window.zyklus;
               xpos= 1;   
               ypos= 1;   
               ctx.font = "bold 20px Courier New";
@@ -1149,24 +1094,24 @@ function tabClickHanlder(target) {
   const {id} = target;
   window.activeTabID = id;
 
-  document.querySelectorAll(`.tabContent, .tabLink`).forEach(el => el.classList.toggle(`active`, el.id.includes(target.id)));
+  document.querySelectorAll(`.tabContent, .tab`).forEach(el => el.classList.toggle(`active`, el.className.includes(target.id)));
   
 	if (id == "fernbedienung") {
 		resetNumlock();							//osk-Numpad-layout zurücksetzen
-		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
-		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
-		clearInterval(wochenKalenderImVisuAutoReload);
+		window.timerReloadFb = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
+		//window.timerRemoteConnection = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
+		clearInterval(window.timerVisuReload); // Deaktivieren der Abholung der Visudaten 
+		clearInterval(window.timerVisuKalenderReload);
 		showElemementById("benachrichtigung");	
 	}
   
     if (id == "visualisierung") {
 		setNumlock();							//osk-layout auf Numpad wechseln
         startVisu();
-		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
-		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
-		clearInterval(benachrichtigungAutoReload);
-		clearInterval(wochenKalenderImVisuAutoReload);
+		window.timerVisuReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
+		clearInterval(window.timerReloadFb); // Deaktivieren  der Datenabholung der Fernbedienung 
+		clearInterval(window.timerRemoteConnection);
+		clearInterval(window.timerVisuKalenderReload);
 		hideElemementById("benachrichtigung");
     }
 
@@ -1174,10 +1119,10 @@ function tabClickHanlder(target) {
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
 		setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
-		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
-		clearInterval(benachrichtigungAutoReload);
-		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 		
-		clearInterval(wochenKalenderImVisuAutoReload);
+		clearInterval(window.timerReloadFb); // Deaktivieren  der Datenabholung der Fernbedienung 
+		clearInterval(window.timerRemoteConnection);
+		clearInterval(window.timerVisuReload); // Deaktivieren der Abholung der Visudaten 		
+		clearInterval(window.timerVisuKalenderReload);
 		hideElemementById("benachrichtigung");
     }
 	
@@ -1187,8 +1132,14 @@ function updateBenachrichtigung (){
 	var displayElement = document.getElementById('benachrichtigungText');
 	var jsonData = getData(benachrichtigungsUrl);
 	var data =  JSON.parse(jsonData);
-	var message = 'Heizzentrale ' + projektName + '.	Fernbedienung aktiv durch: ' + '<span style="color:#C31D64">' + data['V064'].trim() + '</span>';
+	var message = 'Heizzentrale ' + prjName + '.	Fernbedienung aktiv durch: ' + '<span style="color:#C31D64">' + data['V064'].trim() + '</span>';
 	displayElement.innerHTML = message;
+}
+
+function updateConnectionStatus(isConnected) {
+  const connectionStatusIcon = document.querySelector(`.connectionStatusIcon`);
+  connectionStatusIcon.classList.toggle(`connected`, isConnected);
+  connectionStatusIcon.innerText = (isConnected) ? `\u2B24` : `↻`; //\u25CF
 }
 
 /*****************Hanler für Button Click ******************/
@@ -1219,13 +1170,13 @@ function EthernetButtonHanlder(id) {      /* <<< */
 
   var TastURLId = TastURL + Tast;
   var data = getData(TastURLId);
-  if (zykzaehler > einmalholen) {
-    zykzaehler=einmalholen;
-    tastzaehler=0;
+  if (window.zykzaehler > window.einmalholen) {
+    window.zykzaehler=window.einmalholen;
+    window.tastzaehler=0;
   }
   else {
-//  zykzaehler=zykzaehler+1;
-    tastzaehler=einmalholen;
+//  window.zykzaehler=window.zykzaehler+1;
+    window.tastzaehler=window.einmalholen;
   }
 
   document.getElementById("btnEnter").focus();
@@ -1281,8 +1232,8 @@ function keydownEventHandler(ev) {
       charCode = 17;
 
     //by Eckhard
-    zykzaehler = Math.min(zykzaehler, einmalholen);
-    tastzaehler = (zykzaehler === einmalholen) ? 0 : einmalholen;    
+    window.zykzaehler = Math.min(window.zykzaehler, window.einmalholen);
+    window.tastzaehler = (window.zykzaehler === window.einmalholen) ? 0 : window.einmalholen;    
   }
   else if (window.activeTabID.match(/(datenauswertung)/gi)) {
     if (key.match(/(esc)/gi))
@@ -1304,6 +1255,17 @@ function constrain(_in, _min, _max) {
   const min = Math.min(parseFloat(_min), parseFloat(_max));
   const max = Math.max(parseFloat(_min), parseFloat(_max));
   return Math.max(Math.min(parseFloat(_in), max), min);
+}
+
+function hslToHex(h, s, l) {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');   // convert to Hex and prefix "0" if needed
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
 }
 
 

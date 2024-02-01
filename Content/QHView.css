@@ -1,33 +1,71 @@
+summary {
+	cursor: pointer;
+}
 .tabContentQh {
-	overflow: hidden;
-	background-color: var(--colorEkhGray);
-	display: grid;
-	grid-template-columns: min-content min-content;
-	grid-template-rows: min-content min-content;
+	/*
 	grid-template-areas:
-	'diagramArea  menuDataTracks'
-	'menuControls menuControls';
-	height: 90vh;
+	'qhCanvas   qhTableContainer'
+	'qhControls qhTableContainer';
+	grid-template-columns: auto min-content;
+	grid-template-rows: auto min-content;
+	*/
+	position: relative;
 }
-
-.diagramArea {
+.qhCanvas {
+	/*
+	grid-column: qhCanvas-start / qhTable-end;
+	grid-row: qhCanvas-start / qhControls-end;
+	*/
+	align-self: center;
+	justify-self: center;
+	background-color: white;
+	width: 97%;
+}
+.qhControls {
+	/*
+	z-index: 1;
+	grid-area: qhControls;
+	align-self: end;
+	*/
+	position: absolute;
+	bottom: 0;
+	width: 100%;
+	background-color: rgba(0, 0, 0, .5);
+	color: var(--colorEkhLightestgray);
+}
+.qhTableContainer {
+	/*
+	z-index: 1;
+	grid-area: qhTableContainer;
+	*/
+	position: absolute;
+	right: 0;
+	height: 100%;
+	background-color: rgba(0, 0, 0, .5);
+	color: var(--colorEkhLightestgray);
+}
+.qhTableContainer[open] {
+	overflow-x: hidden;
+	overflow-y: auto;
+	padding-right: 20px; /*~width of scrollbar if overflow*/
+}
+/*
+.qhTableContainer:not([open]) {
+	width: 1.2rem;
+}
+*/
+.qhTableContainer:not([open]) > summary {
+	writing-mode: vertical-lr;
+	-webkit-writing-mode: vertical-lr;
+}
+.qhTable {
 	display: grid;
-	grid-area: diagramArea;
-	background-color: red;
+	grid-template-columns: min-content auto min-content min-content;
+	align-items: center;
 }
-
-.menuControls {
-	display: grid;
-	grid-area: menuControls;
-	background-color: green;
+.qhTable > span {
+	white-space: nowrap;
 }
-
-.menuDataTracks {
-	display: grid;
-	grid-area: menuDataTracks;
-	background-color: yellow;
-}
-
 
 
 
@@ -35,7 +73,7 @@
 
 /*********************Individual Checkbox/RadioBtn Styling START*********************/
 /* Hiding the initial checkbox */
-.QHcheckbox {
+.ekhCheckbox {
 	visibility: hidden;
 	width: auto;
 	/*margin-left: 30px;

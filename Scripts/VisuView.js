@@ -106,6 +106,14 @@ function closeModalZaehler() {
 
 function initVisu()
 {
+	//moved from EK_Lokal
+	wochenKalenderImVisuCanvas = document.getElementById('settingFromVisuCanvas');    
+	wochenKalenderImVisuCanvasContext = wochenKalenderImVisuCanvas.getContext('2d');                    
+	initCanvas(wochenKalenderImVisuCanvas, wochenKalenderImVisuCanvasContext);
+	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
+	handleConfirmBtn(locked);		//Visubedienung verriegeln
+
+
 	wInit = window.outerWidth;
 	hInit = window.outerHeight;
 	bAutoReload = false;

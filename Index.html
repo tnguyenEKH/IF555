@@ -18,318 +18,312 @@
 </head>
 
 <body lang="en">
-	<div class="connectingToMPCcontainer">
-		<div class="loaderIcon loader"></div>
-		<h1 class="loaderText"></h1>
-	</div>
+	<div class="mainContainer">
+		<!-- virtual keyboard itself -->
+		<div id="osk" class="simple-keyboard" style="display:none"></div>
 
-	<div class="tab">
-		<ul>
-			<li id="fernbedienung" class="tabLink">
-				Fernbedienung
-			</li>
-			<li id="visualisierung" class="tabLink">
-				Visualisierung
-			</li>
-			<li id="datenauswertung" class="tabLink">
-				1/4h Datenauswertung
-			</li>
-			<li id="bedienungsAnleitung" class="tabLink">
-				Bedienungsanleitung
-			</li>
-			<li id="verdrahtungsplan" class="tabLink">
-				Verdrahtungsplan
-			</li>
-			<li id="hilfe" class="tabLink">
-				Hilfe
-			</li>
-			<!--<li class="tabLink">
-				<a href="https://energiekontor-hannover.de" target="_blank">Energiekontor Hannover</a>
-			</li>-->
-		</ul>
-	</div>
-
-	<div id="benachrichtigung">
-		<div id= "benachrichtigungText"></div>
-	</div>
-
-	<!-- virtual keyboard itself -->
-	<div id="osk" class="simple-keyboard" style="display:none"></div>
-
-	<div id="fernbedienungDisplay" class="tabContent">
-		<div class="container">
-			<div id="sidebar" class="sidebar sidebar-item sidebar-menu">
-				
+		<div class="header">
+			<span class="tab tab1" id="tab1">Visualisierung</span>
+			<span class="tab tab2" id="tab2">Fernbedienung</span>
+			<span class="tab tab3" id="tab3">1/4h Datenauswertung</span>
+			<span class="tab tab4" id="tab4">Verdrahtungsplan</span>
+			<span class="tab tab5" id="tab5">Bedienungsanleitung</span>
+			<span class="tab tab6" id="tab6">Notizen</span>
+			<span class="tab tab7" id="tab7">Hilfe</span>
+		</div>
+		
+		<div class="tabContent tab0Content tabInit active">
+			<div class="loaderIcon"></div>
+			<h1 class="loaderText"></h1>
+		</div>
+		
+		<div class="tabContent tab1Content tabContentVisu" id="visualisierungDisplay">
+			<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
+			<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
+			<button id="vbtnVirtualKeyboard" class="btnOSK" onclick="EthernetButtonHanlder(id)">Tastatur</button>
+			
+			<!-- Lock modal -->
+			<div id="modalPinBg" class="modalVisuBg">
+			<div id="Pin-content" class="modalVisuContent">
+				<div class="modalVisuHeader">
+				<span id="xModalPin" class="close" onclick="closePinModal()">&times;</span>
+				<h4>Freischaltung der Bedienung</h4>
+				</div>
+				<div class="modalVisuBody">
+				<label id="lblPin">Pin:</label>
+				<input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
+				<div class="modalVisuBodyLine">
+					<label id="lblHidePin">Hide Pin
+						<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
+						<span class="checkmark"></span>
+					</label>
+				</div>
+				</div>
+				<div class="modalVisuFooter">
+				<button id="btnPinConfirm" class="modalVisuBtn" onclick="checkPin()">OK</button>
+				<button id="btnPinCancel" class="modalVisuBtn" onclick="closePinModal()">Abbrechen</button>
+				</div>
 			</div>
-
-			<div class="hauptDisplay">
-				<!-- Hauptmenü -->
-				<div class="panelContent" id="displayPanel">
-					 <canvas id="DisplayCanvas"></canvas>
-				</div>
-
-				<!-- Button Group -->
-				<div id="buttonGroup">
-					<button id="btnUp" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnDown" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnLeft" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnRight" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnEnter" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				</div>
-				
-				<div id="toolBtnGroup">
-				<!-- Button Home/Hauptmenue -->
-					<button id="btnHome" class="btn" onclick="EthernetButtonHanlder(id)">Hauptmenü</button>
-				
-				<!-- Button show/hide OSK -->
-					<button id="btnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
-				</div>
-				
-				<!--modal benutzer-->
-				<div id="modalBenutzer" class="modalEK">
-					<div class="modal-header" id="modalHeaderZaehler">
-                        <span>Aktuelle Benutzer</span>
-                    </div>
-					<!-- Modal content -->
-					<div  class="modal-content">
-						<div class="modal-body">
-							 <div id="zugeschaltetBenutzer"></div>
-						</div>
-						<div class="modal-footer">
-							<h4>Sie können dieses Fenster schließen</h4>
-							<input id="btnCopyClip" type="button" class="form-control" onclick="closeModalBenutzer()" value="Schließen" />
-						</div>
+			</div>
+			
+			<div id="vimgArea" class="vinsideWrapper">
+				<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
+				<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
+				<canvas id="vtipCanvas" ></canvas>
+			</div>
+			
+			<div id="vupdateStatus-bar" class="updateStatus-bar">
+				<bdi id="vupdateStatus-info"> </bdi>
+			</div>
+			
+			<!-- The Modal Stoerung -->
+			<div id="modalStoerung" class="modalEK">
+				<!-- Modal content -->
+				<div id="modalContent" class="modal-content">
+					<div class="modal-header" id="modalHeader">
+						<span id="closeModalStoerung" class="close">&times;</span>
+					</div>
+					<div class="modal-body" id="modalBody">
 					</div>
 				</div>
-			<!--end modal benutzer-->
-				
-				
-				
 			</div>
-		</div>
-	</div>
+			<!-- End Modal Stoerung -->		
 
-
-	<div id="visualisierungDisplay" class="tabContent">
-		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
-		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
-		<button id="vbtnVirtualKeyboard" class="btnOSK" onclick="EthernetButtonHanlder(id)">Tastatur</button>
-		
-		<!-- Lock modal -->
-		<div id="modalPinBg" class="modalVisuBg">
-		  <div id="Pin-content" class="modalVisuContent">
-			<div class="modalVisuHeader">
-			  <span id="xModalPin" class="close" onclick="closePinModal()">&times;</span>
-			  <h4>Freischaltung der Bedienung</h4>
-			</div>
-			<div class="modalVisuBody">
-			  <label id="lblPin">Pin:</label>
-			  <input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
-			  <div class="modalVisuBodyLine">
-				  <label id="lblHidePin">Hide Pin
-					<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
-					<span class="checkmark"></span>
-				  </label>
-			  </div>
-			</div>
-			<div class="modalVisuFooter">
-			  <button id="btnPinConfirm" class="modalVisuBtn" onclick="checkPin()">OK</button>
-			  <button id="btnPinCancel" class="modalVisuBtn" onclick="closePinModal()">Abbrechen</button>
-			</div>
-		  </div>
-		</div>
-		
-		<div id="vimgArea" class="vinsideWrapper">
-			<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
-			<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
-			<canvas id="vtipCanvas" ></canvas>
-		</div>
-		
-		<div id="vupdateStatus-bar" class="updateStatus-bar">
-			<bdi id="vupdateStatus-info"> </bdi>
-		</div>
-		
-		<!-- The Modal Stoerung -->
-		<div id="modalStoerung" class="modalEK">
-			<!-- Modal content -->
-			<div id="modalContent" class="modal-content">
-				<div class="modal-header" id="modalHeader">
-					<span id="closeModalStoerung" class="close">&times;</span>
+			<!--modal zähler-->
+				<div id="modalZaehler" class="modalEK">
+					<!-- Modal content -->
+					<div id="modalContenZaehler" class="modal-content">
+						<div class="modal-header" id="modalHeaderZaehler">
+							<span id="closeModalZaehler" class="close">&times;</span>
+						</div>
+						<div class="modal-body" id="ModalBodyZaehler">
+							<div id="aktuelleZaehler"></div>
+						</div>
+						<!--<div class="modal-footer" id="modalFooter">
+							<input id="btnCopyClip" type="button" class="form-control" onclick="copyToClip()" value="In Zwischenlage kopieren" />
+						</div> -->
+					</div>
 				</div>
-				<div class="modal-body" id="modalBody">
+		<!--end modal zähler-->
+		
+		<!-- Modal für Einstellwerte-->
+			<div id="fpBg" class="modalVisuBg" >
+			<!-- <div id="visLoader" class="loader"></div> -->
+			<!-- FP content -->
+			<div id="fpContent" class="modalVisuContent">
+				<div id="fpHeader" class="modalVisuHeader">
+				<span class="close" onclick="closeFaceplate()">&times;</span>
+				<h4 id="h4FpHeader"></h4>
+				</div>
+				<div id="fpBody" class="modalVisuBody">
+				</div>
+				<div id="fpFooter" class="modalVisuFooter">
+				<button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosEventHandler(event)">Übernehmen</button>
+				<button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
 				</div>
 			</div>
-		</div>
-		<!-- End Modal Stoerung -->		
-
-        <!--modal zähler-->
-            <div id="modalZaehler" class="modalEK">
-                <!-- Modal content -->
-                <div id="modalContenZaehler" class="modal-content">
-                    <div class="modal-header" id="modalHeaderZaehler">
-                        <span id="closeModalZaehler" class="close">&times;</span>
-                    </div>
-                    <div class="modal-body" id="ModalBodyZaehler">
-                         <div id="aktuelleZaehler"></div>
-                    </div>
-                    <!--<div class="modal-footer" id="modalFooter">
-                        <input id="btnCopyClip" type="button" class="form-control" onclick="copyToClip()" value="In Zwischenlage kopieren" />
-                    </div> -->
-                </div>
-            </div>
-       <!--end modal zähler-->
-	   
-	   <!-- Modal für Einstellwerte-->
-		 <div id="fpBg" class="modalVisuBg" >
-		  <!-- <div id="visLoader" class="loader"></div> -->
-		  <!-- FP content -->
-		  <div id="fpContent" class="modalVisuContent">
-			<div id="fpHeader" class="modalVisuHeader">
-			  <span class="close" onclick="closeFaceplate()">&times;</span>
-			  <h4 id="h4FpHeader"></h4>
 			</div>
-			<div id="fpBody" class="modalVisuBody">
-			</div>
-			<div id="fpFooter" class="modalVisuFooter">
-			  <button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosEventHandler(event)">Übernehmen</button>
-			  <button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
-			</div>
-		  </div>
-		</div>
-		<!--end modal einstellwerte-->
-		
-		<!-- Modal für eingebetten HK Wochenkalender-->
-		<div id="wochenKalenderImVisu" class="modalVisuBg">
-			<!-- Modal content -->
-			<div class="modalVisuContent" id="wochenKalenderImVisuContent">
-				<div class="modalVisuHeader">
-					<span class="close" onclick="closeModalWochenKalenderImVisu()">&times;</span>
-					<h4 id="txtWochenKalenderImVisuHeader">Wochenkalender </h4>
-				</div>
-				<div class="modalVisuBody" id="wochenKalenderImVisuBody">
-				<canvas id="settingFromVisuCanvas"></canvas>
-				</div>
-				<div class="modalVisuFooter" id="wochenKalenderImVisuFooter">
-					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
-				</div>
-			</div>
-							<!-- Button Group -->
-			<div id="buttonGroupVisu">
-				<button id="btnUpVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				<button id="btnDownVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				<button id="btnLeftVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				<button id="btnRightVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				<button id="btnEnterVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-			</div>
-		</div>
-		<!--end modal Modal für eingebetten HK Wochenkalender-->
-	   
-	</div>
-
-
-	<div id="datenauswertungDisplay" class="tabContent tabContentQh">
-		<div class="diagramArea">
-			<canvas class="canvasDiagram"></canvas>
-		</div>
-		<menu id="qSettings" class="menuDataTracks"></menu>
-		<menu id="controls" class="menuControls">
-			<label class="lblcb cbDauerlinie">
-				<input type="checkbox" class="QHcheckbox">
-				<span class="checkmark"></span>
-				<span class="lblcbSpan">Dauerlinie</span>
-			</label>
-			<select id="betrachtungszeitraum">
-				<option value="tagesgang" selected>Tagesgang</option>
-				<option value="wochengang">Wochengang</option>
-				<option value="monatsgang">Monatsgang</option>
-				<option value="jahresgang">Jahresgang</option>
-				<option value="avgTagesgang">⌀ Tagesgang</option>
-			</select>
-			<input type="button" class="btnRefreshQhData" value="Datenupdate">
-			<input type="button" class="btnSaveSelection" value="Spurauswahl speichern">
-			<label class="lblcb cbForceQH">
-				<input type="checkbox" class="QHcheckbox">
-			  	<span class="checkmark"></span>
-			  	<span class="lblcbSpan">immer 1/4 Daten anzeigen</span>
-			</label>
-		</menu>
-	</div>
-
-	<div id="bedienungsAnleitungDisplay" class="tabContent">
-		<div class="pdf-top-bar">
-			<span class="page-info">
-			  Page <span id="bedien-page-num"></span> of <span id="bedien-page-count"></span>
-			</span>
+			<!--end modal einstellwerte-->
 			
-			<span class="zoom-info">
-			  Zoom <span id="bedien-zoom"></span> %
-			</span>
-		</div>
+			<!-- Modal für eingebetten HK Wochenkalender-->
+			<div id="wochenKalenderImVisu" class="modalVisuBg">
+				<!-- Modal content -->
+				<div class="modalVisuContent" id="wochenKalenderImVisuContent">
+					<div class="modalVisuHeader">
+						<span class="close" onclick="closeModalWochenKalenderImVisu()">&times;</span>
+						<h4 id="txtWochenKalenderImVisuHeader">Wochenkalender </h4>
+					</div>
+					<div class="modalVisuBody" id="wochenKalenderImVisuBody">
+					<canvas id="settingFromVisuCanvas"></canvas>
+					</div>
+					<div class="modalVisuFooter" id="wochenKalenderImVisuFooter">
+						<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
+					</div>
+				</div>
+								<!-- Button Group -->
+				<div id="buttonGroupVisu">
+					<button id="btnUpVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnDownVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnLeftVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnRightVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					<button id="btnEnterVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+				</div>
+			</div>
+			<!--end modal Modal für eingebetten HK Wochenkalender-->
 		
-		<div class="pdf-leftBtnGroup">
-			<button class="pdf-btn" id="bedien-prev-page">
-			  <i class="fas fa-arrow-circle-left"></i> Prev Page
-			</button>
-			
-			<button class="pdf-btn" id="bedien-zoom_out">
-				Zoom <i class="fa fa-minus-circle"></i>
-			</button>
 		</div>
-		<!--<div class="clr"></div>-->
-		<div class="pdf-rightBtnGroup">
-			<button class="pdf-btn" id="bedien-next-page">
-			  Next Page <i class="fas fa-arrow-circle-right"></i>
-			</button>
-			
-			<button class="pdf-btn" id="bedien-zoom_in">
-				Zoom<i class="fa fa-plus-circle"></i>
-			</button>
-		</div>
-	  
-		<div class="pdf-canvas-container">
-		  <canvas id="bedien-pdf-render"></canvas>
-		</div>
-	</div>
+
+		<div class="tabContent tab2Content tabFernbedienung" id="fernbedienungDisplay">
+			<div class="container">	
+				<div class="hauptDisplay">
+					<!-- Hauptmenü -->
+					<div class="panelContent" id="displayPanel">
+						 <canvas id="DisplayCanvas"></canvas>
+					</div>
 	
-	<div id="verdrahtungsplanDisplay" class="tabContent">
-		<div class="pdf-top-bar">
-			<span class="page-info">
-			  Page <span id="slp-page-num"></span> of <span id="slp-page-count"></span>
-			</span>
-			
-			<span class="zoom-info">
-			  Zoom <span id="slp-zoom"></span> %
-			</span>
+					<!-- Button Group -->
+					<div id="buttonGroup">
+						<button id="btnUp" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+						<button id="btnDown" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+						<button id="btnLeft" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+						<button id="btnRight" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+						<button id="btnEnter" class="btn" onclick="EthernetButtonHanlder(id)"></button>
+					</div>
+					
+					<div id="toolBtnGroup">
+					<!-- Button Home/Hauptmenue -->
+						<button id="btnHome" class="btn" onclick="EthernetButtonHanlder(id)">Hauptmenü</button>
+					
+					<!-- Button show/hide OSK -->
+						<button id="btnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
+					</div>
+					
+					<!--modal benutzer-->
+					<div id="modalBenutzer" class="modalEK">
+						<div class="modal-header" id="modalHeaderZaehler">
+							<span>Aktuelle Benutzer</span>
+						</div>
+						<!-- Modal content -->
+						<div  class="modal-content">
+							<div class="modal-body">
+								 <div id="zugeschaltetBenutzer"></div>
+							</div>
+							<div class="modal-footer">
+								<h4>Sie können dieses Fenster schließen</h4>
+								<input id="btnCopyClip" type="button" class="form-control" onclick="closeModalBenutzer()" value="Schließen" />
+							</div>
+						</div>
+					</div>
+					<!--end modal benutzer-->
+				</div>
+			</div>
 		</div>
 		
-		<div class="pdf-leftBtnGroup">
-			<button class="pdf-btn" id="slp-prev-page">
-			  <i class="fas fa-arrow-circle-left"></i> Prev Page
-			</button>
-			
-			<button class="pdf-btn" id="slp-zoom_out">
-				Zoom <i class="fa fa-minus-circle"></i>
-			</button>
-		</div>
-		<!--<div class="clr"></div>-->
-		<div class="pdf-rightBtnGroup">
-			<button class="pdf-btn" id="slp-next-page">
-			  Next Page <i class="fas fa-arrow-circle-right"></i>
-			</button>
-			
-			<button class="pdf-btn" id="slp-zoom_in">
-				Zoom<i class="fa fa-plus-circle"></i>
-			</button>
-		</div>		
-	  
-		<div class="pdf-canvas-container">
-		  <canvas id="slp-pdf-render"></canvas>
-		</div>
-	</div>
+		<div class="tabContent tab3Content tabContentQh" id="datenauswertungDisplay">
+			<details class="qhControls">
+				<summary>Controls</summary>
+				<div class="qhControlsContainer">
+					<select class="period">
+						<option value="avgTagesgang">Ø Tagesgang</option>
+						<option value="jahresgang">Jahresgang</option>
+						<option value="monatsgang">Monatsgang</option>
+						<option value="wochengang">Wochengang</option>
+						<option value="tagesgang" selected>Tagesgang</option>
+					</select>
+					<label class="lblcb cbDauerlinie">
+						<input type="checkbox" class="QHcheckbox">
+						<span class="checkmark"></span>
+						<span class="lblcbSpan">Dauerlinie</span>
+					</label>
 
-	<div id="hilfe" class="tabContent">
+					<input type="button" value="- Jahr">
+					<input type="button" value="- Monat">
+					<input type="button" value="- Woche">
+					<input type="button" value="- Tag">
+					<input type="button" value="+ Tag">
+					<input type="button" value="+ Woche">
+					<input type="button" value="+ Monat">
+					<input type="button" value="+ Jahr">
+					
+					<input type="button" class="btnRefreshQhData" value="Datenupdate">
+					<input type="button" class="btnSaveSelection" value="Einstellungen speichern">
+					<label class="lblcb cbForceQH">
+						<input type="checkbox" class="ekhCheckbox">
+						<span class="checkmark"></span>
+						<span class="lblcbSpan">immer 1/4 Daten anzeigen</span>
+					</label>
+				</div>
+			</details>
+			
+			<details open class="qhTableContainer">
+				<summary>DataTracks</summary>
+				<div class="qhTable"></div>
+			</details>
+		</div>
+
+		<div class="tabContent tab4Content tabContentVerdrahtungsplan" id="verdrahtungsplanDisplay" >
+			<div class="pdf-top-bar">
+				<span class="page-info">
+				  Page <span id="slp-page-num"></span> of <span id="slp-page-count"></span>
+				</span>
+				
+				<span class="zoom-info">
+				  Zoom <span id="slp-zoom"></span> %
+				</span>
+			</div>
+			
+			<div class="pdf-leftBtnGroup">
+				<button class="pdf-btn" id="slp-prev-page">
+				  <i class="fas fa-arrow-circle-left"></i> Prev Page
+				</button>
+				
+				<button class="pdf-btn" id="slp-zoom_out">
+					Zoom <i class="fa fa-minus-circle"></i>
+				</button>
+			</div>
+			<!--<div class="clr"></div>-->
+			<div class="pdf-rightBtnGroup">
+				<button class="pdf-btn" id="slp-next-page">
+				  Next Page <i class="fas fa-arrow-circle-right"></i>
+				</button>
+				
+				<button class="pdf-btn" id="slp-zoom_in">
+					Zoom<i class="fa fa-plus-circle"></i>
+				</button>
+			</div>		
+		  
+			<div class="pdf-canvas-container">
+			  <canvas id="slp-pdf-render"></canvas>
+			</div>
+		</div>
+
+		<div class="tabContent tab5Content tabContentBedienungsAnleitung" id="bedienungsAnleitungDisplay" >
+			<div class="pdf-top-bar">
+				<span class="page-info">
+				Page <span id="bedien-page-num"></span> of <span id="bedien-page-count"></span>
+				</span>
+				
+				<span class="zoom-info">
+				Zoom <span id="bedien-zoom"></span> %
+				</span>
+			</div>
+			
+			<div class="pdf-leftBtnGroup">
+				<button class="pdf-btn" id="bedien-prev-page">
+				<i class="fas fa-arrow-circle-left"></i> Prev Page
+				</button>
+				
+				<button class="pdf-btn" id="bedien-zoom_out">
+					Zoom <i class="fa fa-minus-circle"></i>
+				</button>
+			</div>
+			<!--<div class="clr"></div>-->
+			<div class="pdf-rightBtnGroup">
+				<button class="pdf-btn" id="bedien-next-page">
+				Next Page <i class="fas fa-arrow-circle-right"></i>
+				</button>
+				
+				<button class="pdf-btn" id="bedien-zoom_in">
+					Zoom<i class="fa fa-plus-circle"></i>
+				</button>
+			</div>
 		
-	</div>
+			<div class="pdf-canvas-container">
+			<canvas id="bedien-pdf-render"></canvas>
+			</div>
+		</div>
+		
+		<div class="tabContent tab6Content tabContentNotizen">
+			<textarea class="notizen" placeholder="Notizen..."></textarea>
+		</div>
+
+		<div class="tabContent tab7Content tabContentHilfe">
+		</div>
+
+		<div class="footer">
+			<span class="connectionStatusText">connectionStatus:</span>
+			<span class="connectionStatusIcon">↻</span>
+		</div>
 
   
 	<!--<script src="Scripts/jquery-3.5.1.min.js"></script> -->
@@ -348,7 +342,6 @@
 	<script src="Scripts/pdf.js"></script>
 	
 	<script src="Scripts/EK_Local.JS"></script>
-	
 	
 </body>
 </html>

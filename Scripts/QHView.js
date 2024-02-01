@@ -1,10 +1,5 @@
-	var QHHeaderFile = "./DATA/vierttx.txt";
-	var QHUpdateFile = "./DATA/viertdat.txt";
-	var QHUpdateURL = "http://172.16.0.102/JSONADD/PUT?V007=Q2";
-	var FBviertdatURL = "http://172.16.0.102/JSONADD/GET?p=1&Var=sel&V012";
-	var QHSettingFile = "http://172.16.0.101/Data/QHSetting.txt"
+    /*
     var Steuerung = "";
-    var canvas;
     var qctx;
     var offsetX;
     var offsetY;
@@ -63,10 +58,201 @@
 
     var sLastUpdate;
 
-    var QHInfo;
+    var QHInfo;*/
        
-function startQH() {
+async function initQh(qhHeaderData, qhDataRaw) {
+    //////////////////////qhData preparation//////////////////////
+    //get saved User Settings
+    const qhUserSettings = await fetchQhUserSettings();
+
+    //////////////////////qhHeader//////////////////////
+    //fileFormat:
+    const positionPrjNo = 0;
+    const lengthPrjNo = 5;
+    const positionDate = 7;
+    const lengthDate = 10;
+    const positionTime = 19;
+    const lengthTime = 8;
+    const positionRecordsCount = 41;
+    const lengthRecordsCount = 3;
+    
+    const positionUnits = positionRecordsCount + lengthRecordsCount;
+	const lengthUnits = 5;
+	const lengthNames = 20;
+    
+    const prjNo = qhHeaderData.substr(positionPrjNo, lengthPrjNo);
+    const qhDataTrackCount = parseInt(qhHeaderData.substr(positionRecordsCount, lengthRecordsCount).trim()); //+10
+
+	
+	const qhHeader = [];
+	for(let i = 0; i < qhDataTrackCount; i++) {
+		const item = {};
+		item.Index = i;
+		item.Einheit = qhHeaderData.substr((positionUnits + i*lengthUnits), lengthUnits).trim();
+		item.Bezeichnung = qhHeaderData.substr((positionUnits + qhDataTrackCount*lengthUnits + i*lengthNames) , lengthNames).trim();
+		qhHeader.push(item);
+	}
+    //console.log(qhHeader);
+    //////////////////////qhData//////////////////////
+    const timeStampLength = 4;
+    const qhDataTrackReserveCount = 10;
+    const qhDataTrackTotalCount = qhDataTrackCount + qhDataTrackReserveCount;
+    const recordLength = timeStampLength + qhDataTrackTotalCount;
+    const totalRecords = qhDataRaw.length/recordLength;
+    //console.log(totalRecords);
+    const qhData = [];
+    for(let i = 0; i < totalRecords; i++){
+        const rawRecord = qhDataRaw.slice((i*recordLength), ((i+1)*recordLength));
         
+        const record = {};
+        const date   = new Date("20"+ rawRecord[0].toString(), (rawRecord[1] -1).toString(), rawRecord[2].toString()); //month index from 0-11
+        record.Datum = date.toLocaleDateString();
+        const idx = rawRecord[3];
+        record.Index = idx;
+        record.nValues = qhDataTrackTotalCount;
+        record.Projektnumer = prjNo;
+        record.Values = rawRecord.slice(4, recordLength);
+        qhData.push(record);
+    }
+    //console.log(qhData);
+    //////////////////////init HTML//////////////////////
+    //////////////////////createQhCanvas with max ViewportSize//////////////////////
+    initQhTable(qhHeader, qhUserSettings);
+    createQhCanvas();
+    drawQh(qhUserSettings);
+
+       
+    //return qhData;
+}
+
+function createQhCanvas() {
+    const scalingFactorCanvasHeight = .95;
+    const existingQhCanvas = document.querySelector(`.qhCanvas`);
+    if (existingQhCanvas)
+        existingQhCanvas.remove();
+    const tabContentQh = document.querySelector(`.tabContentQh`);
+    //console.log(tabContentQh);
+    const qhCanvas = document.createElement(`canvas`);
+    qhCanvas.classList.add(`qhCanvas`);
+    qhCanvas.width = tabContentQh.offsetWidth;
+    qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
+    tabContentQh.appendChild(qhCanvas);
+    return qhCanvas;
+}
+
+function drawQh(qhUserSettings) {
+    const {qh_Skalierung} = qhUserSettings;
+    const {Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
+    const Y_Links_Min = (qh_Skalierung.Y_Links_Min === undefined) ? 0 : qh_Skalierung.Y_Links_Min; //Y_Links_Min bisher nicht zwangsläufig in qhUserSettings enthalten!
+    const Y_Rechts_Min = (qh_Skalierung.Y_Rechts_Min === undefined) ? Y_Links_Min : qh_Skalierung.Y_Rechts_Min; //Y_Rechts_Min bisher garnicht in qhUserSettings enthalten!
+    const canvas = document.querySelector(`.qhCanvas`);
+    const {width, height} = canvas;
+    const offsetWidthRatio = .05;
+    const offsetHeightRatio = .1;
+    const offsetWidth = offsetWidthRatio * width;
+    const offsetHeight = offsetHeightRatio * height;
+    const ctx = canvas.getContext(`2d`);
+    const period = document.querySelector(`.period`).value;
+    const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
+    if (!isDauerlinie) {
+        ctx.lineWidth = 3;
+        ctx.lineCap = `square`;
+        //X-Achse
+        ctx.beginPath();
+        ctx.strokeStyle = `black`;
+        ctx.moveTo(offsetWidth, height - offsetHeight);
+        ctx.lineTo(width - offsetWidth, height - offsetHeight);
+        const xAxisLength = width - 2*offsetWidth; 
+        const xAxisSteps = (period === `tagesgang`) ? 6 : (period === `wochengang`) ? 7 : (period === `jahresgang`) ? 12 : 10; //Monatstagberechnung!! 
+        for(let i = 0; i <= xAxisSteps; i++) {
+            ctx.moveTo(offsetWidth + i/xAxisSteps * xAxisLength, height - offsetHeight);
+            ctx.lineTo(offsetWidth + i/xAxisSteps * xAxisLength, height - offsetHeight + 10);
+            //ctx.lineTo(i/xAxisSteps * (.9 * width) + offsetWidthRatio * width, (1 - offsetHeightRatio + .02) * height);
+        }
+        ctx.stroke();
+        //Y-Achsen:
+        const yAxisLength = height - 2*offsetHeight;
+        //Y1-Achse
+        ctx.beginPath();
+        ctx.strokeStyle = `hsl(334, 74%, 44%)`;
+        ctx.moveTo(offsetWidth, offsetHeight);
+        ctx.lineTo(offsetWidth, height - offsetHeight);
+        const y1AxisSteps = (Y_Links_Max - Y_Links_Min) / Y_Links_Schrittweite;
+        //console.log(Y_Links_Max, Y_Links_Min, Y_Links_Schrittweite, y1AxisSteps);
+        for(let i = 0; i <= y1AxisSteps; i++) {
+            ctx.moveTo(offsetWidth, (height - offsetHeight) - i/y1AxisSteps * yAxisLength);
+            ctx.lineTo(offsetWidth - 10, (height - offsetHeight) - i/y1AxisSteps * yAxisLength);
+        }
+        ctx.stroke();
+        //Y2-Achse
+        ctx.beginPath();
+        ctx.strokeStyle = `hsl(194, 71%, 42%)`;
+        ctx.moveTo(width - offsetWidth, offsetHeight);
+        ctx.lineTo(width - offsetWidth, height - offsetHeight);
+        const y2AxisSteps = (Y_Rechts_Max - Y_Rechts_Min) / Y_Rechts_Schrittweite;
+        //console.log(Y_Rechts_Max, Y_Rechts_Min, Y_Rechts_Schrittweite, y2AxisSteps);
+        for(let i = 0; i <= y2AxisSteps; i++) {
+            ctx.moveTo(width - offsetWidth, (height - offsetHeight) - i/y2AxisSteps * yAxisLength);
+            ctx.lineTo(width - offsetWidth + 10, (height - offsetHeight) - i/y2AxisSteps * yAxisLength);
+        }
+        ctx.stroke();
+
+    }
+    else {
+
+    }
+}
+
+async function initQhTable(qhHeader, qhUserSettings) {
+    //build qhTable
+    const qhTable = document.querySelector(`.qhTable`);
+    qhHeader.forEach(el => {
+        const foundItem = qhUserSettings.qh_Spuren.find(spur => spur.index === el.Index);        
+        const inpColor = document.createElement(`input`);
+        inpColor.classList.add(`inpColor${el.Index}`);
+        inpColor.type = `color`;
+        inpColor.value = (foundItem) ? foundItem.color : `#EFEFEF`;
+        inpColor.lastValue = (foundItem) ? undefined : hslToHex(30 * el.Index, 100, 50);
+        inpColor.title = `Doppelclick zum Deaktivieren`;
+        //inpColor.lastValue = inpColor.value;
+        inpColor.addEventListener(`change`, (ev) => colorPickChangeHandler(ev.target));
+        inpColor.addEventListener(`dblclick`, (ev) => colorPickDblclickHandler(ev.target));
+        inpColor.addEventListener(`click`, (ev) => {
+            //open ColorPick only if click is Simulated (!ev.Trusted); otherwise preventDefault & start Timer to give dblClickEvent the chance to fire
+            if(ev.isTrusted) {
+                ev.preventDefault();
+                //Start Timer if not already started to give dblClick-Event the Chance to fire before clickSimulation is fired!
+                if(!window.timerColorPickClicks)
+                    window.timerColorPickClicks = setTimeout(simulateColorPickClick, 300, ev.target);
+            }
+        });
+        qhTable.appendChild(inpColor);
+
+        const span = document.createElement(`span`);
+        span.innerText = `${el.Bezeichnung.trim()} [${el.Einheit}]`;
+        qhTable.appendChild(span);
+        const useLeftScale = (foundItem) ? foundItem.bSkala_Links : true;
+        for (let j = 0; j < 2; j++) {
+            const radio = document.createElement(`input`);
+            radio.type = `radio`;
+            radio.name = `qhScale${el.Index}`;
+            radio.checked = (j) ? !useLeftScale : useLeftScale; //(!!j)^(!!useLeftScale); //XOR-Logic; !! is to convert to bool
+            qhTable.appendChild(radio);
+        }
+    });
+}
+
+async function fetchQhUserSettings() {
+    const response = await fetchData(QHSettingFile);
+    return response.UserSettingsObject.UserSettings;
+}
+
+
+
+
+function startQH() {
+    
+
 		//defaultColors = generateDefaultColors();
         
         /*
@@ -125,34 +311,6 @@ function getObjects(obj, key, val) {
 }
 
 
-function OpenModalQH() {
-    var canvas = document.getElementById("myqCanvas");
-    var modal = document.getElementById('ModalQH');
-    var span = document.getElementsByClassName("close")[0];
-    
-    window.onclick = function (event) {
-        if (event.target == modal) {
-			CloseModalQH();
-        }
-    }
-    document.getElementById("modalbody").innerHTML = "<p>" + "<h2>" + "Daten werden heruntergeladen. Bitte warten Sie!" + "<h2>" + "</p>";
-
-    modal.style.display = "block";
-}
-
-function CloseModalQH() {
-	var modal = document.getElementById('ModalQH');
-	modal.style.display = "none";
-}
-
-function MeldungAndCloseModal(meldung) {
-    var canvas = document.getElementById("myqCanvas");
-    var modal = document.getElementById('ModalQH');
-    var span = document.getElementsByClassName("close")[0];
-    document.getElementById("modalbody").innerHTML = "<p>" + "<h2>" + meldung + "<h2>" + "</p>";
-    setTimeout(function () { modal.style.display = "none"; }, 2000);
-
-}
 
 function toPixelY(value, isLeft) {
     var Min;
@@ -463,7 +621,7 @@ function saveUserSettings(UserSettingsObject) {
 }
 
 
-//find records from allQHDataRecords
+//find records from qhData
 function requestData(DataRequestObject) {
     var res = [];
 	var dtFrom = new Date(DataRequestObject.DatumFrom.y, DataRequestObject.DatumFrom.m -1, DataRequestObject.DatumFrom.d);
@@ -472,24 +630,24 @@ function requestData(DataRequestObject) {
 	var today = new Date().toLocaleString().split(',')[0];;
 	var DatumFrom = dtFrom.toLocaleString().split(',')[0];
 	var DatumTo =   dtTo.toLocaleString().split(',')[0];
-	var startIndex = allQHDataRecords.findIndex(x => x.Datum === DatumFrom);
-	var endIndex = allQHDataRecords.findIndex(x => x.Datum === DatumTo);
+	var startIndex = qhData.findIndex(x => x.Datum === DatumFrom);
+	var endIndex = qhData.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
 	if (DataRequestObject.bJahresdaten == true)
 	{
-		res = allQHDataRecords.slice(startIndex, endIndex);
+		res = qhData.slice(startIndex, endIndex);
 	}
 		
 	else
 	{
 		if(DataRequestObject.bViertelstunden == true)
 		{
-				res = allQHDataRecords.slice(startIndex, endIndex);
+				res = qhData.slice(startIndex, endIndex);
 		}
 		else
 		{
-				var recordFound = allQHDataRecords.slice(startIndex, endIndex);
+				var recordFound = qhData.slice(startIndex, endIndex);
 				for (var i=0; i < recordFound.length; i++)
 				{
 					if (i%8 == 0)
@@ -705,7 +863,7 @@ function createSettingsItem(id, text, useLeftScale, color) {
                 rBtn.type = `radio`;
                 lblcb.appendChild(rBtn);
                 rBtn.id = `cbSettings${(i === 1) ? 'L' : 'R'}_${id}`;
-                rBtn.classList.add(`QHcheckbox`);
+                rBtn.classList.add(`ekhCheckbox`);
                 rBtn.name = `qhScale${id}`;
                 rBtn.checked = (i === 1) ? useLeftScale : !useLeftScale;
                 //rBtn.addEventListener(`change`, ev => SettingsLeftRightHandler(ev.target));
@@ -1473,7 +1631,7 @@ function DatenHolen() {
 	var date = InitialDatum();
 	
 	do {	//Schleife für Mehrtageabholung
-		var lastQHData = allQHDataRecords[allQHDataRecords.length - 1];
+		var lastQHData = qhData[qhData.length - 1];
 		var lastQHDatum = lastQHData.Datum.split('.');
 		if (lastQHDatum[2] == undefined || lastQHDatum[1] == undefined || lastQHDatum[0] == undefined) error = true;
 		
@@ -1530,18 +1688,18 @@ function DatenHolen() {
 					QHBuffer.push(-999.00);
 				}
 				
-				var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß allQHDataRecords)
+				var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß qhData)
 				
-				while (recordArray.length > allQHDataRecords[0].nValues && r_index <= 96) {		//allQHDataRecords erweitern bis Ende erreicht
+				while (recordArray.length > qhData[0].nValues && r_index <= 96) {		//qhData erweitern bis Ende erreicht
 					var record = {};
 					record.Datum = r_datum.toLocaleString().split(',')[0];
 					record.Index = r_index.toString();
-					record.nValues = allQHDataRecords[0].nValues;
+					record.nValues = qhData[0].nValues;
 					record.Projektnumer = projektNummer;
 					record.Values = recordArray.slice(0, record.nValues);
 					record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
 					//console.log(record);
-					allQHDataRecords.push(record);
+					qhData.push(record);
 					
 					r_index++;
 					
@@ -1558,6 +1716,37 @@ function DatenHolen() {
 }
 
 //////////////////////EventListeners//////////////////////
-function colorPickerHandler(target) {
-    console.log(target.value);
+function simulateColorPickClick(target) {
+    //reset TimerID
+    window.timerColorPickClicks = undefined;
+    target.click();
+    //console.log(`simulateColorPickClick`);
+}
+function colorPickChangeHandler(target) {
+    //console.log(`change...`);
+    /*
+    target.classList.remove(`cloaked`);
+    const idx = parseInt(target.className.match(/(?<=(inpColor))\d+/g));
+    document.querySelector(`.cbDisableQhTrack${idx}`).classList.add(`cloaked`);
+    */
+}
+function colorPickDblclickHandler(target) {
+    //interrupt clickTimer & reset timerID cuz dblClick (disableTrack is users input)
+    clearTimeout(window.timerColorPickClicks);
+    window.timerColorPickClicks = undefined;
+    //ev.target.value = `#EFEFEF`;
+    //console.log(`dblClick`);
+
+    const {lastValue, value} = target;
+    if (lastValue) {
+        target.value = lastValue;
+        target.lastValue = undefined;
+    }
+    else {
+        target.lastValue = value;
+        target.value = `#EFEFEF`;
+    }
+    //target.lastValue = target.value;
+    //target.toggleAttribute(`disabled`);
+    
 }
