@@ -61,9 +61,10 @@
     var QHInfo;*/
        
 async function initQh(qhHeaderData, qhDataRaw) {
-    //////////////////////qhData preparation//////////////////////
+    //////////////////////window.qhData preparation//////////////////////
     //get saved User Settings
     const qhUserSettings = await fetchQhUserSettings();
+    window.UserSettings = qhUserSettings; //temporary global variable for usage of old functions...
 
     //////////////////////qhHeader//////////////////////
     //fileFormat:
@@ -93,15 +94,19 @@ async function initQh(qhHeaderData, qhDataRaw) {
 		qhHeader.push(item);
 	}
     //console.log(qhHeader);
-    //////////////////////qhData//////////////////////
-    const timeStampLength = 4;
+    //////////////////////window.qhData//////////////////////
+    const timestampLength = 4;
     const qhDataTrackReserveCount = 10;
     const qhDataTrackTotalCount = qhDataTrackCount + qhDataTrackReserveCount;
-    const recordLength = timeStampLength + qhDataTrackTotalCount;
+    //console.log(qhDataTrackTotalCount);
+    const recordLength = timestampLength + qhDataTrackTotalCount;
+    //console.log(recordLength);
     const totalRecords = qhDataRaw.length/recordLength;
     //console.log(totalRecords);
-    const qhData = [];
-    for(let i = 0; i < totalRecords; i++){
+    //////////////////////classic DataPreparation//////////////////////
+    ///*
+    window.qhData = [];
+    for(let i = 0; i < totalRecords; i++) {
         const rawRecord = qhDataRaw.slice((i*recordLength), ((i+1)*recordLength));
         
         const record = {};
@@ -111,18 +116,98 @@ async function initQh(qhHeaderData, qhDataRaw) {
         record.Index = idx;
         record.nValues = qhDataTrackTotalCount;
         record.Projektnumer = prjNo;
-        record.Values = rawRecord.slice(4, recordLength);
-        qhData.push(record);
+        record.Values = rawRecord.slice(timestampLength, recordLength);
+        window.qhData.push(record);
     }
-    //console.log(qhData);
+    //console.log(window.qhData);
+    //*/
+
+    //////////////////////dataPreparation by Tracks//////////////////////
+    //console.log(qhDataRaw);
+    /*
+    const timestamps = [];
+    for(let i = 0; i < totalRecords; i++) {
+        const year = 2000 + qhDataRaw[i*recordLength];
+        const month = qhDataRaw[i*recordLength + 1] - 1;
+        const day = qhDataRaw[i*recordLength + 2];
+        const idx = qhDataRaw[i*recordLength + 3];
+        const hour = (15 * idx) / 60;
+        const minute = hour % 1 * 60;
+        const second = minute % 1 * 60;
+        const timestamp = new Date(year, month, day, hour, minute, second); //month index from 0-11
+        timestamps.push(timestamp.getTime());
+    }
+    //console.log(timestamps);
+
+    const qhDataByTracks = [];
+    for(let i = 0; i < qhDataTrackTotalCount; i++) {
+        const qhTrack = {};
+        qhTrack.id = i;
+        qhTrack.data = new Map(Array.from(qhDataRaw.filter((val, idx) => idx % recordLength - timestampLength === i), (value, idx) => ([timestamps[idx], value])));
+        qhDataByTracks.push(qhTrack);
+    }
+    console.log(qhDataByTracks);
+    */
+
+
     //////////////////////init HTML//////////////////////
     //////////////////////createQhCanvas with max ViewportSize//////////////////////
     initQhTable(qhHeader, qhUserSettings);
+    //createQhSvg();
+    //drawQhData(qhDataByTracks);
+    
     createQhCanvas();
-    drawQh(qhUserSettings);
-
+    drawQh(qhUserSettings, window.qhData);
+    //startQH();
+    
        
-    //return qhData;
+    //return window.qhData;
+}
+
+function createQhSvg() {
+    const tabContentQh = document.querySelector(`.tabContentQh`);
+    //console.log(tabContentQh);
+    const svgNS = `http://www.w3.org/2000/svg`;
+    const qhSvg = document.createElementNS(svgNS, `svg`);
+    //qhSvg.setAttribute("viewBox", "1704064500 0 89100 30000");
+    //qhSvg.setAttribute("viewBox", "0 0 1600 90");
+    qhSvg.classList.add(`qhSvg`);
+    console.log(qhSvg.viewBox);
+    
+    tabContentQh.appendChild(qhSvg);
+    return qhSvg;
+}
+
+function drawQhData(qhDataByTracks) {
+    //console.log(qhDataByTracks[0].data.toString());
+    let points = ``;
+    qhDataByTracks[0].data.forEach((value, key) => {
+        points += `${key/1000},${value*100} `;
+    });
+    points = `0,0 160,90`;
+    const svgNS = `http://www.w3.org/2000/svg`;
+    const polyline = document.createElementNS(svgNS, `polyline`);
+    polyline.setAttribute(`points`, points);
+    polyline.setAttribute(`fill`, `none`);
+    polyline.setAttribute(`stroke`, `black`);
+    //polyline.setAttribute(`transform`, `scale(1, -.5)`);
+    //polyline.setAttribute(`stroke-width`, 100);
+    const qhSvg = document.querySelector(`.qhSvg`);
+    qhSvg.appendChild(polyline);
+    //console.log(points);
+    
+    
+    /*
+    qhDataByTracks.forEach(track => {
+        track.data.forEach(datapoint => {
+            const {value, timestamp} = datapoint;
+
+
+        });
+        const {data} = track;
+    });
+    */
+
 }
 
 function createQhCanvas() {
@@ -137,16 +222,29 @@ function createQhCanvas() {
     qhCanvas.width = tabContentQh.offsetWidth;
     qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
     tabContentQh.appendChild(qhCanvas);
+
+    for(let i = 0; i < 3; i++) {
+        const qhCanvas = document.createElement(`canvas`);
+        qhCanvas.classList.add(`qhCanvas`, `qhTrackCanvas`, `qhCanvas${i}`);
+        qhCanvas.width = tabContentQh.offsetWidth;
+        qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
+        tabContentQh.appendChild(qhCanvas);
+    }
+
     return qhCanvas;
 }
 
-function drawQh(qhUserSettings) {
+function drawQh(qhUserSettings, qhData) {
+    //////////////////////draw Axis//////////////////////
     const {qh_Skalierung} = qhUserSettings;
     const {Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const Y_Links_Min = (qh_Skalierung.Y_Links_Min === undefined) ? 0 : qh_Skalierung.Y_Links_Min; //Y_Links_Min bisher nicht zwangsläufig in qhUserSettings enthalten!
     const Y_Rechts_Min = (qh_Skalierung.Y_Rechts_Min === undefined) ? Y_Links_Min : qh_Skalierung.Y_Rechts_Min; //Y_Rechts_Min bisher garnicht in qhUserSettings enthalten!
     const canvas = document.querySelector(`.qhCanvas`);
     const {width, height} = canvas;
+    //console.log(height);
+    const fontSizeRatio = .03;
+    const fontSize = Math.max(10, fontSizeRatio * height);
     const offsetWidthRatio = .05;
     const offsetHeightRatio = .1;
     const offsetWidth = offsetWidthRatio * width;
@@ -157,7 +255,10 @@ function drawQh(qhUserSettings) {
     if (!isDauerlinie) {
         ctx.lineWidth = 3;
         ctx.lineCap = `square`;
+        ctx.font = `bold italic ${fontSize}px VAGrounded`;
         //X-Achse
+        ctx.textAlign = `center`;
+        ctx.textBaseline = `top`;
         ctx.beginPath();
         ctx.strokeStyle = `black`;
         ctx.moveTo(offsetWidth, height - offsetHeight);
@@ -167,14 +268,18 @@ function drawQh(qhUserSettings) {
         for(let i = 0; i <= xAxisSteps; i++) {
             ctx.moveTo(offsetWidth + i/xAxisSteps * xAxisLength, height - offsetHeight);
             ctx.lineTo(offsetWidth + i/xAxisSteps * xAxisLength, height - offsetHeight + 10);
+            ctx.fillText(`${i * 24/6}:00`, offsetWidth + i/xAxisSteps * xAxisLength, height - offsetHeight + 10 + 10);
             //ctx.lineTo(i/xAxisSteps * (.9 * width) + offsetWidthRatio * width, (1 - offsetHeightRatio + .02) * height);
         }
         ctx.stroke();
         //Y-Achsen:
         const yAxisLength = height - 2*offsetHeight;
+        ctx.textBaseline = `middle`;
         //Y1-Achse
         ctx.beginPath();
         ctx.strokeStyle = `hsl(334, 74%, 44%)`;
+        ctx.fillStyle = `hsl(334, 74%, 44%)`;
+        ctx.textAlign = `right`;
         ctx.moveTo(offsetWidth, offsetHeight);
         ctx.lineTo(offsetWidth, height - offsetHeight);
         const y1AxisSteps = (Y_Links_Max - Y_Links_Min) / Y_Links_Schrittweite;
@@ -182,11 +287,14 @@ function drawQh(qhUserSettings) {
         for(let i = 0; i <= y1AxisSteps; i++) {
             ctx.moveTo(offsetWidth, (height - offsetHeight) - i/y1AxisSteps * yAxisLength);
             ctx.lineTo(offsetWidth - 10, (height - offsetHeight) - i/y1AxisSteps * yAxisLength);
+            ctx.fillText(`${i * Y_Links_Schrittweite}`, offsetWidth - 10 - 10, (height - offsetHeight) - i/y1AxisSteps * yAxisLength);
         }
         ctx.stroke();
         //Y2-Achse
         ctx.beginPath();
         ctx.strokeStyle = `hsl(194, 71%, 42%)`;
+        ctx.fillStyle = `hsl(194, 71%, 42%)`;
+        ctx.textAlign = `left`;
         ctx.moveTo(width - offsetWidth, offsetHeight);
         ctx.lineTo(width - offsetWidth, height - offsetHeight);
         const y2AxisSteps = (Y_Rechts_Max - Y_Rechts_Min) / Y_Rechts_Schrittweite;
@@ -194,6 +302,7 @@ function drawQh(qhUserSettings) {
         for(let i = 0; i <= y2AxisSteps; i++) {
             ctx.moveTo(width - offsetWidth, (height - offsetHeight) - i/y2AxisSteps * yAxisLength);
             ctx.lineTo(width - offsetWidth + 10, (height - offsetHeight) - i/y2AxisSteps * yAxisLength);
+            ctx.fillText(`${i * Y_Rechts_Schrittweite}`, width - offsetWidth + 10 + 10, (height - offsetHeight) - i/y2AxisSteps * yAxisLength);
         }
         ctx.stroke();
 
@@ -201,6 +310,46 @@ function drawQh(qhUserSettings) {
     else {
 
     }
+    //////////////////////draw Tracks//////////////////////
+    const qhTable = document.querySelector(`.qhTable`);
+    const inpColorArray = Array.from(qhTable.querySelectorAll(`input[type='color']`));
+    const relevantTrackIdxsColors = [];
+    inpColorArray.forEach(el => {
+        if (el.value !== `#efefef`) {
+            const idxColorObj = {};
+            idxColorObj.idx = el.idx;
+            idxColorObj.color = el.value;
+            relevantTrackIdxsColors.push(idxColorObj);
+        }
+    });
+    console.log(relevantTrackIdxsColors);
+    const currentDate = new Date(2024,1,12).toLocaleDateString();
+    const relevantQhData = qhData.filter((el) => el.Datum === currentDate);
+    console.log(relevantQhData);
+    relevantTrackIdxsColors.forEach(el => {
+        const currentCanvas = document.querySelector(`.qhCanvas${el.idx}`);
+        console.log(currentCanvas);
+        const ctx = currentCanvas.getContext(`2d`);
+        ctx.strokeStyle = el.color;
+        ctx.beginPath();
+        relevantQhData.forEach((records, recordIdx) => {
+            if (recordIdx === 0) {
+                ctx.moveTo(0, records.Values[recordIdx]);
+            }
+            else {
+                console.log(records);
+                ctx.lineTo(recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
+                ctx.fillText(`${recordIdx}`, recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
+            }
+
+            //const xValue = map(records.Index, 1, 96, width
+            //records.Values[idx]
+    
+        });
+        ctx.stroke();
+    });
+
+
 }
 
 async function initQhTable(qhHeader, qhUserSettings) {
@@ -210,9 +359,10 @@ async function initQhTable(qhHeader, qhUserSettings) {
         const foundItem = qhUserSettings.qh_Spuren.find(spur => spur.index === el.Index);        
         const inpColor = document.createElement(`input`);
         inpColor.classList.add(`inpColor${el.Index}`);
+        inpColor.idx = el.Index;
         inpColor.type = `color`;
         inpColor.value = (foundItem) ? foundItem.color : `#EFEFEF`;
-        inpColor.lastValue = (foundItem) ? undefined : hslToHex(30 * el.Index, 100, 50);
+        inpColor.lastValue = (foundItem) ? undefined : hslToHex(30 * el.Index, 100, 75 - 25*Math.floor(el.Index/12));
         inpColor.title = `Doppelclick zum Deaktivieren`;
         //inpColor.lastValue = inpColor.value;
         inpColor.addEventListener(`change`, (ev) => colorPickChangeHandler(ev.target));
@@ -270,7 +420,7 @@ function startQH() {
         diagramData = loadData();
 		
         //writeToTextFile(QHSettingTestFile)
-        if (!UserSettings) UserSettings = getUserSettings();
+        if (!window.UserSettings) window.UserSettings = getUserSettings();
 
         //var sQHInfo = getQH_Info_St(Steuerung);
         //QHInfo = $.parseJSON(sQHInfo);
@@ -394,37 +544,41 @@ function getUserSettings() {
 
 // Ist nach Änderungen aufzurufen
 function updateUserSettings() {
-    UserSettings.qh_Skalierung.Y_Links_Min = YLMin;
-    UserSettings.qh_Skalierung.Y_Links_Max = YLMax;
-    UserSettings.qh_Skalierung.Y_Links_Schrittweite = YLStep;
-    UserSettings.qh_Skalierung.Y_Rechts_Max = YRMax;
-    UserSettings.qh_Skalierung.Y_Rechts_Schrittweite = YRStep;
+    window.UserSettings.qh_Skalierung.Y_Links_Min = YLMin;
+    window.UserSettings.qh_Skalierung.Y_Links_Max = YLMax;
+    window.UserSettings.qh_Skalierung.Y_Links_Schrittweite = YLStep;
+    window.UserSettings.qh_Skalierung.Y_Rechts_Max = YRMax;
+    window.UserSettings.qh_Skalierung.Y_Rechts_Schrittweite = YRStep;
 
 }
 
-function loadData() {
-    if (diagramZeitraum == "d") {
+function loadData(_diagramDatum) {
+    const period = document.querySelector(`.period`).value;
+    const Steuerung = ``;
+    const diagramDatum = (_diagramDatum) ? _diagramDatum : InitialDatum();
+
+    if (period === `tagesgang`) {
         var sdata = requestData(createDataRequestObject(Steuerung, diagramDatum, diagramDatum, true, false));
         if (sdata == "")
             sdata = "[]";
         //var data = $.parseJSON(sdata);
         return sdata;
     }
-    if (diagramZeitraum == "w") {
+    if (period === `wochengang`) {
         var sdata = requestData(createDataRequestObject(Steuerung, diagramDatum, prevDay(nextWeek(diagramDatum)), false, false));
         if (sdata == "")
             sdata = "[]";
         //var data = $.parseJSON(sdata);
         return sdata;
     }
-    if (diagramZeitraum == "m") {
+    if (period === `monatsgang`) {
         var sdata = requestData(createDataRequestObject(Steuerung, diagramDatum, prevDay(nextMonth(diagramDatum)), false, false));
         if (sdata == "")
             sdata = "[]";
         //var data = $.parseJSON(sdata);
         return sdata;
     }
-    if (diagramZeitraum == "y") {
+    if (period === `jahresgang`) {
         var sdata = requestData(createDataRequestObject(Steuerung, diagramDatum, prevDay(nextYear(diagramDatum)), false, true));
         if (sdata == "")
             sdata = "[]";
@@ -621,7 +775,7 @@ function saveUserSettings(UserSettingsObject) {
 }
 
 
-//find records from qhData
+//find records from window.qhData
 function requestData(DataRequestObject) {
     var res = [];
 	var dtFrom = new Date(DataRequestObject.DatumFrom.y, DataRequestObject.DatumFrom.m -1, DataRequestObject.DatumFrom.d);
@@ -630,24 +784,24 @@ function requestData(DataRequestObject) {
 	var today = new Date().toLocaleString().split(',')[0];;
 	var DatumFrom = dtFrom.toLocaleString().split(',')[0];
 	var DatumTo =   dtTo.toLocaleString().split(',')[0];
-	var startIndex = qhData.findIndex(x => x.Datum === DatumFrom);
-	var endIndex = qhData.findIndex(x => x.Datum === DatumTo);
+	var startIndex = window.qhData.findIndex(x => x.Datum === DatumFrom);
+	var endIndex = window.qhData.findIndex(x => x.Datum === DatumTo);
 	if(DatumFrom == DatumTo)
 		endIndex = startIndex + 96;
 	if (DataRequestObject.bJahresdaten == true)
 	{
-		res = qhData.slice(startIndex, endIndex);
+		res = window.qhData.slice(startIndex, endIndex);
 	}
 		
 	else
 	{
 		if(DataRequestObject.bViertelstunden == true)
 		{
-				res = qhData.slice(startIndex, endIndex);
+				res = window.qhData.slice(startIndex, endIndex);
 		}
 		else
 		{
-				var recordFound = qhData.slice(startIndex, endIndex);
+				var recordFound = window.qhData.slice(startIndex, endIndex);
 				for (var i=0; i < recordFound.length; i++)
 				{
 					if (i%8 == 0)
@@ -1631,7 +1785,7 @@ function DatenHolen() {
 	var date = InitialDatum();
 	
 	do {	//Schleife für Mehrtageabholung
-		var lastQHData = qhData[qhData.length - 1];
+		var lastQHData = window.qhData[window.qhData.length - 1];
 		var lastQHDatum = lastQHData.Datum.split('.');
 		if (lastQHDatum[2] == undefined || lastQHDatum[1] == undefined || lastQHDatum[0] == undefined) error = true;
 		
@@ -1688,18 +1842,18 @@ function DatenHolen() {
 					QHBuffer.push(-999.00);
 				}
 				
-				var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß qhData)
+				var recordArray = Float32Array.from(QHBuffer);		//Float32Array aus Array generieren (gemäß window.qhData)
 				
-				while (recordArray.length > qhData[0].nValues && r_index <= 96) {		//qhData erweitern bis Ende erreicht
+				while (recordArray.length > window.qhData[0].nValues && r_index <= 96) {		//window.qhData erweitern bis Ende erreicht
 					var record = {};
 					record.Datum = r_datum.toLocaleString().split(',')[0];
 					record.Index = r_index.toString();
-					record.nValues = qhData[0].nValues;
+					record.nValues = window.qhData[0].nValues;
 					record.Projektnumer = projektNummer;
 					record.Values = recordArray.slice(0, record.nValues);
 					record.Values.fill(-999.00, QHTrackNumber, record.nValues);		//Reservespuren mit DEFAULTWERT füllen
 					//console.log(record);
-					qhData.push(record);
+					window.qhData.push(record);
 					
 					r_index++;
 					

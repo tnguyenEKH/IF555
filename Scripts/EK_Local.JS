@@ -1256,6 +1256,9 @@ function constrain(_in, _min, _max) {
   const max = Math.max(parseFloat(_min), parseFloat(_max));
   return Math.max(Math.min(parseFloat(_in), max), min);
 }
+function map(_in, _fromMin, _fromMax, _toMin, _toMax) {
+  return (_in/(_fromMax - _fromMin)) * (_toMax - _toMin);
+}
 
 function hslToHex(h, s, l) {
   l /= 100;

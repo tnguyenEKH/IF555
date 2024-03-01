@@ -15,11 +15,29 @@ summary {
 	/*
 	grid-column: qhCanvas-start / qhTable-end;
 	grid-row: qhCanvas-start / qhControls-end;
+	background-color: white;
 	*/
+	grid-row: 1;
+	grid-column: 1;
 	align-self: center;
 	justify-self: center;
-	background-color: white;
 	width: 97%;
+	border: 1px solid black;
+}
+.qhTrackCanvas {
+	width: 87%;
+	height: 74%;
+	transform: scale(1, -1);
+}
+.qhSvg {
+	align-self: center;
+	justify-self: center;
+	background-color: rgba(0, 0, 0, .3);
+	/*
+	aspect-ratio: 16/9;
+	height: 90%;
+	width: 90%;
+	*/
 }
 .qhControls {
 	/*
