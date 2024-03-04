@@ -64,6 +64,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //////////////////////window.qhData preparation//////////////////////
     //get saved User Settings
     const qhUserSettings = await fetchQhUserSettings();
+    console.log(qhUserSettings);
     window.UserSettings = qhUserSettings; //temporary global variable for usage of old functions...
 
     //////////////////////qhHeader//////////////////////
@@ -82,6 +83,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
 	const lengthNames = 20;
     
     const prjNo = qhHeaderData.substr(positionPrjNo, lengthPrjNo);
+    console.log(prjNo);
     const qhDataTrackCount = parseInt(qhHeaderData.substr(positionRecordsCount, lengthRecordsCount).trim()); //+10
 
 	
@@ -217,21 +219,16 @@ function createQhCanvas() {
         existingQhCanvas.remove();
     const tabContentQh = document.querySelector(`.tabContentQh`);
     //console.log(tabContentQh);
-    const qhCanvas = document.createElement(`canvas`);
-    qhCanvas.classList.add(`qhCanvas`);
-    qhCanvas.width = tabContentQh.offsetWidth;
-    qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
-    tabContentQh.appendChild(qhCanvas);
-
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < 2; i++) {
         const qhCanvas = document.createElement(`canvas`);
-        qhCanvas.classList.add(`qhCanvas`, `qhTrackCanvas`, `qhCanvas${i}`);
+        qhCanvas.classList.add(`qhCanvas`);
+        if (i === 0) qhCanvas.classList.add(`qhTrackCanvas`);
         qhCanvas.width = tabContentQh.offsetWidth;
         qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
-        tabContentQh.appendChild(qhCanvas);
+        tabContentQh.insertBefore(qhCanvas, tabContentQh.firstElementChild);        
     }
 
-    return qhCanvas;
+    //return qhCanvas;
 }
 
 function drawQh(qhUserSettings, qhData) {
@@ -311,6 +308,29 @@ function drawQh(qhUserSettings, qhData) {
 
     }
     //////////////////////draw Tracks//////////////////////
+    const startDate = new Date(2024,2,3).toLocaleDateString();
+    const relevantQhData = qhData.filter((el) => el.Datum === startDate);
+    
+    const qhTable = document.querySelector(`.qhTable`);
+    const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);
+    console.log(trackColors);
+    
+    const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
+    const trackCtx = qhTrackCanvas.getContext(`2d`);
+    trackCtx.beginPath();
+    trackColors.forEach((trackColor, trackIdx) => {
+        if (!trackColor.match(/(#efefef)/i)) {
+            trackCtx.strokeStyle = trackColor;
+            relevantQhData.forEach(record => {
+                const xVal = record.Index/96 * qhTrackCanvas.width;
+                const yVal = record.Values[trackIdx]/110 * qhTrackCanvas.height;
+                (record.Index !== 1) ? trackCtx.lineTo(xVal, yVal) : trackCtx.moveTo(xVal, yVal);
+            });
+            trackCtx.stroke();
+        }
+    });
+    
+    /*
     const qhTable = document.querySelector(`.qhTable`);
     const inpColorArray = Array.from(qhTable.querySelectorAll(`input[type='color']`));
     const relevantTrackIdxsColors = [];
@@ -323,8 +343,9 @@ function drawQh(qhUserSettings, qhData) {
         }
     });
     console.log(relevantTrackIdxsColors);
-    const currentDate = new Date(2024,1,12).toLocaleDateString();
+    const currentDate = new Date(2024,2,2).toLocaleDateString();
     const relevantQhData = qhData.filter((el) => el.Datum === currentDate);
+    console.log(qhData);
     console.log(relevantQhData);
     relevantTrackIdxsColors.forEach(el => {
         const currentCanvas = document.querySelector(`.qhCanvas${el.idx}`);
@@ -337,7 +358,7 @@ function drawQh(qhUserSettings, qhData) {
                 ctx.moveTo(0, records.Values[recordIdx]);
             }
             else {
-                console.log(records);
+                //console.log(records);
                 ctx.lineTo(recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
                 ctx.fillText(`${recordIdx}`, recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
             }
@@ -347,8 +368,9 @@ function drawQh(qhUserSettings, qhData) {
     
         });
         ctx.stroke();
+        
     });
-
+    */
 
 }
 
@@ -394,6 +416,7 @@ async function initQhTable(qhHeader, qhUserSettings) {
 
 async function fetchQhUserSettings() {
     const response = await fetchData(QHSettingFile);
+    console.log(response);
     return response.UserSettingsObject.UserSettings;
 }
 
