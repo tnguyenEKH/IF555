@@ -131,6 +131,12 @@ body .hidden {
 	animation: unset;
 	-webkit-animation: unset;
 }
+.connectionStatusDate {
+	white-space: nowrap;
+	font-style: italic;
+    font-weight: bold;
+	margin-left: .3rem;
+}
 
 
 /*SpinIcon while downloading data*/

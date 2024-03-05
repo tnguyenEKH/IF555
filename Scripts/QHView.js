@@ -187,6 +187,7 @@ function drawQhScale(qhUserSettings = undefined) {
     if (qhUserSettings) { //init if parameter qhUserSettings is passed
         qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
     }
+    return
     /* 
     if (!qhScaleCanvas.qh_Skalierung) { //init if necessarry
         qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
@@ -292,13 +293,14 @@ function drawQhData(qhData = undefined) {
     //console.log(trackColors);
     qhTable.qh_Spuren.forEach(track => {
         ctx.strokeStyle = track.color;
+        ctx.lineWidth = 2;
         ctx.beginPath();
         const scaleMin = (track.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
         const scaleMax = (track.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
         const scaleRange = scaleMax - scaleMin;
         relevantQhData.forEach(record => {
             const xVal = record.Index/96 * qhTrackCanvas.width;
-            const yVal = record.Values[track.index]/scaleRange * qhTrackCanvas.height;
+            const yVal = constrain(record.Values[track.index], scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
             (record.Index !== 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
         });
         ctx.stroke();

@@ -36,6 +36,7 @@ function ready(fn) {
   }
 }
 ready(async () => {
+  updateConnectionStatus();
 	document.querySelector(`.loaderText`).innerText = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
   //////////////////////addEventListeners//////////////////////
   document.addEventListener(`keydown`, keydownEventHandler)
@@ -1140,6 +1141,8 @@ function updateConnectionStatus(isConnected) {
   const connectionStatusIcon = document.querySelector(`.connectionStatusIcon`);
   connectionStatusIcon.classList.toggle(`connected`, isConnected);
   connectionStatusIcon.innerText = (isConnected) ? `\u2B24` : `↻`; //\u25CF
+  const connectionStatusDate = document.querySelector(`.connectionStatusDate`);
+  connectionStatusDate.innerText = new Date(Date.now()).toLocaleString();
 }
 
 /*****************Hanler für Button Click ******************/
