@@ -15,7 +15,6 @@ summary {
 	/*
 	grid-column: qhCanvas-start / qhTable-end;
 	grid-row: qhCanvas-start / qhControls-end;
-	background-color: white;
 	*/
 	grid-row: 1;
 	grid-column: 1;
@@ -28,6 +27,9 @@ summary {
 	width: 87%;
 	height: 74%;
 	transform: scale(1, -1);
+	/*
+	background-color: var(--colorEkhLightestgray);
+	*/
 }
 .qhSvg {
 	align-self: center;

@@ -64,7 +64,6 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //////////////////////window.qhData preparation//////////////////////
     //get saved User Settings
     const qhUserSettings = await fetchQhUserSettings();
-    console.log(qhUserSettings);
     window.UserSettings = qhUserSettings; //temporary global variable for usage of old functions...
 
     //////////////////////qhHeader//////////////////////
@@ -107,7 +106,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //console.log(totalRecords);
     //////////////////////classic DataPreparation//////////////////////
     ///*
-    window.qhData = [];
+    const qhData = [];
     for(let i = 0; i < totalRecords; i++) {
         const rawRecord = qhDataRaw.slice((i*recordLength), ((i+1)*recordLength));
         
@@ -119,7 +118,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
         record.nValues = qhDataTrackTotalCount;
         record.Projektnumer = prjNo;
         record.Values = rawRecord.slice(timestampLength, recordLength);
-        window.qhData.push(record);
+        qhData.push(record);
     }
     //console.log(window.qhData);
     //*/
@@ -158,87 +157,44 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //createQhSvg();
     //drawQhData(qhDataByTracks);
     
-    createQhCanvas();
-    drawQh(qhUserSettings, window.qhData);
+    //createQhCanvas();
+    resizeQhCanvases();
+    drawQhScale(qhUserSettings);
+    drawQhData(qhData);
     //startQH();
+
+
+    //////////////////////addEventListeners//////////////////////
+    document.querySelector(`.btnSaveUserSettings`).addEventListener(`click`, saveUserSettings)
     
        
     //return window.qhData;
 }
 
-function createQhSvg() {
-    const tabContentQh = document.querySelector(`.tabContentQh`);
-    //console.log(tabContentQh);
-    const svgNS = `http://www.w3.org/2000/svg`;
-    const qhSvg = document.createElementNS(svgNS, `svg`);
-    //qhSvg.setAttribute("viewBox", "1704064500 0 89100 30000");
-    //qhSvg.setAttribute("viewBox", "0 0 1600 90");
-    qhSvg.classList.add(`qhSvg`);
-    console.log(qhSvg.viewBox);
-    
-    tabContentQh.appendChild(qhSvg);
-    return qhSvg;
-}
-
-function drawQhData(qhDataByTracks) {
-    //console.log(qhDataByTracks[0].data.toString());
-    let points = ``;
-    qhDataByTracks[0].data.forEach((value, key) => {
-        points += `${key/1000},${value*100} `;
-    });
-    points = `0,0 160,90`;
-    const svgNS = `http://www.w3.org/2000/svg`;
-    const polyline = document.createElementNS(svgNS, `polyline`);
-    polyline.setAttribute(`points`, points);
-    polyline.setAttribute(`fill`, `none`);
-    polyline.setAttribute(`stroke`, `black`);
-    //polyline.setAttribute(`transform`, `scale(1, -.5)`);
-    //polyline.setAttribute(`stroke-width`, 100);
-    const qhSvg = document.querySelector(`.qhSvg`);
-    qhSvg.appendChild(polyline);
-    //console.log(points);
-    
-    
-    /*
-    qhDataByTracks.forEach(track => {
-        track.data.forEach(datapoint => {
-            const {value, timestamp} = datapoint;
-
-
-        });
-        const {data} = track;
-    });
-    */
-
-}
-
-function createQhCanvas() {
+function resizeQhCanvases() {
     const scalingFactorCanvasHeight = .95;
-    const existingQhCanvas = document.querySelector(`.qhCanvas`);
-    if (existingQhCanvas)
-        existingQhCanvas.remove();
     const tabContentQh = document.querySelector(`.tabContentQh`);
-    //console.log(tabContentQh);
-    for(let i = 0; i < 2; i++) {
-        const qhCanvas = document.createElement(`canvas`);
-        qhCanvas.classList.add(`qhCanvas`);
-        if (i === 0) qhCanvas.classList.add(`qhTrackCanvas`);
+    const qhCanvases = document.querySelectorAll(`.qhCanvas`);
+    qhCanvases.forEach(qhCanvas => {
         qhCanvas.width = tabContentQh.offsetWidth;
         qhCanvas.height = scalingFactorCanvasHeight * tabContentQh.offsetHeight;
-        tabContentQh.insertBefore(qhCanvas, tabContentQh.firstElementChild);        
-    }
-
-    //return qhCanvas;
+    });
 }
 
-function drawQh(qhUserSettings, qhData) {
-    //////////////////////draw Axis//////////////////////
-    const {qh_Skalierung} = qhUserSettings;
-    const {Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
-    const Y_Links_Min = (qh_Skalierung.Y_Links_Min === undefined) ? 0 : qh_Skalierung.Y_Links_Min; //Y_Links_Min bisher nicht zwangsläufig in qhUserSettings enthalten!
-    const Y_Rechts_Min = (qh_Skalierung.Y_Rechts_Min === undefined) ? Y_Links_Min : qh_Skalierung.Y_Rechts_Min; //Y_Rechts_Min bisher garnicht in qhUserSettings enthalten!
-    const canvas = document.querySelector(`.qhCanvas`);
-    const {width, height} = canvas;
+function drawQhScale(qhUserSettings = undefined) {
+    //////////////////////draw Axis//////////////////////    
+    const qhScaleCanvas = document.querySelector(`.qhScaleCanvas`);
+    if (qhUserSettings) { //init if parameter qhUserSettings is passed
+        qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
+    }
+    /* 
+    if (!qhScaleCanvas.qh_Skalierung) { //init if necessarry
+        qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
+    }
+    */
+    const {qh_Skalierung, width, height} = qhScaleCanvas;
+    const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
+    
     //console.log(height);
     const fontSizeRatio = .03;
     const fontSize = Math.max(10, fontSizeRatio * height);
@@ -246,7 +202,8 @@ function drawQh(qhUserSettings, qhData) {
     const offsetHeightRatio = .1;
     const offsetWidth = offsetWidthRatio * width;
     const offsetHeight = offsetHeightRatio * height;
-    const ctx = canvas.getContext(`2d`);
+    const ctx = qhScaleCanvas.getContext(`2d`);
+    ctx.clearRect(0, 0, qhScaleCanvas.width, qhScaleCanvas.height);
     const period = document.querySelector(`.period`).value;
     const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
     if (!isDauerlinie) {
@@ -307,78 +264,53 @@ function drawQh(qhUserSettings, qhData) {
     else {
 
     }
+}
+function drawQhData(qhData = undefined) {
+    const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
+    if (qhData) { //init if parameter qhData is passed
+        qhTrackCanvas.qhData = qhData;
+    }
+    const ctx = qhTrackCanvas.getContext(`2d`);
+    ctx.clearRect(0, 0, qhTrackCanvas.width, qhTrackCanvas.height);
     //////////////////////draw Tracks//////////////////////
     const startDate = new Date(2024,2,3).toLocaleDateString();
-    const relevantQhData = qhData.filter((el) => el.Datum === startDate);
-    
-    const qhTable = document.querySelector(`.qhTable`);
-    const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);
-    console.log(trackColors);
-    
-    const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
-    const trackCtx = qhTrackCanvas.getContext(`2d`);
-    trackCtx.beginPath();
-    trackColors.forEach((trackColor, trackIdx) => {
-        if (!trackColor.match(/(#efefef)/i)) {
-            trackCtx.strokeStyle = trackColor;
-            relevantQhData.forEach(record => {
-                const xVal = record.Index/96 * qhTrackCanvas.width;
-                const yVal = record.Values[trackIdx]/110 * qhTrackCanvas.height;
-                (record.Index !== 1) ? trackCtx.lineTo(xVal, yVal) : trackCtx.moveTo(xVal, yVal);
-            });
-            trackCtx.stroke();
-        }
-    });
-    
+    const relevantQhData = qhTrackCanvas.qhData.filter((el) => el.Datum === startDate);
     /*
+    const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
+    if (isDauerlinie) {
+        
+    }
+    else {
+        
+    }
+    */
+    const qhScaleCanvas = document.querySelector(`.qhScaleCanvas`);
+    const {qh_Skalierung} = qhScaleCanvas;
+    const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
-    const inpColorArray = Array.from(qhTable.querySelectorAll(`input[type='color']`));
-    const relevantTrackIdxsColors = [];
-    inpColorArray.forEach(el => {
-        if (el.value !== `#efefef`) {
-            const idxColorObj = {};
-            idxColorObj.idx = el.idx;
-            idxColorObj.color = el.value;
-            relevantTrackIdxsColors.push(idxColorObj);
-        }
-    });
-    console.log(relevantTrackIdxsColors);
-    const currentDate = new Date(2024,2,2).toLocaleDateString();
-    const relevantQhData = qhData.filter((el) => el.Datum === currentDate);
-    console.log(qhData);
-    console.log(relevantQhData);
-    relevantTrackIdxsColors.forEach(el => {
-        const currentCanvas = document.querySelector(`.qhCanvas${el.idx}`);
-        console.log(currentCanvas);
-        const ctx = currentCanvas.getContext(`2d`);
-        ctx.strokeStyle = el.color;
+    //const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);
+    //console.log(trackColors);
+    qhTable.qh_Spuren.forEach(track => {
+        ctx.strokeStyle = track.color;
         ctx.beginPath();
-        relevantQhData.forEach((records, recordIdx) => {
-            if (recordIdx === 0) {
-                ctx.moveTo(0, records.Values[recordIdx]);
-            }
-            else {
-                //console.log(records);
-                ctx.lineTo(recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
-                ctx.fillText(`${recordIdx}`, recordIdx/96 * currentCanvas.width, Math.max(.1, Math.min(.9, records.Values[recordIdx]/110)) * currentCanvas.height);
-            }
-
-            //const xValue = map(records.Index, 1, 96, width
-            //records.Values[idx]
-    
+        const scaleMin = (track.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
+        const scaleMax = (track.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
+        const scaleRange = scaleMax - scaleMin;
+        relevantQhData.forEach(record => {
+            const xVal = record.Index/96 * qhTrackCanvas.width;
+            const yVal = record.Values[track.index]/scaleRange * qhTrackCanvas.height;
+            (record.Index !== 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
         });
         ctx.stroke();
-        
     });
-    */
-
 }
 
 async function initQhTable(qhHeader, qhUserSettings) {
     //build qhTable
     const qhTable = document.querySelector(`.qhTable`);
+    qhTable.qh_Spuren = qhUserSettings.qh_Spuren;
     qhHeader.forEach(el => {
-        const foundItem = qhUserSettings.qh_Spuren.find(spur => spur.index === el.Index);        
+        const foundItem = qhTable.qh_Spuren.find(spur => spur.index === el.Index);        
         const inpColor = document.createElement(`input`);
         inpColor.classList.add(`inpColor${el.Index}`);
         inpColor.idx = el.Index;
@@ -409,6 +341,31 @@ async function initQhTable(qhHeader, qhUserSettings) {
             radio.type = `radio`;
             radio.name = `qhScale${el.Index}`;
             radio.checked = (j) ? !useLeftScale : useLeftScale; //(!!j)^(!!useLeftScale); //XOR-Logic; !! is to convert to bool
+            radio.classList.add(`${radio.name}${(j) ? `_R` : `_L`}`);
+            radio.addEventListener(`change`, (ev) => {
+                const {target} = ev;
+                const targetIdx = parseInt(target.className.match(/\d+/).toString());
+                const qhTable = document.querySelector(`.qhTable`);
+                const currentColor = Array.from(qhTable.querySelectorAll(`input[type='color']`)).find(inpColor => inpColor.idx === targetIdx).value;  
+                if (currentColor !== `#efefef`) {
+                    const useLeftScale = !!target.className.match(/(_L)/);  // !! is to convert to bool
+                    console.log(useLeftScale);
+                    const qh_SpurenEntry = qhTable.qh_Spuren.find(qh_Spur => qh_Spur.index === targetIdx);
+                    if (qh_SpurenEntry) {
+                        qh_SpurenEntry.bSkala_Links = useLeftScale;
+                        //qh_SpurenEntry.color = currentColor;
+                    }
+                    else {
+                        const newEntry = {};
+                        newEntry.index = targetIdx;
+                        newEntry.color = currentColor;
+                        newEntry.bSkala_Links = useLeftScale;
+                        qhTable.qh_Spuren.push(newEntry);
+                    }
+                }
+                //console.log(qhTable.qh_Spuren);
+                drawQhData();
+            });
             qhTable.appendChild(radio);
         }
     });
@@ -416,8 +373,33 @@ async function initQhTable(qhHeader, qhUserSettings) {
 
 async function fetchQhUserSettings() {
     const response = await fetchData(QHSettingFile);
+
     console.log(response);
-    return response.UserSettingsObject.UserSettings;
+    const userSettings = (response) ? response.UserSettingsObject.UserSettings : {};
+    const skalierung = (userSettings.qh_Skalierung) ? userSettings.qh_Skalierung : {};
+    if (skalierung.Y_Rechts_Min === undefined) {    //Y_Rechts_Min bisher garnicht in qhUserSettings enthalten! hier werden nun neue DefaultSettings festgelegt!
+        skalierung.Y_Links_Min = 0;
+        skalierung.Y_Links_Max = 110;
+        skalierung.Y_Links_Schrittweite = 10;
+        skalierung.Y_Rechts_Min = 0;
+        skalierung.Y_Rechts_Max = 440;
+        skalierung.Y_Rechts_Schrittweite = 40;
+        userSettings.qh_Skalierung = skalierung;
+
+        //qh_Spuren
+        const trackSettings = [];
+        //defaultColors
+        for (let i = 0; i < 3; i++) {
+            const track = {};
+            track.index = i;
+            track.color = hslToHex(30 * i, 100, 75 - 25*Math.floor(i/12));
+            track.bSkala_Links = true;
+            trackSettings.push(track);
+        }
+        userSettings.qh_Spuren = trackSettings;
+
+    }
+    return userSettings;
 }
 
 
@@ -1900,12 +1882,30 @@ function simulateColorPickClick(target) {
     //console.log(`simulateColorPickClick`);
 }
 function colorPickChangeHandler(target) {
-    //console.log(`change...`);
-    /*
-    target.classList.remove(`cloaked`);
-    const idx = parseInt(target.className.match(/(?<=(inpColor))\d+/g));
-    document.querySelector(`.cbDisableQhTrack${idx}`).classList.add(`cloaked`);
-    */
+    const targetIdx = parseInt(target.className.match(/\d+/).toString());
+    //const currentColor = Array.from(qhTable.querySelectorAll(`input[type='color']`)).find(inpColor => inpColor.idx === targetIdx).value;  
+    //console.log(useLeftScale);
+    const qhTable = document.querySelector(`.qhTable`);
+    const qh_SpurenEntry = qhTable.qh_Spuren.find(qh_Spur => qh_Spur.index === targetIdx);
+    if (target.value !== `#efefef`) {
+        const useLeftScale = qhTable.querySelector(`.qhScale${targetIdx}_L`).checked;
+        if (qh_SpurenEntry) {
+            qh_SpurenEntry.color = target.value;
+            //qh_SpurenEntry.bSkala_Links = useLeftScale;
+        }
+        else {
+            const newEntry = {};
+            newEntry.index = targetIdx;
+            newEntry.color = target.value;
+            newEntry.bSkala_Links = useLeftScale;
+            qhTable.qh_Spuren.push(newEntry);
+        }
+    }
+    else {
+        qhTable.qh_Spuren.splice(qhTable.qh_Spuren.indexOf(qh_SpurenEntry), 1);
+    }
+    //console.log(qhTable.qh_Spuren);
+    drawQhData();
 }
 function colorPickDblclickHandler(target) {
     //interrupt clickTimer & reset timerID cuz dblClick (disableTrack is users input)
@@ -1923,6 +1923,7 @@ function colorPickDblclickHandler(target) {
         target.lastValue = value;
         target.value = `#EFEFEF`;
     }
+    colorPickChangeHandler(target);
     //target.lastValue = target.value;
     //target.toggleAttribute(`disabled`);
     
