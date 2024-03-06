@@ -42,6 +42,14 @@ ready(async () => {
   document.addEventListener(`keydown`, keydownEventHandler)
   document.addEventListener(`keypress`, keypressEventHandler)
   document.querySelectorAll(`.tab`).forEach(tab => tab.addEventListener(`click`, ev => tabClickHanlder(ev.target)));
+  document.querySelectorAll(`.osk > input[type="button"]`).forEach(oskBtn => {
+    oskBtn.addEventListener(`mousedown`, oskBtnEventHandler);
+    oskBtn.addEventListener(`click`, oskBtnEventHandler);
+  });
+  document.querySelectorAll(`input`).forEach(inp => {
+    inp.addEventListener(`focus`, inputFocusOskEventHandler);
+    inp.addEventListener(`blur`, inputFocusOskEventHandler);
+  });  
 
   //////////////////////get relevant Data to init//////////////////////
   const prjNameObject = await fetchData(prjNameUrl);
@@ -1213,11 +1221,11 @@ function keydownEventHandler(ev) {
     //=>keypress respects keyboardLayout & fires less than keydown, so prefer to use keypress over keydown
   const {key} = ev;
   //console.log(key, ev.type, ev);
-  
+  /*
   //preventScrolling on window overflow!
   if (key.match(/(arrow)/gi))
     ev.preventDefault();
-  
+  */
   //Fernbedienung aktiv
   let charCode;
   if (window.activeTabID.match(/(fernbedienung|wochenkalenderImVisu)/gi)) {
@@ -1247,6 +1255,26 @@ function keydownEventHandler(ev) {
   if (charCode)
     sendKeyInputToMPC(charCode);	
 }
+
+function oskBtnEventHandler(ev) {
+  if (ev.type === `mousedown`)
+    ev.preventDefault();
+  if (ev.type === `click`) {
+    const focusedInput = document.activeElement;
+    const {value, selectionStart, selectionEnd} = focusedInput;
+    focusedInput.value = `${value.substring(0, selectionStart)}${ev.target.value}${value.substring(selectionEnd)}`;
+    focusedInput.selectionStart = selectionStart + 1;
+    focusedInput.selectionEnd = selectionStart + 1;
+  }
+}
+function inputFocusOskEventHandler(ev) {
+  const osk = document.querySelector(`.osk`);
+  if (ev.type === `focus`)
+    osk.classList.remove(`cloaked`);
+  if (ev.type === `blur`)
+    osk.classList.add(`cloaked`);
+}
+
 //////////////////////MPC Kommunikation//////////////////////
 function sendKeyInputToMPC(charCode) {
   return getData(`${TastURL}${charCode}`);

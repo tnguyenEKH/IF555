@@ -182,17 +182,55 @@ function resizeQhCanvases() {
 }
 
 function drawQhScale(qhUserSettings = undefined) {
+    const qhScaleX = document.querySelector(`.qhScaleX`);
+    if (qhUserSettings) { //init if parameter qhUserSettings is passed
+        qhScaleX.qh_Skalierung = qhUserSettings.qh_Skalierung;
+    }
+    const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qhScaleX.qh_Skalierung;
+    document.querySelector(`.qhScaleLeftMin`).value = Y_Links_Min;
+    document.querySelector(`.qhScaleLeftMax`).value = Y_Links_Max;
+    document.querySelector(`.qhScaleLeftSteps`).value = Y_Links_Schrittweite;
+    const qhScaleLeft = document.querySelector(`.qhScaleLeft`);
+    const noOfAdditionalInputs = (Y_Links_Max - Y_Links_Min) / Y_Links_Schrittweite;
+    const stepsFraction = noOfAdditionalInputs % 1;
+    console.log(noOfAdditionalInputs, stepsFraction);
+    qhScaleLeft.style.gridTemplateRows = `${(stepsFraction) ? stepsFraction : 1}fr 1fr`;
+    for (let i = 2; i < noOfAdditionalInputs; i++) {
+        const input = document.createElement(`input`);
+        input.type = `text`;
+        input.value = i * Y_Links_Schrittweite;
+        input.disabled = true;
+        qhScaleLeft.insertBefore(input, qhScaleLeft.firstElementChild);
+        qhScaleLeft.style.gridTemplateRows += ` 1fr`;
+    }
+
+    
+    /*
+    const tabContentQh = document.querySelector(`.tabContentQh`);
+    const inp = document.createElement(`input`);
+    inp.type = `number`;
+    tabContentQh.appendChild(inp);
+    */
+
+
+
+
+    return
+    /*
     //////////////////////draw Axis//////////////////////    
     const qhScaleCanvas = document.querySelector(`.qhScaleCanvas`);
     if (qhUserSettings) { //init if parameter qhUserSettings is passed
         qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
     }
-    return
-    /* 
-    if (!qhScaleCanvas.qh_Skalierung) { //init if necessarry
-        qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
-    }
-    */
+
+
+
+
+     
+    //if (!qhScaleCanvas.qh_Skalierung) { //init if necessarry
+        //qhScaleCanvas.qh_Skalierung = qhUserSettings.qh_Skalierung;
+    //}
+    
     const {qh_Skalierung, width, height} = qhScaleCanvas;
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     
@@ -265,6 +303,7 @@ function drawQhScale(qhUserSettings = undefined) {
     else {
 
     }
+    //*/
 }
 function drawQhData(qhData = undefined) {
     const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
@@ -274,8 +313,17 @@ function drawQhData(qhData = undefined) {
     const ctx = qhTrackCanvas.getContext(`2d`);
     ctx.clearRect(0, 0, qhTrackCanvas.width, qhTrackCanvas.height);
     //////////////////////draw Tracks//////////////////////
-    const startDate = new Date(2024,2,3).toLocaleDateString();
-    const relevantQhData = qhTrackCanvas.qhData.filter((el) => el.Datum === startDate);
+    const period = document.querySelector(`.period`).value;
+    const endDate = new Date(2024,2,3);
+    const startDate = endDate;
+    if (period === `wochengang`) startDate.setDate(endDate.getDate() - 7);
+    if (period === `monatsgang`) startDate.setMonth(endDate.getMonth() - 1);
+    if (period === `jahresgang`) startDate.setFullYear(endDate.getFullYear() - 1);
+
+    const qhHeader = document.querySelector(`.qhHeader`);
+    qhHeader.innerText = endDate.toLocaleDateString();
+    
+    const relevantQhData = qhTrackCanvas.qhData.filter((el) => el.Datum === endDate.toLocaleDateString());
     /*
     const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
     if (isDauerlinie) {
@@ -285,8 +333,8 @@ function drawQhData(qhData = undefined) {
         
     }
     */
-    const qhScaleCanvas = document.querySelector(`.qhScaleCanvas`);
-    const {qh_Skalierung} = qhScaleCanvas;
+    const qhScaleX = document.querySelector(`.qhScaleX`);
+    const {qh_Skalierung} = qhScaleX;
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
     //const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);

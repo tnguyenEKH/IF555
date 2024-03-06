@@ -53,6 +53,10 @@ body .hidden {
 .mainContainer > * {
 	border-radius: 1vh;
 }
+.osk {
+	display: grid;
+	grid-template-columns: repeat(10, 1fr);
+}
 
 .header,
 .footer {

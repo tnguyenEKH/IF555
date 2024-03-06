@@ -20,7 +20,19 @@
 <body lang="en">
 	<div class="mainContainer">
 		<!-- virtual keyboard itself -->
-		<div id="osk" class="simple-keyboard" style="display:none"></div>
+		<!--<div id="osk" class="simple-keyboard" style="display:none"></div>-->
+		<div class="osk cloaked">
+			<input type="button" value="1">
+			<input type="button" value="2">
+			<input type="button" value="3">
+			<input type="button" value="4">
+			<input type="button" value="5">
+			<input type="button" value="6">
+			<input type="button" value="7">
+			<input type="button" value="8">
+			<input type="button" value="9">
+			<input type="button" value="0">
+		</div>
 
 		<div class="header">
 			<span class="tab tab1" id="tab1">Visualisierung</span>
@@ -200,7 +212,23 @@
 		</div>
 		
 		<div class="tabContent tab3Content tabContentQh" id="datenauswertungDisplay">
-			<canvas class="qhCanvas qhScaleCanvas"></canvas>
+			<!--<canvas class="qhCanvas qhScaleCanvas"></canvas>-->
+			<h1 class="qhHeader"></h1>
+			<div class="qhScale qhScaleLeftHeader">
+				<input class="inpQhScale qhScaleLeftMax" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+			</div>
+			<div class="qhScale qhScaleLeft">
+				<input class="inpQhScale qhScaleLeftSteps" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="inpQhScale qhScaleLeftMin" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+			</div>
+			<div class="qhScale qhScaleRight">
+				<input class="qhScaleRightMax" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleRightSteps" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleRightMin" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+			</div>
+			<div class="qhScale qhScaleX">
+				<span>00:00</span>
+			</div>
 			<canvas class="qhCanvas qhTrackCanvas"></canvas>
 			<details class="qhControls">
 				<summary>Controls</summary>
@@ -337,8 +365,8 @@
 	<script src="Scripts/VisuView.js"></script>
 	<script src="Scripts/VisuView_Bedienung_gemeinsam.js"></script>
 	<!-- script to manage virtual keyboard -->
-	<script src="Scripts/VirtualKeyboard/index.js"></script>
-	<script src="Scripts/VirtualKeyboard/loadKeyboard.js"></script>
+	<!--<script src="Scripts/VirtualKeyboard/index.js"></script>-->
+	<!--<script src="Scripts/VirtualKeyboard/loadKeyboard.js"></script>-->
 	<!-- script to manage md5 -->
 	<script src="Scripts/md5.min.js"></script>
 	<!-- script to manage pdf Viewer -->
