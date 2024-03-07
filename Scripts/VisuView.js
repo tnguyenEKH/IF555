@@ -392,6 +392,34 @@ function createVisudata(sText){
 		}
 		while (idx >= 0);
 
+		do
+		{
+			var item = {};
+			idx = sText.indexOf("WP ");
+			if (idx >= 0)
+			{
+				item.Bezeichnung = "WP ";
+				item.Kanal = sText.substring(idx + 3, idx + 5);
+				item.isBool = false;
+				item.BoolVal = false;
+				item.sWert = sText.substring(idx + 6, idx + 13);
+				if (item.sWert == 'CLICK')
+				{
+					item.Wert = 2;
+				}
+				else
+				{
+					item.Wert = sText.substring(idx + 12, idx + 13);
+				}
+				
+				Items.push(item);
+				var textToCut = sText.substring(idx, idx + 13);
+				sText = sText.replace(textToCut,'');
+				//sText= sText.slice((idx+14), sText.length);
+			}
+		}
+		while (idx >= 0);
+
 
 		do
 		{
@@ -1518,7 +1546,7 @@ function globalTimer() {
 // Diverse Zeichenfunktionen wie im Editor
 
 
-function Heizkreis(vDynCtx, x, y, betrieb) {
+function fpButton(vDynCtx, x, y, betrieb) {
     var notches = 7,                      // num. of notches
         radiusO = 12,                    // outer radius
         radiusI = 9,                    // inner radius
@@ -1786,11 +1814,7 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.restore();
 }
 
-function lueftungsklappe(ctx, x, y, scale, val, orientation = 'Links', isNC = true) {
-    let rotation = 0;
-    if (orientation == 'Oben') rotation = 90;
-    if (orientation == 'Rechts') rotation = 180;
-    if (orientation == 'Unten') rotation = 270;
+function lueftungsklappe(ctx, x, y, scale, val, rotation, isNC = true) {
 	if (!val) val = 0;
 	if (isNC) val = 100 - val;
     rotation -= val/100 * 75;
@@ -1833,6 +1857,27 @@ function Led(vDynCtx, x, y, scale, col) {
 	vDynCtx.fillStyle = col;
 	vDynCtx.fill();
 	vDynCtx.restore();
+}
+
+function schalter(ctx, x, y, scale, val, rotation) {                        
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.lineWidth = 2;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rotation);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
+	
+	ctx.moveTo(-20, 0);
+	ctx.lineTo(-10, 0);
+	ctx.lineTo(13, (val) ? -3 : -15);
+
+	ctx.moveTo(10, -5);
+	ctx.lineTo(10, 0);
+	ctx.lineTo(20, 0);
+
+	ctx.stroke();
+	ctx.restore();
 }
 
 function freitext(ctx, x, y, scale, font, color, txt, bgHeight, bgColor, active) {
@@ -2011,182 +2056,81 @@ function _drawDropList() {
 
 // Properties zeichnen incl. Symbole
 function drawVCOItem(item) {
-	if (item["bmpIndex"] == bmpIndex) {
+	if (item.bmpIndex === bmpIndex) {
 		const {VCOItem, x, y, SymbolFeature, Symbol} = item;
-		var warnGrenze;
-		var stoerGrenze;
-		var gasSensorWert;
-		var values = VisuDownload.Items;
-		var svalue = "-";
-		var n = values.length;
-		for (var i = 0; i < n; i++) {
-			if (VCOItem.Bez.trim() == values[i].Bezeichnung.trim() && VCOItem.Kanal == values[i].Kanal) {
-					var value = values[i].Wert;
-					var nk = values[i].Nachkommastellen;
-					svalue = parseFloat((value * 100) / 100).toFixed(nk);
-				}
+		
+		const foundItem = VisuDownload.Items.find(el => el.Bezeichnung.trim() === VCOItem.Bez.trim() && parseInt(el.Kanal) === parseInt(VCOItem.Kanal));
+		if (foundItem) {
+			const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : parseFloat(foundItem.Wert).toFixed(foundItem.Nachkommastellen);
+			const value = parseFloat(svalue);
 
-			if ((values[i].Bezeichnung == "GR") && (values[i].Kanal == 2)) {
-					var value = values[i].Wert;
-					var nk = values[i].Nachkommastellen;
-					warnGrenze = parseFloat((value * 100) / 100).toFixed(nk);
-				}
-			if ((values[i].Bezeichnung == "GR") && (values[i].Kanal == 3)) {
-					var value = values[i].Wert;
-					var nk = values[i].Nachkommastellen;
-					stoerGrenze = parseFloat((value * 100) / 100).toFixed(nk);
-				}
-			if (values[i].Bezeichnung == "GA")  {
-					var value = values[i].Wert;
-					var nk = values[i].Nachkommastellen;
-					gasSensorWert = parseFloat((value * 100) / 100).toFixed(nk);
-				}
-			if ((values[i].Bezeichnung == "HKNA") && (VCOItem.Kanal == values[i].Kanal)) {
-                        svalue = values[i].sWert;
-				}
-
-		}
-
-			 if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
-				item.BgColor = "#fc1803";
-				if (VCOItem.Projektnummer.trim() == "P 676") {
-					svalue = "     ";
-					VCOItem.sEinheit = "     ";
-				}
-
-			}
-
-			if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
-				item.BgColor = "#fcdf03";
-				if (VCOItem.Projektnummer.trim() == "P 676") {
-					svalue = "     ";
-					VCOItem.sEinheit = "     ";
+			if (foundItem.Bezeichnung.trim() === `GA`) {
+				const warnGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
+				const stoerGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
+				if (warnGrenze || stoerGrenze) {
+					item.bgColor = 	(value > stoerGrenze) ? `#fc1803` :
+									(value < stoerGrenze && value > warnGrenze) ? `#fcdf03` :
+									(value < warnGrenze) ? `#42f545` : item.bgColor;
 				}
 			}
 
-			if (warnGrenze != null) {
-			 if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
-				item.BgColor = "#42f545";
-					if (VCOItem.Projektnummer.trim() == "P 676") {
-						svalue = "     ";
-						VCOItem.sEinheit = "     ";
-					}
-				}
-			}
-
-		var txt = svalue + " " + VCOItem.sEinheit;
-				
-		if (false) { // ShowSymbolMenue) {
-			CurrentDroplistItem = item;
-			location.href = '#EditSymbol';
-		}
-		else {
 			if (VCOItem.isBool) {
+				if (Symbol.match(/(fpButton)|(Heizkreis)/))
+					fpButton(vDynCtx, x, y, value);
 
-				/*SettingsFromVisualisierung*/
-				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
-					if (svalue.trim() == "1")
-						Heizkreis(vDynCtx, x, y, 1);
-					else
-						Heizkreis(vDynCtx, x, y, 0);
-				}
+				if (Symbol === "Absenkung")
+					Absenkung(vDynCtx, x, y, 1, value);
+					
+				if (Symbol === "Feuer" && value)
+					feuer(vDynCtx, x, y, 1);
 
-				if (Symbol == "Absenkung") {
-					if (svalue.trim() == "1")
-						Absenkung(vDynCtx, x, y, 1, 1);
-					else
-						Absenkung(vDynCtx, x, y, 1, 0);
-				}
+				if (Symbol === "BHKW")
+					BHDreh(vDynCtx, x, y, 1, value * TimerCounter * 30);
 
-				if (Symbol == "Feuer") {
-					if (svalue.trim() == "1")
-						feuer(vDynCtx, x, y, 1);
-				}
+				if (Symbol === "Pumpe") 
+					pmpDreh2(vDynCtx, x, y, 1, value * TimerCounter * 30);
 
-				if (Symbol == "BHKW") {
-					if (svalue.trim() == "1")
-						BHDreh(vDynCtx, x, y, 1, TimerCounter * 30);
-					else
-						BHDreh(vDynCtx, x, y, 1, 0);
-				}
-
-				if (Symbol == "Pumpe") {
-					if (svalue.trim() == "1")
-						pmpDreh2(vDynCtx, x, y, 1, TimerCounter * 30);
-					else
-						pmpDreh2(vDynCtx, x, y, 1, 0);
-				}
-
-				
 				const rotation =    (SymbolFeature === "Rechts") ? 180 :
 									(SymbolFeature === "Oben") ? 90 :
 									(SymbolFeature === "Unten") ? 270 : 0;
-				if (Symbol == "Luefter") {
-					const angle = (svalue.trim() == "1") ? TimerCounter * 30 : 30;
+				
+				if (Symbol === "Luefter") {
+					const angle = (value) ? TimerCounter * 30 : 30;
 					luefter(vDynCtx, x, y, 1, angle, rotation);
 				}
-				if (Symbol == "Ventil") {
-					if (svalue.trim() == "1") {
-						ventil(vDynCtx, x, y, 1, rotation);
-					}
+
+				if (Symbol === "Ventil" && value)
+					ventil(vDynCtx, x, y, 1, rotation);
+
+				if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
+					const val = (value === 1) ? 100 : value;
+					lueftungsklappe(vDynCtx, x, y, 1, val, rotation);                            
 				}
 
-				if (Symbol == "Lueftungsklappe" || Symbol == "Abluftklappen") {
-					let val = parseFloat(svalue.trim());
-					if (val == 1) val = 100;
-					lueftungsklappe(vDynCtx, x, y, 1, val, SymbolFeature);                            
-				}
+				if (Symbol === "Schalter")
+					schalter(ctx, item.x, item.y, 1, value, rotation);
 
-				if (Symbol == "Led") {
-					var b = (svalue.trim() == "1");
+				if (Symbol === "Freitext")
+					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
 
-					if (SymbolFeature == "unsichtbar/rot") {
-						if (b)
-							Led(vDynCtx, x, y, 1, "red");
-					}
-					if (SymbolFeature == "gruen/rot") {
-						if (!b)
-							Led(vDynCtx, x, y, 1, "green");
-						else
-							Led(vDynCtx, x, y, 1, "red");
-
-					}
-					if (SymbolFeature == "rot/gruen") {
-						if (!b)
-							Led(vDynCtx, x, y, 1, "red");
-						else
-							Led(vDynCtx, x, y, 1, "green");
-
-					}
-					if (SymbolFeature == "unsichtbar/rot blinkend") {
-						if (b) {
-							if (TimerToggle)
-								Led(vDynCtx, x, y, 1, "red");
-						}
-					}
-					if (SymbolFeature == "gruen/rot blinkend") {
-						if (!b)
-							Led(vDynCtx, x, y, 1, "green");
-						else {
-							if (TimerToggle)
-								Led(vDynCtx, x, y, 1, "red");
-						}
-					}
-				}
-
-				if (Symbol == "Freitext") {
-					const val = (svalue.trim() == "1")
-					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, val);
+				if (Symbol === "Led") {
+					const color = 	(SymbolFeature.match(/(\/rot)/) && value) ? `red` :
+									(SymbolFeature.match(/(rot\/)/) && !value) ? `red` :
+									(SymbolFeature.match(/(\/gruen)/) && value) ? `green` :
+									(SymbolFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
+					if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle)))
+						Led(vDynCtx, x, y, 1, color);
 				}
 
 				hasSymbolsFlag = true;
 			}
 			else {
-				var sz = document.getElementById("selSize");
+				const txt = `${svalue} ${VCOItem.sEinheit}`;
 				vDynCtx.font = item.font;
-				var w = vDynCtx.measureText(txt).width;
+				const w = vDynCtx.measureText(txt).width;
 				vDynCtx.fillStyle = item.BgColor;
-				if (item.BgColor && item.BgColor != '#BEBEBE' && item.BgColor != '#E0E0E0') vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				if (item.BgColor && !item.BgColor.match(/(#BEBEBE)|(#E0E0E0)/))
+					vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
 				vDynCtx.fillStyle = item.Color;
 				vDynCtx.fillText(txt, x, y);
 			}
