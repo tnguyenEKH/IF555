@@ -250,35 +250,33 @@ function addLinkButtonToList(visudata) {
 
 // Linkbutton in Liste eintragen
 function addClickableElementToList(visudata) {
-	try{
-		for (var i = 0; i < visudata.DropList.length; i++) {
-			if (visudata.DropList[i].VCOItem.clickable == true) {
-				var item = new Object();
-				item["x"] = visudata.DropList[i].x;
-				item["y"] = visudata.DropList[i].y;
-				item["clickable"] = true;
-				item["Bezeichnung"] = visudata.DropList[i].VCOItem.Bez.trim();
-				item["id"] = visudata.DropList[i].VCOItem.iD.trim();
-				item["h"] = visudata.DropList[i].BgHeight;
-				item["bitmapIndex"] = visudata.DropList[i].bmpIndex;
-				if (item["Bezeichnung"] == "HK") {
-					item["radius"] = 18;
-
+	try {
+		//const {DropList, } = visudata;
+		visudata.DropList.forEach(el => {
+			const {VCOItem} = el;
+			if (VCOItem.clickable == true) {
+				const item = new Object();
+				item.x = el.x;
+				item.y = el.y;
+				item.clickable = true;
+				item.Bezeichnung = VCOItem.Bez.trim();
+				item.id = VCOItem.iD.trim();
+				item.h = el.BgHeight;
+				item.bitmapIndex = el.bmpIndex;
+				switch (item.Bezeichnung) {
+					case `HK`:
+					case `KES`:
+					case `BHK`:
+					case `WWL`:
+					case `WP`:
+						item.radius = 18;
+						break;
+					default:
 				}
-				if (item["Bezeichnung"] == "KES") {
-					item["radius"] = 18;
-				}
-
-				if (item["Bezeichnung"] == "BHK") {
-					item["radius"] = 18;
-				}
-				if (item["Bezeichnung"] == "WWL") {
-					item["radius"] = 18;
-				}
-				createLinkForClickableElement(visudata.DropList[i].VCOItem.iD.trim());
+				createLinkForClickableElement(item.id);
 				ClickableElementList.push(item);
 			}
-		}
+		});
 	}
 	catch(e){
 		log(e.message);
@@ -1769,17 +1767,21 @@ function ventil(vDynCtx, x, y, scale, rot) {
 	vDynCtx.scale(scale, scale);
 	vDynCtx.beginPath();
 	//patch 29.12.22/ entspr. Webtermpatch 22.11.2022: doppelte (kleinere) Pfeile
+
+
+	//vDynCtx.fillRect(-1.5, -1, 1.5, 2);
+	//vDynCtx.moveTo(0, 0);
+	vDynCtx.lineTo(0, 14);
+	vDynCtx.lineTo(14, 7);
+	vDynCtx.lineTo(0, 0);
+
+	vDynCtx.fill();
+	/*vDynCtx.translate(11, 0);
 	vDynCtx.fillRect(-1.5, -1, 1.5, 2);
 	vDynCtx.moveTo(0, 2);
 	vDynCtx.lineTo(2, 0);
 	vDynCtx.lineTo(0, -2);
-	vDynCtx.fill();
-	vDynCtx.translate(11, 0);
-	vDynCtx.fillRect(-1.5, -1, 1.5, 2);
-	vDynCtx.moveTo(0, 2);
-	vDynCtx.lineTo(2, 0);
-	vDynCtx.lineTo(0, -2);
-	vDynCtx.fill();
+	vDynCtx.fill();*/
 
 	vDynCtx.restore();
 }
@@ -2010,17 +2012,15 @@ function _drawDropList() {
 // Properties zeichnen incl. Symbole
 function drawVCOItem(item) {
 	if (item["bmpIndex"] == bmpIndex) {
+		const {VCOItem, x, y, SymbolFeature, Symbol} = item;
 		var warnGrenze;
 		var stoerGrenze;
 		var gasSensorWert;
-		var x = item.x;
-		var y = item.y;
-		var vco = item["VCOItem"];
 		var values = VisuDownload.Items;
 		var svalue = "-";
 		var n = values.length;
 		for (var i = 0; i < n; i++) {
-			if (vco.Bez.trim() == values[i].Bezeichnung.trim() && vco.Kanal == values[i].Kanal) {
+			if (VCOItem.Bez.trim() == values[i].Bezeichnung.trim() && VCOItem.Kanal == values[i].Kanal) {
 					var value = values[i].Wert;
 					var nk = values[i].Nachkommastellen;
 					svalue = parseFloat((value * 100) / 100).toFixed(nk);
@@ -2041,165 +2041,142 @@ function drawVCOItem(item) {
 					var nk = values[i].Nachkommastellen;
 					gasSensorWert = parseFloat((value * 100) / 100).toFixed(nk);
 				}
-			if ((values[i].Bezeichnung == "HKNA") && (vco.Kanal == values[i].Kanal)) {
+			if ((values[i].Bezeichnung == "HKNA") && (VCOItem.Kanal == values[i].Kanal)) {
                         svalue = values[i].sWert;
 				}
 
 		}
 
-			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
+			 if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert > stoerGrenze)) {
 				item.BgColor = "#fc1803";
-				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+				if (VCOItem.Projektnummer.trim() == "P 676") {
 					svalue = "     ";
-					vco.sEinheit = "     ";
+					VCOItem.sEinheit = "     ";
 				}
 
 			}
 
-			if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
+			if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert < stoerGrenze) && (gasSensorWert > warnGrenze)) {
 				item.BgColor = "#fcdf03";
-				if (item.VCOItem.Projektnummer.trim() == "P 676") {
+				if (VCOItem.Projektnummer.trim() == "P 676") {
 					svalue = "     ";
-					vco.sEinheit = "     ";
+					VCOItem.sEinheit = "     ";
 				}
 			}
 
 			if (warnGrenze != null) {
-			 if ((item.VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
+			 if ((VCOItem.Bez.trim() == "GA") && (gasSensorWert < warnGrenze)) {
 				item.BgColor = "#42f545";
-					if (item.VCOItem.Projektnummer.trim() == "P 676") {
+					if (VCOItem.Projektnummer.trim() == "P 676") {
 						svalue = "     ";
-						vco.sEinheit = "     ";
+						VCOItem.sEinheit = "     ";
 					}
 				}
 			}
 
-		var txt = svalue + " " + vco.sEinheit;
+		var txt = svalue + " " + VCOItem.sEinheit;
 				
-		if (false) { // item.ShowSymbolMenue) {
+		if (false) { // ShowSymbolMenue) {
 			CurrentDroplistItem = item;
 			location.href = '#EditSymbol';
 		}
 		else {
-			if (vco.isBool) {
+			if (VCOItem.isBool) {
 
 				/*SettingsFromVisualisierung*/
-				if (item.Symbol == "Heizkreis") {
+				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
 					if (svalue.trim() == "1")
-						Heizkreis(vDynCtx, item.x, item.y, 1);
+						Heizkreis(vDynCtx, x, y, 1);
 					else
-						Heizkreis(vDynCtx, item.x, item.y, 0);
+						Heizkreis(vDynCtx, x, y, 0);
 				}
 
-				if (item.Symbol == "Absenkung") {
+				if (Symbol == "Absenkung") {
 					if (svalue.trim() == "1")
-						Absenkung(vDynCtx, item.x, item.y, 1, 1);
+						Absenkung(vDynCtx, x, y, 1, 1);
 					else
-						Absenkung(vDynCtx, item.x, item.y, 1, 0);
+						Absenkung(vDynCtx, x, y, 1, 0);
 				}
 
-				if (item.Symbol == "Feuer") {
+				if (Symbol == "Feuer") {
 					if (svalue.trim() == "1")
-						feuer(vDynCtx, item.x, item.y, 1);
+						feuer(vDynCtx, x, y, 1);
 				}
 
-				if (item.Symbol == "BHKW") {
+				if (Symbol == "BHKW") {
 					if (svalue.trim() == "1")
-						BHDreh(vDynCtx, item.x, item.y, 1, TimerCounter * 30);
+						BHDreh(vDynCtx, x, y, 1, TimerCounter * 30);
 					else
-						BHDreh(vDynCtx, item.x, item.y, 1, 0);
+						BHDreh(vDynCtx, x, y, 1, 0);
 				}
 
-				if (item.Symbol == "Pumpe") {
+				if (Symbol == "Pumpe") {
 					if (svalue.trim() == "1")
-						pmpDreh2(vDynCtx, item.x, item.y, 1, TimerCounter * 30);
+						pmpDreh2(vDynCtx, x, y, 1, TimerCounter * 30);
 					else
-						pmpDreh2(vDynCtx, item.x, item.y, 1, 0);
+						pmpDreh2(vDynCtx, x, y, 1, 0);
 				}
 
-				if (item.Symbol == "Luefter") {
-					var angle = 30;
-					if (svalue.trim() == "1")
-						angle = TimerCounter * 30;
-
-					if (item.SymbolFeature == "Links") {
-						luefter(vDynCtx, item.x, item.y, 1, angle, 0);
-					}
-					if (item.SymbolFeature == "Rechts") {
-						luefter(vDynCtx, item.x, item.y, 1, angle, 180);
-					}
-					if (item.SymbolFeature == "Oben") {
-						luefter(vDynCtx, item.x, item.y, 1, angle, 90);
-					}
-					if (item.SymbolFeature == "Unten") {
-						luefter(vDynCtx, item.x, item.y, 1, angle, 270);
-					}
+				
+				const rotation =    (SymbolFeature === "Rechts") ? 180 :
+									(SymbolFeature === "Oben") ? 90 :
+									(SymbolFeature === "Unten") ? 270 : 0;
+				if (Symbol == "Luefter") {
+					const angle = (svalue.trim() == "1") ? TimerCounter * 30 : 30;
+					luefter(vDynCtx, x, y, 1, angle, rotation);
 				}
-
-				if (item.Symbol == "Ventil") {
+				if (Symbol == "Ventil") {
 					if (svalue.trim() == "1") {
-
-						if (item.SymbolFeature == "Links") {
-							ventil(vDynCtx, item.x, item.y, 2, 180);
-						}
-						if (item.SymbolFeature == "Rechts") {
-							ventil(vDynCtx, item.x, item.y, 2, 0);
-						}
-						if (item.SymbolFeature == "Oben") {
-							ventil(vDynCtx, item.x, item.y, 2, 270);
-						}
-						if (item.SymbolFeature == "Unten") {
-							ventil(vDynCtx, item.x, item.y, 2, 90);
-						}
+						ventil(vDynCtx, x, y, 1, rotation);
 					}
 				}
 
-				if (item.Symbol == "Lueftungsklappe" || item.Symbol == "Abluftklappen") {
+				if (Symbol == "Lueftungsklappe" || Symbol == "Abluftklappen") {
 					let val = parseFloat(svalue.trim());
 					if (val == 1) val = 100;
-					lueftungsklappe(vDynCtx, item.x, item.y, 1, val, item.SymbolFeature);                            
+					lueftungsklappe(vDynCtx, x, y, 1, val, SymbolFeature);                            
 				}
 
-				if (item.Symbol == "Led") {
+				if (Symbol == "Led") {
 					var b = (svalue.trim() == "1");
 
-					if (item.SymbolFeature == "unsichtbar/rot") {
+					if (SymbolFeature == "unsichtbar/rot") {
 						if (b)
-							Led(vDynCtx, item.x, item.y, 1, "red");
+							Led(vDynCtx, x, y, 1, "red");
 					}
-					if (item.SymbolFeature == "gruen/rot") {
+					if (SymbolFeature == "gruen/rot") {
 						if (!b)
-							Led(vDynCtx, item.x, item.y, 1, "green");
+							Led(vDynCtx, x, y, 1, "green");
 						else
-							Led(vDynCtx, item.x, item.y, 1, "red");
+							Led(vDynCtx, x, y, 1, "red");
 
 					}
-					if (item.SymbolFeature == "rot/gruen") {
+					if (SymbolFeature == "rot/gruen") {
 						if (!b)
-							Led(vDynCtx, item.x, item.y, 1, "red");
+							Led(vDynCtx, x, y, 1, "red");
 						else
-							Led(vDynCtx, item.x, item.y, 1, "green");
+							Led(vDynCtx, x, y, 1, "green");
 
 					}
-					if (item.SymbolFeature == "unsichtbar/rot blinkend") {
+					if (SymbolFeature == "unsichtbar/rot blinkend") {
 						if (b) {
 							if (TimerToggle)
-								Led(vDynCtx, item.x, item.y, 1, "red");
+								Led(vDynCtx, x, y, 1, "red");
 						}
 					}
-					if (item.SymbolFeature == "gruen/rot blinkend") {
+					if (SymbolFeature == "gruen/rot blinkend") {
 						if (!b)
-							Led(vDynCtx, item.x, item.y, 1, "green");
+							Led(vDynCtx, x, y, 1, "green");
 						else {
 							if (TimerToggle)
-								Led(vDynCtx, item.x, item.y, 1, "red");
+								Led(vDynCtx, x, y, 1, "red");
 						}
 					}
 				}
 
-				if (item.Symbol == "Freitext") {
+				if (Symbol == "Freitext") {
 					const val = (svalue.trim() == "1")
-					freitext(vDynCtx, item.x, item.y, 1, item.font, item.Color, item.SymbolFeature, item.BgHeight, item.BgColor, val);
+					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, val);
 				}
 
 				hasSymbolsFlag = true;
