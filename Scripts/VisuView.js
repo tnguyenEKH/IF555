@@ -1546,7 +1546,7 @@ function globalTimer() {
 // Diverse Zeichenfunktionen wie im Editor
 
 
-function fpButton(vDynCtx, x, y, betrieb) {
+function fpButton(ctx, x, y, betrieb) {
     var notches = 7,                      // num. of notches
         radiusO = 12,                    // outer radius
         radiusI = 9,                    // inner radius
@@ -1562,28 +1562,28 @@ function fpButton(vDynCtx, x, y, betrieb) {
         a = angle,                  // iterator (angle)
         toggle = false;                  // notch radius level (i/o)
 
-    vDynCtx.save();
-    vDynCtx.fillStyle = '#000';
-    vDynCtx.lineWidth = 2.5;
-    vDynCtx.strokeStyle = '#000';
-    vDynCtx.beginPath()
-    vDynCtx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
+    ctx.save();
+    ctx.fillStyle = '#000';
+    ctx.lineWidth = 2.5;
+    ctx.strokeStyle = '#000';
+    ctx.beginPath()
+    ctx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
 
     for (; a <= pi2; a += angle) {
 
         // draw inner to outer line
         if (toggle) {
-            vDynCtx.lineTo(x + radiusI * Math.cos(a - taperAI),
+            ctx.lineTo(x + radiusI * Math.cos(a - taperAI),
                 y + radiusI * Math.sin(a - taperAI));
-            vDynCtx.lineTo(x + radiusO * Math.cos(a + taperAO),
+            ctx.lineTo(x + radiusO * Math.cos(a + taperAO),
                 y + radiusO * Math.sin(a + taperAO));
         }
 
         // draw outer to inner line
         else {
-            vDynCtx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
+            ctx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
                 y + radiusO * Math.sin(a - taperAO));
-            vDynCtx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
+            ctx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
                 y + radiusI * Math.sin(a + taperAI));
         }
 
@@ -1591,91 +1591,91 @@ function fpButton(vDynCtx, x, y, betrieb) {
         toggle = !toggle;
     }
     // close the final line
-    vDynCtx.closePath();
-    vDynCtx.moveTo(x + radiusH, y);
-    vDynCtx.arc(x, y, radiusH, 0, pi2);
+    ctx.closePath();
+    ctx.moveTo(x + radiusH, y);
+    ctx.arc(x, y, radiusH, 0, pi2);
 
     if (betrieb == '0') {
 
     }
     else {
-        //vDynCtx.font = "12px Arial";
-        //vDynCtx.fillText("Handbetrieb", x - 20, y + 24);
-        vDynCtx.translate(x,y)
-        vDynCtx.moveTo(40, 27);
-        vDynCtx.lineTo(40, 10);
-        vDynCtx.arc(38, 8, 2, 2 * Math.PI, 1 * Math.PI, true);
-        vDynCtx.lineTo(36, 16);
-        vDynCtx.arc(34, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        vDynCtx.lineTo(32, 15);
-        vDynCtx.arc(30, 5.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        vDynCtx.lineTo(28, 15);
-        vDynCtx.arc(26, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        vDynCtx.lineTo(24, 20);
-        vDynCtx.lineTo(20, 16);
-        vDynCtx.arc(19, 17.8, 2, 1.8 * Math.PI, 0.8 * Math.PI, true);
-        vDynCtx.lineTo(26, 27);
-        vDynCtx.lineTo(40, 27);
-        vDynCtx.fillStyle = 'yellow';
-        vDynCtx.scale(1, 1)
-        vDynCtx.fill();
-        //vDynCtx.stroke();
+        //ctx.font = "12px Arial";
+        //ctx.fillText("Handbetrieb", x - 20, y + 24);
+        ctx.translate(x,y)
+        ctx.moveTo(40, 27);
+        ctx.lineTo(40, 10);
+        ctx.arc(38, 8, 2, 2 * Math.PI, 1 * Math.PI, true);
+        ctx.lineTo(36, 16);
+        ctx.arc(34, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        ctx.lineTo(32, 15);
+        ctx.arc(30, 5.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        ctx.lineTo(28, 15);
+        ctx.arc(26, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
+        ctx.lineTo(24, 20);
+        ctx.lineTo(20, 16);
+        ctx.arc(19, 17.8, 2, 1.8 * Math.PI, 0.8 * Math.PI, true);
+        ctx.lineTo(26, 27);
+        ctx.lineTo(40, 27);
+        ctx.fillStyle = 'yellow';
+        ctx.scale(1, 1)
+        ctx.fill();
+        //ctx.stroke();
     }
-    vDynCtx.stroke();
-    vDynCtx.restore();
+    ctx.stroke();
+    ctx.restore();
 }
 
 
 
-function Absenkung(vDynCtx, x, y, scale, active) {
-	vDynCtx.save();
-	vDynCtx.moveTo(0 - 10 * scale, 0);
-	vDynCtx.font = '10pt Arial';
-	vDynCtx.fillStyle = 'blue';
+function Absenkung(ctx, x, y, scale, active) {
+	ctx.save();
+	ctx.moveTo(0 - 10 * scale, 0);
+	ctx.font = '10pt Arial';
+	ctx.fillStyle = 'blue';
 
-	vDynCtx.translate(x, y);
+	ctx.translate(x, y);
 
 	if (active == 1)
-		vDynCtx.fillText('Nacht', 0, 0);
+		ctx.fillText('Nacht', 0, 0);
 	else
-		vDynCtx.fillText('Tag', 1, 0);
+		ctx.fillText('Tag', 1, 0);
 
-	vDynCtx.restore();
+	ctx.restore();
 }
 
 
-function BHDreh(vDynCtx, x, y, scale, rotation) {
-	vDynCtx.save();
-	vDynCtx.lineWidth = 1 * scale;
-	vDynCtx.translate(x, y);
-	vDynCtx.rotate(Math.PI / 180 * rotation);
-	vDynCtx.strokeStyle = "steelblue";
-	vDynCtx.beginPath();
-	vDynCtx.arc(0, 0, 13 * scale, 0, Math.PI * 2, true);
+function BHDreh(ctx, x, y, scale, rotation) {
+	ctx.save();
+	ctx.lineWidth = 1 * scale;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rotation);
+	ctx.strokeStyle = "steelblue";
+	ctx.beginPath();
+	ctx.arc(0, 0, 13 * scale, 0, Math.PI * 2, true);
 
-	vDynCtx.moveTo(0 + 10 * scale, 0);
-	vDynCtx.arc(0, 0, 10 * scale, 0, -Math.PI / 4, true);
-	vDynCtx.moveTo(0 + 10 * scale, 0);
-	vDynCtx.arc(0, 0, 10 * scale, 0, Math.PI / 4, false);
+	ctx.moveTo(0 + 10 * scale, 0);
+	ctx.arc(0, 0, 10 * scale, 0, -Math.PI / 4, true);
+	ctx.moveTo(0 + 10 * scale, 0);
+	ctx.arc(0, 0, 10 * scale, 0, Math.PI / 4, false);
 
-	vDynCtx.moveTo(0 - 10 * scale, 0);
-	vDynCtx.arc(0, 0, 10 * scale, Math.PI, -3 * Math.PI / 4, false);
-	vDynCtx.moveTo(0 - 10 * scale, 0);
-	vDynCtx.arc(0, 0, 10 * scale, Math.PI, 3 * Math.PI / 4, true);
-	vDynCtx.stroke();
+	ctx.moveTo(0 - 10 * scale, 0);
+	ctx.arc(0, 0, 10 * scale, Math.PI, -3 * Math.PI / 4, false);
+	ctx.moveTo(0 - 10 * scale, 0);
+	ctx.arc(0, 0, 10 * scale, Math.PI, 3 * Math.PI / 4, true);
+	ctx.stroke();
 
-	vDynCtx.lineWidth = 3 * scale;
+	ctx.lineWidth = 3 * scale;
 
-	vDynCtx.beginPath();
-	vDynCtx.moveTo(0 - 10 * scale, 0);
-	vDynCtx.lineTo(0 + 10 * scale, 0);
+	ctx.beginPath();
+	ctx.moveTo(0 - 10 * scale, 0);
+	ctx.lineTo(0 + 10 * scale, 0);
 
-	vDynCtx.stroke();
-	vDynCtx.restore();
+	ctx.stroke();
+	ctx.restore();
 }
 
 
-function feuer(vDynCtx, x, y, scale) {
+function feuer(ctx, x, y, scale) {
 	// 30x48
 	var rd1 = (Math.random() - 0.5) * 3;
 	var rd2 = (Math.random() - 0.5) * 3;
@@ -1683,63 +1683,63 @@ function feuer(vDynCtx, x, y, scale) {
 	var rd4 = (Math.random() - 0.5) * 3;
 	var rd5 = (Math.random() - 0.5) * 3;
 	var rd6 = (Math.random() - 0.5) * 3;
-	vDynCtx.save();
+	ctx.save();
 
-	vDynCtx.lineWidth = 1;
-	vDynCtx.translate(x, y);
-	vDynCtx.scale(scale, scale);
-	vDynCtx.strokeStyle = "red";
-	vDynCtx.fillStyle = "yellow";
-	vDynCtx.beginPath();
-	vDynCtx.moveTo(0 + rd1, -20);
-	vDynCtx.lineTo(-5 + rd2, -10);
-	vDynCtx.lineTo(-8 + rd3, -5);
-	vDynCtx.lineTo(-7 + rd4, 5);
-	vDynCtx.lineTo(-2 + rd5, 10);
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.scale(scale, scale);
+	ctx.strokeStyle = "red";
+	ctx.fillStyle = "yellow";
+	ctx.beginPath();
+	ctx.moveTo(0 + rd1, -20);
+	ctx.lineTo(-5 + rd2, -10);
+	ctx.lineTo(-8 + rd3, -5);
+	ctx.lineTo(-7 + rd4, 5);
+	ctx.lineTo(-2 + rd5, 10);
 
-	vDynCtx.lineTo(2 + rd5, 10);
-	vDynCtx.lineTo(4 + rd4, 5);
-	vDynCtx.lineTo(6 + rd6, -5);
-	vDynCtx.lineTo(5 + rd2, -10);
-	vDynCtx.lineTo(0 + rd1, -20);
-	vDynCtx.fill();
-	vDynCtx.stroke();
+	ctx.lineTo(2 + rd5, 10);
+	ctx.lineTo(4 + rd4, 5);
+	ctx.lineTo(6 + rd6, -5);
+	ctx.lineTo(5 + rd2, -10);
+	ctx.lineTo(0 + rd1, -20);
+	ctx.fill();
+	ctx.stroke();
 
-	//vDynCtx.closePath();
-	vDynCtx.restore();
+	//ctx.closePath();
+	ctx.restore();
 }
 
-function pmpDreh2(vDynCtx, x, y, scale, rot) {
+function pmpDreh2(ctx, x, y, scale, rot) {
 	// 12x12
-	vDynCtx.save();
-	vDynCtx.strokeStyle = "black";
-	vDynCtx.fillStyle = "black";
-	vDynCtx.lineWidth = 1;
-	vDynCtx.translate(x, y);
-	vDynCtx.rotate(Math.PI / 180 * rot);
-	vDynCtx.scale(scale, scale);
-	vDynCtx.beginPath();
-	vDynCtx.arc(0, 0, 11, 0, Math.PI * 2, true);
-	vDynCtx.stroke();
-	vDynCtx.closePath();
-	vDynCtx.beginPath();
-	vDynCtx.lineWidth = 1, 5;
-	vDynCtx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	vDynCtx.fillStyle = 'black';
-	vDynCtx.fill();
-	vDynCtx.closePath();
-	vDynCtx.beginPath();
-	vDynCtx.arc(0, 0, 6, startAngle, endAngle, true);
-	vDynCtx.lineTo(0, 0);
-	vDynCtx.fillStyle = 'white';
-	vDynCtx.fill();
-	vDynCtx.closePath();
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "black";
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rot);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
+	ctx.arc(0, 0, 11, 0, Math.PI * 2, true);
+	ctx.stroke();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.lineWidth = 1, 5;
+	ctx.arc(0, 0, 6, 0, Math.PI * 2, true);
+	ctx.fillStyle = 'black';
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(0, 0, 6, startAngle, endAngle, true);
+	ctx.lineTo(0, 0);
+	ctx.fillStyle = 'white';
+	ctx.fill();
+	ctx.closePath();
 
-	vDynCtx.stroke();
-	vDynCtx.restore();
+	ctx.stroke();
+	ctx.restore();
 }
 
-function drawEllipse(vDynCtx, x, y, w, h) {
+function drawEllipse(ctx, x, y, w, h) {
 	var kappa = .5522848,
 		ox = (w / 2) * kappa, // control point offset horizontal
 		oy = (h / 2) * kappa, // control point offset vertical
@@ -1749,69 +1749,60 @@ function drawEllipse(vDynCtx, x, y, w, h) {
 		ym = y + h / 2;       // y-middle
 
 
-	vDynCtx.moveTo(x, ym);
-	vDynCtx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-	vDynCtx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-	vDynCtx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-	vDynCtx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-	//vDynCtx.closePath(); // not used correctly, see comments (use to close off open path)
-	vDynCtx.stroke();
+	ctx.moveTo(x, ym);
+	ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+	ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+	ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+	ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+	//ctx.closePath(); // not used correctly, see comments (use to close off open path)
+	ctx.stroke();
 }
 
-function luefter(vDynCtx, x, y, scale, rotL, rotDir) {
+function luefter(ctx, x, y, scale, rotL, rotDir) {
 	// 51x51
-	vDynCtx.save();
-	vDynCtx.strokeStyle = "black";
-	vDynCtx.fillStyle = "grey";
-	vDynCtx.lineWidth = 1;
-	vDynCtx.translate(x, y);
-	vDynCtx.rotate(Math.PI / 180 * rotDir);
-	vDynCtx.scale(scale, scale);
-	vDynCtx.beginPath();
-	vDynCtx.arc(0, 0, 24, 0, Math.PI * 2, true);
-	vDynCtx.moveTo(0, -24);
-	vDynCtx.lineTo(-23, -5);
-	vDynCtx.moveTo(0, 24);
-	vDynCtx.lineTo(-23, 5);
-	vDynCtx.stroke();
-	vDynCtx.closePath();
-	vDynCtx.beginPath();
-	vDynCtx.rotate(Math.PI / 180 * rotL);
-	drawEllipse(vDynCtx, 0, -5, 22, 10);
-	drawEllipse(vDynCtx, -22, -5, 22, 10);
-	vDynCtx.fill();
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "grey";
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rotDir);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
+	ctx.arc(0, 0, 24, 0, Math.PI * 2, true);
+	ctx.moveTo(0, -24);
+	ctx.lineTo(-23, -5);
+	ctx.moveTo(0, 24);
+	ctx.lineTo(-23, 5);
+	ctx.stroke();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.rotate(Math.PI / 180 * rotL);
+	drawEllipse(ctx, 0, -5, 22, 10);
+	drawEllipse(ctx, -22, -5, 22, 10);
+	ctx.fill();
 
-	vDynCtx.restore();
+	ctx.restore();
 }
 
-function ventil(vDynCtx, x, y, scale, rot) {
+function ventil(ctx, x, y, scale, rot) {
 	// 6x6
-	vDynCtx.save();
-	vDynCtx.strokeStyle = "black";
-	vDynCtx.fillStyle = "black";
-	vDynCtx.lineWidth = 1;
-	vDynCtx.translate(x, y);
-	vDynCtx.rotate(Math.PI / 180 * rot);
-	vDynCtx.scale(scale, scale);
-	vDynCtx.beginPath();
-	//patch 29.12.22/ entspr. Webtermpatch 22.11.2022: doppelte (kleinere) Pfeile
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "black";
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rot);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
+	
+	ctx.moveTo(-8, -8);
+	ctx.lineTo(-8, 8);
+	ctx.lineTo(8, 0);
+	ctx.lineTo(-8, -8);
 
+	ctx.fill();
 
-	//vDynCtx.fillRect(-1.5, -1, 1.5, 2);
-	//vDynCtx.moveTo(0, 0);
-	vDynCtx.lineTo(0, 14);
-	vDynCtx.lineTo(14, 7);
-	vDynCtx.lineTo(0, 0);
-
-	vDynCtx.fill();
-	/*vDynCtx.translate(11, 0);
-	vDynCtx.fillRect(-1.5, -1, 1.5, 2);
-	vDynCtx.moveTo(0, 2);
-	vDynCtx.lineTo(2, 0);
-	vDynCtx.lineTo(0, -2);
-	vDynCtx.fill();*/
-
-	vDynCtx.restore();
+	ctx.restore();
 }
 
 function lueftungsklappe(ctx, x, y, scale, val, rotation, isNC = true) {
@@ -1839,24 +1830,24 @@ function lueftungsklappe(ctx, x, y, scale, val, rotation, isNC = true) {
     ctx.restore();
 }
 
-function Led(vDynCtx, x, y, scale, col) {
-	vDynCtx.save();
-	vDynCtx.strokeStyle = "black";
-	vDynCtx.fillStyle = "#aaa";
-	vDynCtx.lineWidth = 1;
-	vDynCtx.translate(x, y);
-	vDynCtx.scale(scale, scale);
-	vDynCtx.beginPath();
+function Led(ctx, x, y, scale, col) {
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "#aaa";
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
 
-	vDynCtx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	vDynCtx.stroke();
-	vDynCtx.fill();
-	vDynCtx.closePath();
-	vDynCtx.beginPath();
-	vDynCtx.arc(0, 0, 4, 0, Math.PI * 2, true);
-	vDynCtx.fillStyle = col;
-	vDynCtx.fill();
-	vDynCtx.restore();
+	ctx.arc(0, 0, 6, 0, Math.PI * 2, true);
+	ctx.stroke();
+	ctx.fill();
+	ctx.closePath();
+	ctx.beginPath();
+	ctx.arc(0, 0, 4, 0, Math.PI * 2, true);
+	ctx.fillStyle = col;
+	ctx.fill();
+	ctx.restore();
 }
 
 function schalter(ctx, x, y, scale, val, rotation) {                        
@@ -2061,9 +2052,8 @@ function drawVCOItem(item) {
 		
 		const foundItem = VisuDownload.Items.find(el => el.Bezeichnung.trim() === VCOItem.Bez.trim() && parseInt(el.Kanal) === parseInt(VCOItem.Kanal));
 		if (foundItem) {
-			const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : parseFloat(foundItem.Wert).toFixed(foundItem.Nachkommastellen);
-			const value = parseFloat(svalue);
-
+			const value = parseFloat(foundItem.Wert);
+			
 			if (foundItem.Bezeichnung.trim() === `GA`) {
 				const warnGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
 				const stoerGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
@@ -2073,67 +2063,68 @@ function drawVCOItem(item) {
 									(value < warnGrenze) ? `#42f545` : item.bgColor;
 				}
 			}
-
+			
 			if (VCOItem.isBool) {
 				if (Symbol.match(/(fpButton)|(Heizkreis)/))
 					fpButton(vDynCtx, x, y, value);
-
+				
 				if (Symbol === "Absenkung")
 					Absenkung(vDynCtx, x, y, 1, value);
 					
 				if (Symbol === "Feuer" && value)
 					feuer(vDynCtx, x, y, 1);
-
+					
 				if (Symbol === "BHKW")
 					BHDreh(vDynCtx, x, y, 1, value * TimerCounter * 30);
-
+					
 				if (Symbol === "Pumpe") 
 					pmpDreh2(vDynCtx, x, y, 1, value * TimerCounter * 30);
-
+					
 				const rotation =    (SymbolFeature === "Rechts") ? 180 :
 									(SymbolFeature === "Oben") ? 90 :
 									(SymbolFeature === "Unten") ? 270 : 0;
-				
+					
 				if (Symbol === "Luefter") {
 					const angle = (value) ? TimerCounter * 30 : 30;
 					luefter(vDynCtx, x, y, 1, angle, rotation);
 				}
-
+				
 				if (Symbol === "Ventil" && value)
 					ventil(vDynCtx, x, y, 1, rotation);
-
+				
 				if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
 					const val = (value === 1) ? 100 : value;
 					lueftungsklappe(vDynCtx, x, y, 1, val, rotation);                            
 				}
-
+				
 				if (Symbol === "Schalter")
 					schalter(ctx, item.x, item.y, 1, value, rotation);
 
 				if (Symbol === "Freitext")
 					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
 
-				if (Symbol === "Led") {
-					const color = 	(SymbolFeature.match(/(\/rot)/) && value) ? `red` :
-									(SymbolFeature.match(/(rot\/)/) && !value) ? `red` :
-									(SymbolFeature.match(/(\/gruen)/) && value) ? `green` :
-									(SymbolFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
-					if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle)))
-						Led(vDynCtx, x, y, 1, color);
+					if (Symbol === "Led") {
+						const color = 	(SymbolFeature.match(/(\/rot)/) && value) ? `red` :
+										(SymbolFeature.match(/(rot\/)/) && !value) ? `red` :
+										(SymbolFeature.match(/(\/gruen)/) && value) ? `green` :
+										(SymbolFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
+						if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle)))
+							Led(vDynCtx, x, y, 1, color);
+					}
+					
+					hasSymbolsFlag = true;
 				}
-
-				hasSymbolsFlag = true;
-			}
-			else {
-				const txt = `${svalue} ${VCOItem.sEinheit}`;
-				vDynCtx.font = item.font;
-				const w = vDynCtx.measureText(txt).width;
-				vDynCtx.fillStyle = item.BgColor;
-				if (item.BgColor && !item.BgColor.match(/(#BEBEBE)|(#E0E0E0)/))
+				else {
+					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
+					const txt = `${svalue} ${VCOItem.sEinheit}`;
+					vDynCtx.font = item.font;
+					const w = vDynCtx.measureText(txt).width;
+					vDynCtx.fillStyle = item.BgColor;
+					if (item.BgColor && !item.BgColor.match(/(#BEBEBE)|(#E0E0E0)/))
 					vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-				vDynCtx.fillStyle = item.Color;
-				vDynCtx.fillText(txt, x, y);
-			}
+					vDynCtx.fillStyle = item.Color;
+					vDynCtx.fillText(txt, x, y);
+				}
 		}
 	}
 }
