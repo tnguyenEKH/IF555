@@ -2116,7 +2116,7 @@ function drawVCOItem(item) {
 				}
 				else {
 					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
-					const txt = `${svalue} ${VCOItem.sEinheit}`;
+					const txt = `${svalue} ${VCOItem.sEinheit.replace(`^3`, `³`)}`;
 					vDynCtx.font = item.font;
 					const w = vDynCtx.measureText(txt).width;
 					vDynCtx.fillStyle = item.BgColor;
