@@ -3,7 +3,7 @@ summary {
 }
 .tabContentQh {
 	grid-template-areas:
-	'qhScaleLeftHeader	qhHeader	.			'
+	'qhScaleLeftHeader	qhHeader	qhScaleRightHeader'
 	'qhScaleLeft 		qhCanvas 	qhScaleRight'
 	'.					qhScaleX	.			';
 	grid-template-columns: min-content auto min-content;
@@ -23,10 +23,17 @@ summary {
 	margin-left: 4px;
 	border: none;
 }
-.qhScaleLeft,
-.qhScaleLeftHeader {
+.qhScale {
 	display: grid;
 	align-items: end;
+}
+.qhScaleLeftHeader > input,
+.qhScaleRightHeader > input {
+	margin-bottom: -3px;
+}
+.qhScale > input:invalid {
+	outline: 1px solid var(--colorEkhMagenta);
+	background-color: var(--colorEkhCyan);
 }
 .qhScaleLeft {
 	grid-area: qhScaleLeft;
@@ -34,16 +41,14 @@ summary {
 .qhScaleLeftHeader {
 	grid-area: qhScaleLeftHeader;
 }
-.qhScaleLeft > input,
-.qhScaleLeftHeader > input {
+.qhScaleLeft > input {
 	border-bottom: 3px solid var(--colorEkhMagenta);
 }
-.qhScaleLeftHeader > input {
-	margin-bottom: -3px;
-}
-
 .qhScaleRight {
 	grid-area: qhScaleRight;
+}
+.qhScaleRightHeader {
+	grid-area: qhScaleRightHeader;
 }
 .qhScaleRight > input {
 	border-bottom: 3px solid var(--colorEkhCyan);

@@ -59,6 +59,10 @@
     var sLastUpdate;
 
     var QHInfo;*/
+
+const MAX_STEPS_ON_Y_SCALES = 20;
+const LOWER_SCALE_STEP_LIMIT_RATIO = 1 / MAX_STEPS_ON_Y_SCALES;
+const UPPER_SCALE_STEP_LIMIT_RATIO = 1 - LOWER_SCALE_STEP_LIMIT_RATIO;
        
 async function initQh(qhHeaderData, qhDataRaw) {
     //////////////////////window.qhData preparation//////////////////////
@@ -111,8 +115,8 @@ async function initQh(qhHeaderData, qhDataRaw) {
         const rawRecord = qhDataRaw.slice((i*recordLength), ((i+1)*recordLength));
         
         const record = {};
-        const date   = new Date("20"+ rawRecord[0].toString(), (rawRecord[1] -1).toString(), rawRecord[2].toString()); //month index from 0-11
-        record.Datum = date.toLocaleDateString();
+        record.date   = new Date("20"+ rawRecord[0].toString(), (rawRecord[1] -1).toString(), rawRecord[2].toString()); //month index from 0-11
+        record.Datum = record.date.toLocaleDateString();
         const idx = rawRecord[3];
         record.Index = idx;
         record.nValues = qhDataTrackTotalCount;
@@ -160,12 +164,15 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //createQhCanvas();
     resizeQhCanvases();
     drawQhScale(qhUserSettings);
-    drawQhData(qhData);
+    initQhData(qhData);
+    drawQhData();
     //startQH();
 
 
     //////////////////////addEventListeners//////////////////////
-    document.querySelector(`.btnSaveUserSettings`).addEventListener(`click`, saveUserSettings)
+    document.querySelectorAll(`.qhScale > input`).forEach(input => { input.addEventListener(`blur`, qhScaleInputEventHandler); });
+    document.querySelectorAll(`.qhControlsContainer > *`).forEach(el => { el.addEventListener(`click`, qhControlElementEventHandler); });
+    //document.querySelector(`.btnSaveUserSettings`).addEventListener(`click`, saveUserSettings)
     
        
     //return window.qhData;
@@ -186,23 +193,36 @@ function drawQhScale(qhUserSettings = undefined) {
     if (qhUserSettings) { //init if parameter qhUserSettings is passed
         qhScaleX.qh_Skalierung = qhUserSettings.qh_Skalierung;
     }
-    const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qhScaleX.qh_Skalierung;
-    document.querySelector(`.qhScaleLeftMin`).value = Y_Links_Min;
-    document.querySelector(`.qhScaleLeftMax`).value = Y_Links_Max;
-    document.querySelector(`.qhScaleLeftSteps`).value = Y_Links_Schrittweite;
-    const qhScaleLeft = document.querySelector(`.qhScaleLeft`);
-    const noOfAdditionalInputs = (Y_Links_Max - Y_Links_Min) / Y_Links_Schrittweite;
-    const stepsFraction = noOfAdditionalInputs % 1;
-    console.log(noOfAdditionalInputs, stepsFraction);
-    qhScaleLeft.style.gridTemplateRows = `${(stepsFraction) ? stepsFraction : 1}fr 1fr`;
-    for (let i = 2; i < noOfAdditionalInputs; i++) {
-        const input = document.createElement(`input`);
-        input.type = `text`;
-        input.value = i * Y_Links_Schrittweite;
-        input.disabled = true;
-        qhScaleLeft.insertBefore(input, qhScaleLeft.firstElementChild);
-        qhScaleLeft.style.gridTemplateRows += ` 1fr`;
-    }
+    const {qh_Skalierung} = qhScaleX;
+    
+    const scaleIds = [`Left`, `Right`];
+    const userSettingsScaleId = [`Links`, `Rechts`];
+    userSettingsScaleId.forEach((id, idx) => {
+        document.querySelector(`.qhScale${scaleIds.at(idx)}Min`).value = qh_Skalierung[`Y_${id}_Min`];
+        document.querySelector(`.qhScale${scaleIds.at(idx)}Max`).value = qh_Skalierung[`Y_${id}_Max`];
+        document.querySelector(`.qhScale${scaleIds.at(idx)}Steps`).value = qh_Skalierung[`Y_${id}_Schrittweite`];
+    
+
+        const scaleRange = qh_Skalierung[`Y_${id}_Max`] - qh_Skalierung[`Y_${id}_Min`];
+        const deltaSteps = qh_Skalierung[`Y_${id}_Schrittweite`] - qh_Skalierung[`Y_${id}_Min`];
+        const noOfSteps = scaleRange / deltaSteps;
+        const stepsFraction = (noOfSteps % 1 > 0 && noOfSteps % 1 < LOWER_SCALE_STEP_LIMIT_RATIO) ? (noOfSteps % 1) + 1 : (noOfSteps % 1); //if Step is too close too max...
+        //console.log(noOfSteps, stepsFraction);
+        const qhScaleLeft = document.querySelector(`.qhScale${scaleIds.at(idx)}`);
+        qhScaleLeft.querySelectorAll(`input[disabled]`).forEach(additionalInput => additionalInput.remove());
+        
+        qhScaleLeft.style.gridTemplateRows = `${(stepsFraction) ? stepsFraction : 1}fr 1fr`;
+        if (stepsFraction < 1) {
+            for (let i = 2; i < noOfSteps; i++) {
+                const input = document.createElement(`input`);
+                input.type = `text`;
+                input.value = `${qh_Skalierung[`Y_${id}_Min`] + i*deltaSteps}`.substring(0, 6);
+                input.disabled = true;
+                qhScaleLeft.insertBefore(input, qhScaleLeft.firstElementChild);
+                qhScaleLeft.style.gridTemplateRows += ` 1fr`;
+            }
+        }
+    });
 
     
     /*
@@ -305,25 +325,43 @@ function drawQhScale(qhUserSettings = undefined) {
     }
     //*/
 }
-function drawQhData(qhData = undefined) {
+function initQhData(qhData) {
     const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
-    if (qhData) { //init if parameter qhData is passed
-        qhTrackCanvas.qhData = qhData;
+    qhTrackCanvas.qhData = qhData;
+}
+
+function drawQhData(endDate = undefined) {
+    console.log(endDate);
+    const qhHeader = document.querySelector(`.qhHeader`);
+    if (endDate) {
+        qhHeader.endDate = new Date(endDate.getTime());
+        qhHeader.endDate.setHours(0,0,0,0);
     }
+    else if (!qhHeader.endDate) {
+        qhHeader.endDate = new Date(Date.now());
+        qhHeader.endDate.setHours(0,0,0,0);
+    }
+    console.log(qhHeader.endDate);
+
+    const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
     const ctx = qhTrackCanvas.getContext(`2d`);
     ctx.clearRect(0, 0, qhTrackCanvas.width, qhTrackCanvas.height);
     //////////////////////draw Tracks//////////////////////
     const period = document.querySelector(`.period`).value;
-    const endDate = new Date(2024,2,3);
-    const startDate = endDate;
-    if (period === `wochengang`) startDate.setDate(endDate.getDate() - 7);
-    if (period === `monatsgang`) startDate.setMonth(endDate.getMonth() - 1);
-    if (period === `jahresgang`) startDate.setFullYear(endDate.getFullYear() - 1);
-
-    const qhHeader = document.querySelector(`.qhHeader`);
-    qhHeader.innerText = endDate.toLocaleDateString();
+    //const endDate = new Date(2024,2,4);
+    const startDate = new Date(qhHeader.endDate.getTime());
+    if (period === `wochengang`) startDate.setDate(qhHeader.endDate.getDate() - 6);
+    if (period === `monatsgang`) {
+        startDate.setMonth(qhHeader.endDate.getMonth() - 1);
+        startDate.setDate(startDate.getDate() + 1);
+    }
+    if (period === `jahresgang`) {
+        startDate.setFullYear(qhHeader.endDate.getFullYear() - 1);
+        startDate.setDate(startDate.getDate() + 1);
+    }
+    qhHeader.innerText = (startDate.getTime() === qhHeader.endDate.getTime()) ? `${qhHeader.endDate.toLocaleDateString()}` : `${startDate.toLocaleDateString()} - ${qhHeader.endDate.toLocaleDateString()}`;
     
-    const relevantQhData = qhTrackCanvas.qhData.filter((el) => el.Datum === endDate.toLocaleDateString());
+    const relevantQhData = qhTrackCanvas.qhData.filter((el) => (el.date.getTime() >= startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
     /*
     const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
     if (isDauerlinie) {
@@ -338,18 +376,18 @@ function drawQhData(qhData = undefined) {
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
     //const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);
-    //console.log(trackColors);
+    //console.log(relevantQhData);
     qhTable.qh_Spuren.forEach(track => {
         ctx.strokeStyle = track.color;
-        ctx.lineWidth = 2;
+        ctx.lineWidth = (period === `jahresgang`) ? 1 : 2;
         ctx.beginPath();
         const scaleMin = (track.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
         const scaleMax = (track.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
         const scaleRange = scaleMax - scaleMin;
-        relevantQhData.forEach(record => {
-            const xVal = record.Index/96 * qhTrackCanvas.width;
+        relevantQhData.forEach((record, idx) => {
+            const xVal = idx/relevantQhData.length * qhTrackCanvas.width;
             const yVal = constrain(record.Values[track.index], scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
-            (record.Index !== 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
+            (idx) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
         });
         ctx.stroke();
     });
@@ -1925,6 +1963,62 @@ function DatenHolen() {
 }
 
 //////////////////////EventListeners//////////////////////
+function qhScaleInputEventHandler(ev) {
+    const {target} = ev;
+    const {className} = target;
+    
+    if (target.validity.valid) {
+        target.value = target.value.replace(`,`,`.`);
+
+        const scaleId = className.match(/(Left|Right)/).at(0);
+        const scaleMax = document.querySelector(`.qhScale${scaleId}Max`);
+        const scaleMin = document.querySelector(`.qhScale${scaleId}Min`);
+        if (!className.includes(`Max`))
+            scaleMax.value = Math.max(scaleMax.value, parseFloat(scaleMin.value) + 1);
+        if (!className.includes(`Min`))
+            scaleMin.value = Math.min(scaleMin.value, parseFloat(scaleMax.value) - 1);
+        const scaleRange = scaleMax.value - scaleMin.value;
+        const lowerStepsLimit = LOWER_SCALE_STEP_LIMIT_RATIO * scaleRange + parseFloat(scaleMin.value);
+        const upperStepsLimit = UPPER_SCALE_STEP_LIMIT_RATIO * scaleRange + parseFloat(scaleMin.value);
+        const scaleSteps = document.querySelector(`.qhScale${scaleId}Steps`);
+        scaleSteps.value = `${constrain(scaleSteps.value, lowerStepsLimit, upperStepsLimit)}`.substring(0, 6);
+
+        const qhUserSettings = document.querySelector(`.qhScaleX`).qh_Skalierung;
+        const userSettingsScaleId = (scaleId === `Left`) ? `Links` : `Rechts`;
+        qhUserSettings[`Y_${userSettingsScaleId}_Min`] = parseFloat(document.querySelector(`.qhScale${scaleId}Min`).value);
+        qhUserSettings[`Y_${userSettingsScaleId}_Max`] = parseFloat(document.querySelector(`.qhScale${scaleId}Max`).value);
+        qhUserSettings[`Y_${userSettingsScaleId}_Schrittweite`] = parseFloat(document.querySelector(`.qhScale${scaleId}Steps`).value);
+        drawQhScale();
+        if (!className.includes(`Steps`))
+            drawQhData();
+    }
+    else {
+        target.title = target.validity.toString();
+    }
+}
+
+function qhControlElementEventHandler(ev) {
+    const {target} = ev;
+    const {classList, value} = target;
+    console.log(value);
+    if (classList.contains(`qhDateControl`)) {
+        const endDate = document.querySelector(`.qhHeader`).endDate;
+        const direction = (value.includes(`-`)) ? -1 : 1;
+        if (value.includes(` Jahr`))
+            endDate.setFullYear(endDate.getFullYear() + direction);
+        if (value.includes(` Monat`))
+            endDate.setMonth(endDate.getMonth() + direction);
+        if (value.includes(` Woche`))
+            endDate.setDate(endDate.getDate() + direction * 7);
+        if (value.includes(` Tag`))
+            endDate.setDate(endDate.getDate() + direction);
+
+        drawQhData(endDate);
+    }
+
+
+}
+
 function simulateColorPickClick(target) {
     //reset TimerID
     window.timerColorPickClicks = undefined;

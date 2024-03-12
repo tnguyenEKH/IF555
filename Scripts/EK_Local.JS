@@ -46,7 +46,7 @@ ready(async () => {
     oskBtn.addEventListener(`mousedown`, oskBtnEventHandler);
     oskBtn.addEventListener(`click`, oskBtnEventHandler);
   });
-  document.querySelectorAll(`input`).forEach(inp => {
+  document.querySelectorAll(`input[type='text'], input[type='number']`).forEach(inp => {
     inp.addEventListener(`focus`, inputFocusOskEventHandler);
     inp.addEventListener(`blur`, inputFocusOskEventHandler);
   });  
@@ -1257,14 +1257,34 @@ function keydownEventHandler(ev) {
 }
 
 function oskBtnEventHandler(ev) {
-  if (ev.type === `mousedown`)
+  const {type, target} = ev;
+  if (type === `mousedown`)
     ev.preventDefault();
-  if (ev.type === `click`) {
-    const focusedInput = document.activeElement;
-    const {value, selectionStart, selectionEnd} = focusedInput;
-    focusedInput.value = `${value.substring(0, selectionStart)}${ev.target.value}${value.substring(selectionEnd)}`;
-    focusedInput.selectionStart = selectionStart + 1;
-    focusedInput.selectionEnd = selectionStart + 1;
+  if (type === `click`) {
+    const {activeElement} = document;
+    const {value, selectionStart, selectionEnd} = activeElement;
+    switch (target.value) {
+      case `Escape`:
+      case `Enter`:
+        activeElement.blur();
+        break;
+      case `Delete`:
+        const selEnd = (selectionStart === selectionEnd) ? selectionEnd + 1 : selectionEnd;
+        activeElement.value = `${value.substring(0, selectionStart)}${value.substring(selEnd)}`;
+        activeElement.selectionStart = selectionStart;
+        activeElement.selectionEnd = selectionStart;
+        break;
+      case `Backspace`:
+        const selStart = (selectionStart === selectionEnd) ? selectionStart - 1 : selectionStart;
+        activeElement.value = `${value.substring(0, selStart)}${value.substring(selectionEnd)}`;
+        activeElement.selectionStart = Math.max(selectionStart - 1, 0);
+        activeElement.selectionEnd = Math.max(selectionStart - 1, 0);
+        break;
+      default:
+        activeElement.value = `${value.substring(0, selectionStart)}${target.value}${value.substring(selectionEnd)}`;
+        activeElement.selectionStart = selectionStart + 1;
+        activeElement.selectionEnd = selectionStart + 1;
+    }
   }
 }
 function inputFocusOskEventHandler(ev) {

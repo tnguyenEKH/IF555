@@ -38,6 +38,10 @@ body .cloaked {
 body .hidden {
 	visibility: hidden;
 }
+input:focus,
+select:focus {
+	outline: 2px solid var(--colorEkhCyan);
+}
 
 .mainContainer {
 	overflow: hidden;

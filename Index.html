@@ -32,6 +32,14 @@
 			<input type="button" value="8">
 			<input type="button" value="9">
 			<input type="button" value="0">
+
+			<input type="button" value="Escape">
+			<input type="button" value="Delete">
+			<input type="button" value=".">
+			<input type="button" value=",">
+			<input type="button" value="%">
+			<input type="button" value="Enter">
+			<input type="button" value="Backspace">
 		</div>
 
 		<div class="header">
@@ -215,16 +223,18 @@
 			<!--<canvas class="qhCanvas qhScaleCanvas"></canvas>-->
 			<h1 class="qhHeader"></h1>
 			<div class="qhScale qhScaleLeftHeader">
-				<input class="inpQhScale qhScaleLeftMax" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleLeftMax" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
 			</div>
 			<div class="qhScale qhScaleLeft">
-				<input class="inpQhScale qhScaleLeftSteps" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
-				<input class="inpQhScale qhScaleLeftMin" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleLeftSteps" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleLeftMin" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+			</div>
+			<div class="qhScale qhScaleRightHeader">
+				<input class="qhScaleRightMax" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
 			</div>
 			<div class="qhScale qhScaleRight">
-				<input class="qhScaleRightMax" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
-				<input class="qhScaleRightSteps" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
-				<input class="qhScaleRightMin" type="text"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleRightSteps" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
+				<input class="qhScaleRightMin" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
 			</div>
 			<div class="qhScale qhScaleX">
 				<span>00:00</span>
@@ -233,7 +243,7 @@
 			<details class="qhControls">
 				<summary>Controls</summary>
 				<div class="qhControlsContainer">
-					<select class="period">
+					<select class="qhDateControl period">
 						<option value="avgTagesgang" disabled>Ø Tagesgang</option>
 						<option value="jahresgang">Jahresgang</option>
 						<option value="monatsgang">Monatsgang</option>
@@ -246,14 +256,14 @@
 						<span class="lblcbSpan">Dauerlinie</span>
 					</label>
 
-					<input type="button" value="- Jahr">
-					<input type="button" value="- Monat">
-					<input type="button" value="- Woche">
-					<input type="button" value="- Tag">
-					<input type="button" value="+ Tag">
-					<input type="button" value="+ Woche">
-					<input type="button" value="+ Monat">
-					<input type="button" value="+ Jahr">
+					<input type="button" class="qhDateControl" value="- Jahr">
+					<input type="button" class="qhDateControl" value="- Monat">
+					<input type="button" class="qhDateControl" value="- Woche">
+					<input type="button" class="qhDateControl" value="- Tag">
+					<input type="button" class="qhDateControl" value="+ Tag">
+					<input type="button" class="qhDateControl" value="+ Woche">
+					<input type="button" class="qhDateControl" value="+ Monat">
+					<input type="button" class="qhDateControl" value="+ Jahr">
 					
 					<input type="button" class="btnRefreshQhData" value="Datenupdate">
 					<input type="button" class="btnSaveUserSettings" value="Einstellungen speichern">
