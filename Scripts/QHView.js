@@ -331,7 +331,7 @@ function initQhData(qhData) {
 }
 
 function drawQhData(endDate = undefined) {
-    console.log(endDate);
+    //console.log(endDate);
     const qhHeader = document.querySelector(`.qhHeader`);
     if (endDate) {
         qhHeader.endDate = new Date(endDate.getTime());
@@ -341,7 +341,7 @@ function drawQhData(endDate = undefined) {
         qhHeader.endDate = new Date(Date.now());
         qhHeader.endDate.setHours(0,0,0,0);
     }
-    console.log(qhHeader.endDate);
+    //console.log(qhHeader.endDate);
 
     const qhTrackCanvas = document.querySelector(`.qhTrackCanvas`);
     const ctx = qhTrackCanvas.getContext(`2d`);
@@ -371,23 +371,28 @@ function drawQhData(endDate = undefined) {
         
     }
     */
+    const forceQhData = document.querySelector(`.cbForceQH`).checked;
+    const avgIdxCount = (forceQhData | period === `wochengang`) ? 1 : 8; //2h-Mittelwert == 8*15min
     const qhScaleX = document.querySelector(`.qhScaleX`);
     const {qh_Skalierung} = qhScaleX;
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
-    //const trackColors = Array.from(qhTable.querySelectorAll(`input[type='color']`), el => el.value);
-    //console.log(relevantQhData);
     qhTable.qh_Spuren.forEach(track => {
         ctx.strokeStyle = track.color;
-        ctx.lineWidth = (period === `jahresgang`) ? 1 : 2;
+        ctx.lineWidth = 2;//(period === `jahresgang`) ? 1 : 2;
         ctx.beginPath();
         const scaleMin = (track.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
         const scaleMax = (track.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
         const scaleRange = scaleMax - scaleMin;
+        let yVal = 0;
         relevantQhData.forEach((record, idx) => {
-            const xVal = idx/relevantQhData.length * qhTrackCanvas.width;
-            const yVal = constrain(record.Values[track.index], scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
-            (idx) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
+            yVal += record.Values[track.index];
+            if ((idx+1) % avgIdxCount === 0) {
+                yVal = constrain(yVal/avgIdxCount, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
+                const xVal = (idx+1)/relevantQhData.length * qhTrackCanvas.width;
+                (idx / avgIdxCount >= 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
+                yVal = 0;
+            }
         });
         ctx.stroke();
     });
