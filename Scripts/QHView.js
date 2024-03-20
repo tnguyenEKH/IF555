@@ -83,6 +83,9 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //window.addEventListener(`resize`, resizeQhCanvases);
     document.querySelectorAll(`.qhScale > input`).forEach(input => { input.addEventListener(`blur`, qhScaleInputEventHandler); });
     document.querySelectorAll(`.qhControlsContainer > *`).forEach(el => { el.addEventListener(`click`, qhControlElementEventHandler); });
+    document.querySelector(`.qhAuxCanvas`).addEventListener(`mousemove`, qhCanvasMeasureEventHandler);
+    document.querySelector(`.qhAuxCanvas`).addEventListener(`pointermove`, qhCanvasMeasureEventHandler);
+
     //document.querySelector(`.btnSaveUserSettings`).addEventListener(`click`, saveUserSettings)
     
 }
@@ -715,6 +718,32 @@ function qhControlElementEventHandler(ev) {
     }
     else if (type === `checkbox`) {
         drawQhData();
+    }
+}
+
+function qhCanvasMeasureEventHandler(ev) {
+    //console.log(ev);
+    const {target, type, layerX, layerY} = ev;
+    const {offsetWidth, offsetHeight} = target;
+
+    const qhScaleX = document.querySelector(`.qhScaleX`);
+    const {qh_Skalierung} = qhScaleX;
+    const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
+    const leftScaleRange = (Y_Links_Max - Y_Links_Min);
+    const rightScaleRange = (Y_Rechts_Max - Y_Rechts_Min);
+    if (type.includes(`move`)) {
+        const xRel = layerX/offsetWidth;
+        const yRel = layerY/offsetHeight;
+        target.title = `${(100 * xRel).toFixed(2)}, ${(Y_Links_Min + leftScaleRange * (1 - yRel)).toFixed(2)}
+${(100 * xRel).toFixed(2)}, ${(Y_Rechts_Min + rightScaleRange * (1 - yRel)).toFixed(2)}`;
+
+        const ctx = target.getContext(`2d`);
+        console.log(target, layerX / target.width, layerY / target.height)
+        ctx.clearRect(0, 0, target.width, target.height);
+        ctx.beginPath();
+        ctx.moveTo(xRel * target.width, target.height);
+        ctx.lineTo(xRel * target.width, yRel * target.height);
+        ctx.stroke();
     }
 }
 

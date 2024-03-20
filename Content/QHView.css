@@ -59,21 +59,14 @@ summary {
 	grid-area: qhScaleX;
 }
 .qhCanvas {
-	/*
-	grid-row: 1;
-	grid-column: 1;
-	align-self: center;
-	justify-self: center;
-	width: 97%;
-	*/
-}
-.qhTrackCanvas {
 	grid-area: qhCanvas;
 	width: 100%;
 	/*
 	width: 87%;
 	height: 74%;
 	*/
+}
+.qhTrackCanvas {
 	transform: scale(1, -1);
 	border-top: 3px solid black; /*top is actually bottom => see inversion by scale(1, -1)*/
 	border-left: 3px solid var(--colorEkhMagenta);
@@ -81,6 +74,9 @@ summary {
 	/*
 	background-color: var(--colorEkhLightestgray);
 	*/
+}
+.qhAuxCanvas {
+	z-index: 1;
 }
 .qhControls {
 	/*
