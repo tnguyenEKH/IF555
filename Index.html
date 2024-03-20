@@ -240,7 +240,7 @@
 				<span>00:00</span>
 			</div>
 			<canvas class="qhCanvas qhTrackCanvas"></canvas>
-			<details class="qhControls">
+			<details class="qhControls" open>
 				<summary>Controls</summary>
 				<div class="qhControlsContainer">
 					<select class="qhDateControl period">
@@ -250,11 +250,13 @@
 						<option value="wochengang">Wochengang</option>
 						<option value="tagesgang" selected>Tagesgang</option>
 					</select>
-					<label class="lblcb cbDauerlinie">
+					<input type="checkbox" class="cbDauerlinie" id="cbDauerlinie" value="isDauerlinie">
+					<label for="cbDauerlinie">Dauerlinie</label>
+					<!--<label class="lblcb cbDauerlinie">
 						<input type="checkbox" class="QHcheckbox">
 						<span class="checkmark"></span>
 						<span class="lblcbSpan">Dauerlinie</span>
-					</label>
+					</label>-->
 
 					<input type="button" class="qhDateControl" value="- Jahr">
 					<input type="button" class="qhDateControl" value="- Monat">
@@ -267,11 +269,14 @@
 					
 					<input type="button" class="btnRefreshQhData" value="Datenupdate">
 					<input type="button" class="btnSaveUserSettings" value="Einstellungen speichern">
-					<label class="lblcb cbForceQH">
+					<input type="checkbox" class="cbForceQh" id="cbForceQh" value="forceQh">
+					<label for="cbForceQh">immer ¼Stdn Daten anzeigen</label>
+
+					<!--<label class="lblcb cbForceQH">
 						<input type="checkbox" class="ekhCheckbox">
 						<span class="checkmark"></span>
 						<span class="lblcbSpan">immer 1/4 Daten anzeigen</span>
-					</label>
+					</label>-->
 				</div>
 			</details>
 			

@@ -41,7 +41,8 @@ summary {
 .qhScaleLeftHeader {
 	grid-area: qhScaleLeftHeader;
 }
-.qhScaleLeft > input {
+.qhScaleLeft > input,
+.qhScaleLeftHeader > input {
 	border-bottom: 3px solid var(--colorEkhMagenta);
 }
 .qhScaleRight {
@@ -50,7 +51,8 @@ summary {
 .qhScaleRightHeader {
 	grid-area: qhScaleRightHeader;
 }
-.qhScaleRight > input {
+.qhScaleRight > input,
+.qhScaleRightHeader > input {
 	border-bottom: 3px solid var(--colorEkhCyan);
 }
 .qhScaleX {
@@ -189,7 +191,7 @@ summary {
 	/* Checkmark to be shown in checkbox */
 	/* It is not be shown when not checked */
 	.checkmark:after {
-		content: "\2713";
+		content: "✓";
 		display: none;
 		position: absolute;
 		color: white;
