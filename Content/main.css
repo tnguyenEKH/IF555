@@ -38,6 +38,9 @@ body .cloaked {
 body .hidden {
 	visibility: hidden;
 }
+body .strikeThrough {
+	text-decoration: line-through;
+}
 input:focus,
 select:focus {
 	outline: 2px solid var(--colorEkhCyan);

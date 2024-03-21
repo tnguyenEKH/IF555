@@ -221,7 +221,10 @@
 		
 		<div class="tabContent tab3Content tabContentQh" id="datenauswertungDisplay">
 			<!--<canvas class="qhCanvas qhScaleCanvas"></canvas>-->
-			<h1 class="qhHeader"></h1>
+			<div class="qhHeader">
+				<h1></h1>
+				<h4></h4>
+			</div>
 			<div class="qhScale qhScaleLeftHeader">
 				<input class="qhScaleLeftMax" type="text" required maxlength="6" pattern="-?\d*(\.|,)?\d+"> <!--actually type=number but issues occur with Chromium using input.selectionStart for oskInputHandling-->
 			</div>
@@ -271,7 +274,9 @@
 					<input type="button" class="btnRefreshQhData" value="Datenupdate">
 					<input type="button" class="btnSaveUserSettings" value="Einstellungen speichern">
 					<input type="checkbox" class="cbForceQh" id="cbForceQh" value="forceQh">
-					<label for="cbForceQh">immer ¼Stdn Daten anzeigen</label>
+					<label for="cbForceQh">1/4-Stdn Datenpakete</label>
+					<input type="checkbox" class="cbMeasureQh" id="cbMeasureQh" value="measureQh">
+					<label for="cbMeasureQh">Messmodus</label>
 
 					<!--<label class="lblcb cbForceQH">
 						<input type="checkbox" class="ekhCheckbox">
@@ -283,7 +288,14 @@
 			
 			<details class="qhTableContainer">
 				<summary>DataTracks</summary>
-				<div class="qhTable"></div>
+				<div class="qhTable">
+					<span></span>
+					<span class="spanSkala">Skala:</span>
+					<span class="spanL">L</span>
+					<span class="spanR">R</span>
+					<span class="spanSum">Σ</span>
+					<span class="spanAvg">&#8709</span>
+				</div>
 			</details>
 		</div>
 

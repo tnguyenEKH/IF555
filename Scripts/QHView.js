@@ -4,6 +4,10 @@ const MAX_STEPS_ON_Y_SCALES = 20;
 const LOWER_SCALE_STEP_LIMIT_RATIO = 1 / MAX_STEPS_ON_Y_SCALES;
 const UPPER_SCALE_STEP_LIMIT_RATIO = 1 - LOWER_SCALE_STEP_LIMIT_RATIO;
 
+//////////////////////Colors//////////////////////
+const EKH_CYAN = `hsl(194, 71%, 42%)`;
+const EKH_MAGENTA = `hsl(334, 74%, 44%)`;
+
 
 async function initQh(qhHeaderData, qhDataRaw) {
     //////////////////////window.qhData preparation//////////////////////
@@ -51,7 +55,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //console.log(totalRecords);
     //////////////////////dataPreparation by Tracks//////////////////////
     const qhDataByTracks = [];
-    for(let i = 0; i < qhDataTrackTotalCount; i++) {
+    for(let i = 0; i < qhDataTrackCount; i++) {
         const trackData = [];
         qhDataByTracks.push(trackData);
     }
@@ -61,7 +65,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
         const date   = new Date("20"+ rawRecord[0].toString(), (rawRecord[1] -1).toString(), rawRecord[2].toString()); //month index from 0-11
         date.setSeconds(((rawRecord[3] - 1) * 15 + 7.5) * 60);
         
-        rawRecord.slice(timestampLength, recordLength).forEach((value, idx) => {
+        rawRecord.slice(timestampLength, qhDataTrackCount).forEach((value, idx) => {
             const entry = {};
             entry.date = date;
             entry.value = value;
@@ -83,8 +87,8 @@ async function initQh(qhHeaderData, qhDataRaw) {
     //window.addEventListener(`resize`, resizeQhCanvases);
     document.querySelectorAll(`.qhScale > input`).forEach(input => { input.addEventListener(`blur`, qhScaleInputEventHandler); });
     document.querySelectorAll(`.qhControlsContainer > *`).forEach(el => { el.addEventListener(`click`, qhControlElementEventHandler); });
-    document.querySelector(`.qhAuxCanvas`).addEventListener(`mousemove`, qhCanvasMeasureEventHandler);
-    document.querySelector(`.qhAuxCanvas`).addEventListener(`pointermove`, qhCanvasMeasureEventHandler);
+    //document.querySelector(`.qhAuxCanvas`).addEventListener(`mousemove`, qhCanvasMeasureEventHandler);
+    //document.querySelector(`.qhAuxCanvas`).addEventListener(`pointermove`, qhCanvasMeasureEventHandler);
 
     //document.querySelector(`.btnSaveUserSettings`).addEventListener(`click`, saveUserSettings)
     
@@ -108,8 +112,7 @@ function drawQhScale(qhUserSettings = undefined) {
     const {qh_Skalierung} = qhScaleX;
     
     const scaleIds = [`Left`, `Right`];
-    const userSettingsScaleId = [`Links`, `Rechts`];
-    userSettingsScaleId.forEach((id, idx) => {
+    [`Links`, `Rechts`].forEach((id, idx) => {
         document.querySelector(`.qhScale${scaleIds.at(idx)}Min`).value = qh_Skalierung[`Y_${id}_Min`];
         document.querySelector(`.qhScale${scaleIds.at(idx)}Max`).value = qh_Skalierung[`Y_${id}_Max`];
         document.querySelector(`.qhScale${scaleIds.at(idx)}Steps`).value = qh_Skalierung[`Y_${id}_Schrittweite`];
@@ -163,17 +166,17 @@ function drawQhData(endDate = undefined) {
     const period = document.querySelector(`.period`).value;
     //const endDate = new Date(2024,2,4);
     const startDate = new Date(qhHeader.endDate.getTime());
-    startDate.setDate(qhHeader.endDate.getDate() - 1);
-    if (period === `wochengang`) startDate.setDate(qhHeader.endDate.getDate() - 6);
+    startDate.setDate(startDate.getDate() - 1);
+    if (period === `wochengang`)
+        startDate.setDate(startDate.getDate() - 6);
     if (period === `monatsgang`) {
-        startDate.setMonth(qhHeader.endDate.getMonth() - 1);
-        startDate.setDate(startDate.getDate() + 1);
+        startDate.setMonth(startDate.getMonth() - 1);
+        //startDate.setDate(startDate.getDate() + 1);
     }
     if (period === `jahresgang`) {
-        startDate.setFullYear(qhHeader.endDate.getFullYear() - 1);
-        startDate.setDate(startDate.getDate() + 1);
+        startDate.setFullYear(startDate.getFullYear() - 1);
+        //startDate.setDate(startDate.getDate() + 1);
     }
-    qhHeader.innerText = (qhHeader.endDate.getTime() - startDate.getTime() <= ONE_DAY_IN_MS) ? `${startDate.toLocaleDateString()}` : `${startDate.toLocaleDateString()} - ${qhHeader.endDate.toLocaleDateString()}`;
     
     const forceQhData = document.querySelector(`.cbForceQh`).checked;
     const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
@@ -183,27 +186,50 @@ function drawQhData(endDate = undefined) {
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
     const periodValueCount = (qhHeader.endDate.getTime() - startDate.getTime()) / 1000 / 60 / 15;
+    qhHeader.querySelector(`h1`).innerText = `${startDate.toLocaleDateString()} ${(qhHeader.endDate.getTime() - startDate.getTime() > ONE_DAY_IN_MS) ? `- ${qhHeader.endDate.toLocaleDateString()}` : ''}`;
+    qhHeader.querySelector(`h4`).innerText = `(${(avgIdxCount === 1) ? '1/4' : '2'}-Stdn Datenpakete)`;
+
+    //const relevantQhDataByTracks = qhTrackCanvas.qhDataByTracks[track.index].filter(el => (el.date.getTime() >= startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
     
-    qhTable.qh_Spuren.forEach(track => {
-        relevantQhDataByTracks = qhTrackCanvas.qhDataByTracks[track.index].filter(el => (el.date.getTime() >= startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
-        (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => b.date.getTime() - a.date.getTime());        
-        ctx.strokeStyle = track.color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        const scaleMin = (track.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
-        const scaleMax = (track.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
-        const scaleRange = scaleMax - scaleMin;
+    //qhTable.qh_Spuren.forEach(track => {
+    qhTrackCanvas.qhDataByTracks.forEach((track, trackIdx) => {
+        //console.log(track);
+        //const relevantQhDataByTracks = qhTrackCanvas.qhDataByTracks[track.index].filter(el => (el.date.getTime() >= startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
+        const relevantQhDataByTracks = track.filter(el => (el.date.getTime() >= startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
+        const currentTrack = qhTable.qh_Spuren.find(qhSpur => qhSpur.index === trackIdx);
+        //console.log(qhTable.qh_Spuren.index === trackIdx, qhTable.qh_Spuren, trackIdx);
+        let scaleMin;
+        let scaleMax;
+        let scaleRange;
+        if (currentTrack) {
+            (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => b.date.getTime() - a.date.getTime());        
+            ctx.strokeStyle = currentTrack.color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            scaleMin = (currentTrack.bSkala_Links) ? Y_Links_Min : Y_Rechts_Min;
+            scaleMax = (currentTrack.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
+            scaleRange = scaleMax - scaleMin;
+        }
         let yVal = 0;
+        let sum = 0;
         relevantQhDataByTracks.forEach((dataset, idx) => {
-            yVal += dataset.value;
-            if ((idx+1) % avgIdxCount === 0) {
-                yVal = constrain(yVal/avgIdxCount, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
-                const xVal = (idx + .5)/periodValueCount * qhTrackCanvas.width;
-                (idx / avgIdxCount >= 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
-                yVal = 0;
+            sum += dataset.value;
+            if (currentTrack) {
+                yVal += dataset.value;
+                if ((idx+1) % avgIdxCount === 0) {
+                    yVal = constrain(yVal/avgIdxCount, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
+                    const xVal = (idx + .5)/periodValueCount * qhTrackCanvas.width;
+                    (idx / avgIdxCount >= 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
+                    yVal = 0;
+                }
             }
         });
-        ctx.stroke();
+        [`Sum`, `Avg`].forEach(type => {
+            qhTable.querySelector(`.span${type}${trackIdx}`).innerText = (type === `Sum`) ? sum.toFixed(2) : (sum / relevantQhDataByTracks.length).toFixed(2).replace(`NaN`,`-`);
+        });
+
+        if (currentTrack)
+            ctx.stroke();
     });
 }
 
@@ -214,12 +240,12 @@ async function initQhTable(qhHeader, qhUserSettings) {
     qhHeader.forEach(el => {
         const foundItem = qhTable.qh_Spuren.find(spur => spur.index === el.Index);        
         const inpColor = document.createElement(`input`);
+        inpColor.id = `inpColor${el.Index}`;
         inpColor.classList.add(`inpColor${el.Index}`);
-        inpColor.idx = el.Index;
+        inpColor.trackIdx = el.Index;
         inpColor.type = `color`;
         inpColor.value = (foundItem) ? foundItem.color : `#EFEFEF`;
         inpColor.lastValue = (foundItem) ? undefined : hslToHex(30 * el.Index, 100, 75 - 25*Math.floor(el.Index/12));
-        inpColor.title = `Doppelclick zum Deaktivieren`;
         //inpColor.lastValue = inpColor.value;
         inpColor.addEventListener(`change`, (ev) => colorPickChangeHandler(ev.target));
         inpColor.addEventListener(`dblclick`, (ev) => colorPickDblclickHandler(ev.target));
@@ -234,24 +260,30 @@ async function initQhTable(qhHeader, qhUserSettings) {
         });
         qhTable.appendChild(inpColor);
 
-        const span = document.createElement(`span`);
-        span.innerText = `${el.Bezeichnung.trim()} [${el.Einheit}]`;
-        qhTable.appendChild(span);
+        const lbl = document.createElement(`label`);
+        lbl.for = `inpColor${el.Index}`;
+        lbl.id = `lbl${el.Index}`;
+        lbl.classList.toggle(`strikeThrough`, !foundItem);
+        lbl.trackIdx = el.Index;
+        lbl.innerText = `${el.Bezeichnung.trim()} [${el.Einheit}]`;
+        lbl.title = `Klicken zum ${(foundItem) ? 'Dea' : 'A'}ktivieren`;
+        lbl.addEventListener(`click`, (ev) => colorPickDblclickHandler(ev.target));
+        qhTable.appendChild(lbl);
         const useLeftScale = (foundItem) ? foundItem.bSkala_Links : true;
-        for (let j = 0; j < 2; j++) {
+        [`_L`, `_R`].forEach(side => {
             const radio = document.createElement(`input`);
             radio.type = `radio`;
             radio.name = `qhScale${el.Index}`;
-            radio.checked = (j) ? !useLeftScale : useLeftScale; //(!!j)^(!!useLeftScale); //XOR-Logic; !! is to convert to bool
-            radio.classList.add(`${radio.name}${(j) ? `_R` : `_L`}`);
+            radio.checked = (side === `_L`) ? useLeftScale : !useLeftScale; //(!!j)^(!!useLeftScale); //XOR-Logic; !! is to convert to bool
+            radio.classList.add(`${radio.name}${side}`);
             radio.addEventListener(`change`, (ev) => {
                 const {target} = ev;
                 const targetIdx = parseInt(target.className.match(/\d+/).toString());
                 const qhTable = document.querySelector(`.qhTable`);
                 const currentColor = Array.from(qhTable.querySelectorAll(`input[type='color']`)).find(inpColor => inpColor.idx === targetIdx).value;  
                 if (currentColor !== `#efefef`) {
-                    const useLeftScale = !!target.className.match(/(_L)/);  // !! is to convert to bool
-                    console.log(useLeftScale);
+                    const useLeftScale = (side === `_L`);  // !! is to convert to bool
+                    //console.log(useLeftScale);
                     const qh_SpurenEntry = qhTable.qh_Spuren.find(qh_Spur => qh_Spur.index === targetIdx);
                     if (qh_SpurenEntry) {
                         qh_SpurenEntry.bSkala_Links = useLeftScale;
@@ -269,7 +301,13 @@ async function initQhTable(qhHeader, qhUserSettings) {
                 drawQhData();
             });
             qhTable.appendChild(radio);
-        }
+        });
+        [`Sum`, `Avg`].forEach(type => {
+            const span = document.createElement(`span`);
+            span.classList.add(`span${type}${el.Index}`);
+            span.innerText = `-`;
+            qhTable.appendChild(span);
+        });
     });
 }
 
@@ -716,6 +754,19 @@ function qhControlElementEventHandler(ev) {
 
         drawQhData(endDate);
     }
+    else if (classList.contains(`cbMeasureQh`)) {
+        const measureMode = target.checked;
+        const qhAuxCanvas = document.querySelector(`.qhAuxCanvas`);
+        if (measureMode) {
+            qhAuxCanvas.addEventListener(`mousemove`, qhCanvasMeasureEventHandler);
+            qhAuxCanvas.addEventListener(`pointermove`, qhCanvasMeasureEventHandler);
+        }
+        else {
+            qhAuxCanvas.getContext(`2d`).clearRect(0, 0, qhAuxCanvas.width, qhAuxCanvas.height);
+            qhAuxCanvas.removeEventListener(`mousemove`, qhCanvasMeasureEventHandler);
+            qhAuxCanvas.removeEventListener(`pointermove`, qhCanvasMeasureEventHandler);
+        }
+    }
     else if (type === `checkbox`) {
         drawQhData();
     }
@@ -741,8 +792,36 @@ ${(100 * xRel).toFixed(2)}, ${(Y_Rechts_Min + rightScaleRange * (1 - yRel)).toFi
         console.log(target, layerX / target.width, layerY / target.height)
         ctx.clearRect(0, 0, target.width, target.height);
         ctx.beginPath();
+        ctx.strokeStyle = `black`;
+        ctx.fillStyle = `black`;
         ctx.moveTo(xRel * target.width, target.height);
         ctx.lineTo(xRel * target.width, yRel * target.height);
+        ctx.font = `1rem VAGrounded`;
+        ctx.textBaseline = `bottom`;
+        ctx.textAlign = (xRel > .5) ? `right` : `left`;
+        ctx.fillText(` ${xRel.toFixed(2)} `, xRel * target.width, target.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = EKH_MAGENTA;
+        ctx.fillStyle = EKH_MAGENTA;
+        ctx.moveTo(0, yRel * target.height);
+        ctx.lineTo(xRel * target.width, yRel * target.height);
+        ctx.font = `1rem VAGrounded`;
+        ctx.textBaseline = (yRel > .5) ? `bottom` : `top`;
+        ctx.textAlign = `left`;
+        ctx.fillText(` ${(Y_Links_Min + leftScaleRange * (1 - yRel)).toFixed(2)} `, 0, yRel * target.height);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.strokeStyle = EKH_CYAN;
+        ctx.fillStyle = EKH_CYAN;
+        ctx.moveTo(target.width + 1, yRel * target.height);
+        ctx.lineTo(xRel * target.width, yRel * target.height);
+        ctx.font = `1rem VAGrounded`;
+        ctx.textBaseline = (yRel > .5) ? `bottom` : `top`;
+        ctx.textAlign = `right`;
+        ctx.fillText(` ${(Y_Links_Min + rightScaleRange * (1 - yRel)).toFixed(2)} `, target.width, yRel * target.height);
         ctx.stroke();
     }
 }
@@ -785,17 +864,21 @@ function colorPickDblclickHandler(target) {
     window.timerColorPickClicks = undefined;
     //ev.target.value = `#EFEFEF`;
     //console.log(`dblClick`);
+    const lbl = document.querySelector(`#lbl${target.trackIdx}`);
+    lbl.classList.toggle(`strikeThrough`);
+    
+    const inpColor = document.querySelector(`#inpColor${target.trackIdx}`);
+    const {value, lastValue} = inpColor;
 
-    const {lastValue, value} = target;
     if (lastValue) {
-        target.value = lastValue;
-        target.lastValue = undefined;
+        inpColor.value = lastValue;
+        inpColor.lastValue = undefined;
     }
     else {
-        target.lastValue = value;
-        target.value = `#EFEFEF`;
+        inpColor.lastValue = value;
+        inpColor.value = `#EFEFEF`;
     }
-    colorPickChangeHandler(target);
+    colorPickChangeHandler(inpColor);
     //target.lastValue = target.value;
     //target.toggleAttribute(`disabled`);
     

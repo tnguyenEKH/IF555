@@ -65,18 +65,19 @@ summary {
 	width: 87%;
 	height: 74%;
 	*/
-}
-.qhTrackCanvas {
-	transform: scale(1, -1);
-	border-top: 3px solid black; /*top is actually bottom => see inversion by scale(1, -1)*/
 	border-left: 3px solid var(--colorEkhMagenta);
 	border-right: 3px solid var(--colorEkhCyan);
+}
+.qhTrackCanvas {
+	border-top: 3px solid black; /*top is actually bottom => see inversion by scale(1, -1)*/
+	transform: scale(1, -1);
 	/*
 	background-color: var(--colorEkhLightestgray);
 	*/
 }
 .qhAuxCanvas {
-	z-index: 1;
+	transform: scale(1, 1); /*transform() seems to influence the rendering order => needed here to keep AuxCanvas in front of TrackCanvas*/
+	border-bottom: 3px solid black;
 }
 .qhControls {
 	/*
@@ -117,11 +118,24 @@ summary {
 }
 .qhTable {
 	display: grid;
-	grid-template-columns: min-content auto min-content min-content;
+	grid-template-columns: min-content auto min-content min-content min-content min-content;
 	align-items: center;
 }
+.qhTable > label,
 .qhTable > span {
 	white-space: nowrap;
+}
+.qhTable > span {
+	text-align: center;
+}
+.qhTable > .spanSkala {
+	text-align: end;
+}
+.qhTable > .spanL {
+	color: var(--colorEkhMagenta);
+}
+.qhTable > .spanR {
+	color: var(--colorEkhCyan);
 }
 
 
