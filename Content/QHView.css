@@ -18,20 +18,40 @@ summary {
 	grid-area: qhHeader;
 	text-align: center;
 }
-.qhScale > input {
-	width: 6ch;
-	margin-left: 4px;
-	border: none;
-}
 .qhScale {
 	display: grid;
 	align-items: end;
 }
-.qhScaleLeftHeader > input,
-.qhScaleRightHeader > input {
+.qhScale > input {
+	border: none;
+	width: 6ch;
+}
+.qhScale > input.width2ch {
+	width: 2ch;
+}
+.qhScale > input.width4ch {
+	width: 4ch;
+}
+.qhScale > input.width6ch {
+	width: 6ch;
+}
+.qhScale > input.width11ch {
+	width: 11ch;
+}
+.qhScaleX {
+	grid-area: qhScaleX;
+	grid-auto-flow: column;
+}
+.qhScaleX > input {
+	border-left: 3px solid black;
+}
+.qhScaleY > input {
+	margin-left: 4px;
+}
+.qhScaleYHeader > input {
 	margin-bottom: -3px;
 }
-.qhScale > input:invalid {
+.qhScaleY > input:invalid {
 	outline: 1px solid var(--colorEkhMagenta);
 	background-color: var(--colorEkhCyan);
 }
@@ -54,9 +74,6 @@ summary {
 .qhScaleRight > input,
 .qhScaleRightHeader > input {
 	border-bottom: 3px solid var(--colorEkhCyan);
-}
-.qhScaleX {
-	grid-area: qhScaleX;
 }
 .qhCanvas {
 	grid-area: qhCanvas;
