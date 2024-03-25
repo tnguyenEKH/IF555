@@ -156,9 +156,9 @@ function drawQhScaleX() {
         for (let i = 0; i < noOfStepsX; i++) {
             const input = document.createElement(`input`);
             input.type = `text`;
-            input.className = `width6ch`;
             input.value = `${(i*4).toString().padStart(2, `0`)}:00`;
             input.disabled = true;
+            input.style.width = `${input.value.length + .5}ch`;
             inputArray.push(input);
         }
     }
@@ -179,9 +179,9 @@ function drawQhScaleX() {
             //console.log(currentDate);
             const input = document.createElement(`input`);
             input.type = `text`;
-            input.className = (noOfDays <= 7) ? `width11ch` : (noOfDays > 31) ? `width4ch` : `width2ch`;
-            input.value = currentDate.toLocaleString(`de-DE`, format)
+            input.value = currentDate.toLocaleString(`de-DE`, format).replaceAll(`,`,``).replace(`.`,``);
             input.disabled = true;
+            input.style.width = `${input.value.length + .5}ch`;
             inputArray.push(input);
         }
     }

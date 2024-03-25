@@ -26,18 +26,6 @@ summary {
 	border: none;
 	width: 6ch;
 }
-.qhScale > input.width2ch {
-	width: 2ch;
-}
-.qhScale > input.width4ch {
-	width: 4ch;
-}
-.qhScale > input.width6ch {
-	width: 6ch;
-}
-.qhScale > input.width11ch {
-	width: 11ch;
-}
 .qhScaleX {
 	grid-area: qhScaleX;
 	grid-auto-flow: column;
