@@ -149,7 +149,18 @@ function drawQhScaleX() {
     const noOfStepsX =  (noOfDays === 1) ? 6 :
                         (noOfDays > 31) ? 12 : noOfDays;
     const qhScaleX = document.querySelector(`.qhScaleX`);
-    qhScaleX.style.gridTemplateColumns = `1fr repeat(${noOfStepsX-1}, 1fr)`;
+    //qhScaleX.style.gridTemplateColumns = `1fr repeat(${noOfStepsX-1}, 1fr)`;
+    
+    
+    const firstOfMonth = new Date(startDate);
+    firstOfMonth.setDate(1); 
+    const firstOfNextMonth = new Date(firstOfMonth);
+    firstOfNextMonth.setMonth(firstOfNextMonth.getMonth() + 1);
+    
+    const fractionOfFirstMonth = (noOfDays <= 31) ? 1 : (firstOfNextMonth.getTime() - startDate.getTime()) / (firstOfNextMonth.getTime() - firstOfMonth.getTime()); 
+    console.log(fractionOfFirstMonth); //if < .35 => ausblenden
+    qhScaleX.style.gridTemplateColumns = `${fractionOfFirstMonth}fr repeat(${noOfStepsX-2}, 1fr) ${1 + (1-fractionOfFirstMonth)}fr`;
+    //*/
     
     const inputArray = [];
     if (noOfDays === 1) {
@@ -181,7 +192,7 @@ function drawQhScaleX() {
             input.type = `text`;
             input.value = currentDate.toLocaleString(`de-DE`, format).replaceAll(`,`,``).replace(`.`,``);
             input.disabled = true;
-            input.style.width = `${input.value.length + .5}ch`;
+            input.style.width = `${(currentDate.getTime() === startDate.getTime() && fractionOfFirstMonth < .35) ? 0 : input.value.length + .5}ch`;
             inputArray.push(input);
         }
     }
@@ -252,11 +263,12 @@ function drawQhData(endDate = undefined) {
         const relevantQhDataByTracks = track.filter(el => (el.date.getTime() >= qhHeader.startDate.getTime() && el.date.getTime() <= qhHeader.endDate.getTime()));
         const currentTrack = qhTable.qh_Spuren.find(qhSpur => qhSpur.index === trackIdx);
         //console.log(qhTable.qh_Spuren.index === trackIdx, qhTable.qh_Spuren, trackIdx);
+        
         let scaleMin;
         let scaleMax;
         let scaleRange;
         if (currentTrack) {
-            (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => b.date.getTime() - a.date.getTime());        
+            (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => a.date.getTime() - b.date.getTime());        
             ctx.strokeStyle = currentTrack.color;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -266,6 +278,8 @@ function drawQhData(endDate = undefined) {
         }
         let yVal = 0;
         let sum = 0;
+        if (trackIdx === 0)
+            console.log(relevantQhDataByTracks);
         relevantQhDataByTracks.forEach((dataset, idx) => {
             sum += dataset.value;
             if (currentTrack) {
@@ -832,6 +846,10 @@ function qhCanvasMeasureEventHandler(ev) {
     const {target, type, layerX, layerY} = ev;
     const {offsetWidth, offsetHeight} = target;
 
+    const qhHeader = document.querySelector(`.qhHeader`);
+    const currentDate = new Date(qhHeader.startDate.getTime());
+    const timeRange =  qhHeader.endDate.getTime() - qhHeader.startDate.getTime();
+
     const qhScaleX = document.querySelector(`.qhScaleX`);
     const {qh_Skalierung} = qhScaleX;
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
@@ -840,11 +858,11 @@ function qhCanvasMeasureEventHandler(ev) {
     if (type.includes(`move`)) {
         const xRel = layerX/offsetWidth;
         const yRel = layerY/offsetHeight;
-        target.title = `${(100 * xRel).toFixed(2)}, ${(Y_Links_Min + leftScaleRange * (1 - yRel)).toFixed(2)}
-${(100 * xRel).toFixed(2)}, ${(Y_Rechts_Min + rightScaleRange * (1 - yRel)).toFixed(2)}`;
+        //target.title = `${(100 * xRel).toFixed(2)}, ${(Y_Links_Min + leftScaleRange * (1 - yRel)).toFixed(2)}
+//${(100 * xRel).toFixed(2)}, ${(Y_Rechts_Min + rightScaleRange * (1 - yRel)).toFixed(2)}`;
 
         const ctx = target.getContext(`2d`);
-        console.log(target, layerX / target.width, layerY / target.height)
+        //console.log(target, layerX / target.width, layerY / target.height)
         ctx.clearRect(0, 0, target.width, target.height);
         ctx.beginPath();
         ctx.strokeStyle = `black`;
@@ -854,7 +872,8 @@ ${(100 * xRel).toFixed(2)}, ${(Y_Rechts_Min + rightScaleRange * (1 - yRel)).toFi
         ctx.font = `1rem VAGrounded`;
         ctx.textBaseline = `bottom`;
         ctx.textAlign = (xRel > .5) ? `right` : `left`;
-        ctx.fillText(` ${xRel.toFixed(2)} `, xRel * target.width, target.height);
+        currentDate.setTime(currentDate.getTime() + xRel * timeRange);
+        ctx.fillText(` ${currentDate.toLocaleString()} `, xRel * target.width, target.height);
         ctx.stroke();
 
         ctx.beginPath();

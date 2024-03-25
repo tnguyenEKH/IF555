@@ -29,6 +29,7 @@ summary {
 .qhScaleX {
 	grid-area: qhScaleX;
 	grid-auto-flow: column;
+	width: 100.2%; /*width of Canvases overflowing grid border, so stretch scale a bit :-| */
 }
 .qhScaleX > input {
 	border-left: 3px solid black;
