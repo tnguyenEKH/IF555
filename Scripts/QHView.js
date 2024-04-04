@@ -63,7 +63,7 @@ async function initQh(qhHeaderData, qhDataRaw) {
         const rawRecord = qhDataRaw.slice((i*recordLength), ((i+1)*recordLength));
         
         const date   = new Date("20"+ rawRecord[0].toString(), (rawRecord[1] -1).toString(), rawRecord[2].toString()); //month index from 0-11
-        date.setSeconds(((rawRecord[3] - 1) * 15 + 7.5) * 60);
+        date.setMinutes(rawRecord[3] * 15);
         
         rawRecord.slice(timestampLength, qhDataTrackCount).forEach((value, idx) => {
             const entry = {};
@@ -245,12 +245,12 @@ function drawQhData(endDate = undefined) {
     
     const forceQhData = document.querySelector(`.cbForceQh`).checked;
     const isDauerlinie = document.querySelector(`.cbDauerlinie`).checked;
-    const avgIdxCount = (forceQhData || period === `tagesgang` || isDauerlinie) ? 1 : 8; //2h-Mittelwert == 8*15min
+    const avgIdxCount = (isDauerlinie || forceQhData || period === `tagesgang`) ? 1 : 8; //2h-Mittelwert == 8*15min
     const qhScaleX = document.querySelector(`.qhScaleX`);
     const {qh_Skalierung} = qhScaleX;
     const {Y_Links_Min, Y_Links_Max, Y_Links_Schrittweite, Y_Rechts_Min, Y_Rechts_Max, Y_Rechts_Schrittweite} = qh_Skalierung;
     const qhTable = document.querySelector(`.qhTable`);
-    const periodValueCount = (qhHeader.endDate.getTime() - qhHeader.startDate.getTime()) / 1000 / 60 / 15;
+    const periodValueCount = (qhHeader.endDate.getTime() - qhHeader.startDate.getTime()) / 1000 / 60 / 15 + 1;
     qhHeader.querySelector(`h1`).innerText = `${qhHeader.startDate.toLocaleDateString()} ${(qhHeader.endDate.getTime() - qhHeader.startDate.getTime() > ONE_DAY_IN_MS) ? `- ${endDateToDisplay.toLocaleDateString()}` : ''}`;
     qhHeader.querySelector(`h4`).innerText = `(${(avgIdxCount === 1) ? '1/4' : '2'}-Stdn Datenpakete)`;
 
@@ -279,19 +279,32 @@ function drawQhData(endDate = undefined) {
         let yVal = 0;
         let sum = 0;
         if (trackIdx === 0)
-            console.log(relevantQhDataByTracks);
+            console.log(periodValueCount, relevantQhDataByTracks);
+        //nu approach...
+        for (let currentDate = new Date(qhHeader.startDate.getTime()); currentDate.getTime() <= qhHeader.endDate.getTime(); currentDate.setMinutes(currentDate.getMinutes() + 15)) {
+            const dataset = relevantQhDataByTracks.find(dataset => dataset.date.getTime() === currentDate.getTime());
+
+
+
+            if (trackIdx === 0)
+                console.log(dataset);
+        }
+        /*
+        if (trackIdx === 0)
+            console.log(yVal);
         relevantQhDataByTracks.forEach((dataset, idx) => {
             sum += dataset.value;
             if (currentTrack) {
                 yVal += dataset.value;
                 if ((idx+1) % avgIdxCount === 0) {
                     yVal = constrain(yVal/avgIdxCount, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
-                    const xVal = (idx + .5)/periodValueCount * qhTrackCanvas.width;
+                    const xVal = idx / periodValueCount * qhTrackCanvas.width;
                     (idx / avgIdxCount >= 1) ? ctx.lineTo(xVal, yVal) : ctx.moveTo(xVal, yVal);
                     yVal = 0;
                 }
             }
         });
+        */
         [`Sum`, `Avg`].forEach(type => {
             qhTable.querySelector(`.span${type}${trackIdx}`).innerText = (type === `Sum`) ? sum.toFixed(2) : (sum / relevantQhDataByTracks.length).toFixed(2).replace(`NaN`,`-`);
         });
