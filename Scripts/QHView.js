@@ -268,7 +268,7 @@ function drawQhData(endDate = undefined) {
         let scaleMax;
         let scaleRange;
         if (currentTrack) {
-            (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => a.date.getTime() - b.date.getTime());        
+            (isDauerlinie) ? relevantQhDataByTracks.sort((a, b) => b.value - a.value) : relevantQhDataByTracks.sort((a, b) => a.date.getTime() - b.date.getTime());
             ctx.strokeStyle = currentTrack.color;
             ctx.lineWidth = 2;
             ctx.beginPath();
@@ -276,18 +276,38 @@ function drawQhData(endDate = undefined) {
             scaleMax = (currentTrack.bSkala_Links) ? Y_Links_Max : Y_Rechts_Max;
             scaleRange = scaleMax - scaleMin;
         }
-        let yVal = 0;
         let sum = 0;
-        if (trackIdx === 0)
-            console.log(periodValueCount, relevantQhDataByTracks);
+        let yVal = 0;
+        let yValCounter = 0;
+        //if (trackIdx === 0)
+            //console.log(periodValueCount, relevantQhDataByTracks);
         //nu approach...
+        const dataPackEndDate = new Date(qhHeader.startDate.getTime());
+        dataPackEndDate.setMinutes(dataPackEndDate.getMinutes() + 15 * avgIdxCount);
         for (let currentDate = new Date(qhHeader.startDate.getTime()); currentDate.getTime() <= qhHeader.endDate.getTime(); currentDate.setMinutes(currentDate.getMinutes() + 15)) {
-            const dataset = relevantQhDataByTracks.find(dataset => dataset.date.getTime() === currentDate.getTime());
+            const currentDataset = relevantQhDataByTracks.find(dataset => dataset.date.getTime() === currentDate.getTime());
+            
+            if (currentDataset) {
+                sum += currentDataset.value;
+                if (currentDataset === relevantQhDataByTracks[0]) {
+                    ctx.moveTo(0, constrain(currentDataset.value, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height);
+                }
+                if (currentDataset.date.getTime() > qhHeader.startDate.getTime()) {
+                    yVal += currentDataset.value;
+                    yValCounter++;
+                }                
+            }
+            if (currentDate.getTime() === dataPackEndDate.getTime()) {
+                const xVal = (currentDate.getTime() - qhHeader.startDate.getTime()) / (qhHeader.endDate.getTime() - qhHeader.startDate.getTime()) * qhTrackCanvas.width;
+                yVal = constrain(yVal/yValCounter, scaleMin, scaleMax)/scaleRange * qhTrackCanvas.height;
+                ctx.lineTo(xVal, yVal);
+                yVal = 0;
+                yValCounter = 0;
+                dataPackEndDate.setMinutes(dataPackEndDate.getMinutes() + 15 * avgIdxCount);
+            }
 
-
-
-            if (trackIdx === 0)
-                console.log(dataset);
+            //if (trackIdx === 0)
+                //console.log(currentDataset);
         }
         /*
         if (trackIdx === 0)
