@@ -2144,7 +2144,7 @@ function drawVCOItem(item) {
 				}
 				
 				if (Symbol === "Schalter")
-					schalter(vDynCtx, x, y, 1, val, rotation);
+					schalter(vDynCtx, x, y, 1, value, rotation);
 
 				if (Symbol === "Freitext")
 					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
