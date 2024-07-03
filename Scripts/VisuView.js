@@ -1840,6 +1840,31 @@ function ventil(ctx, x, y, scale, rot) {
 	ctx.rotate(Math.PI / 180 * rot);
 	ctx.scale(scale, scale);
 	ctx.beginPath();
+	ctx.fillRect(-1.5, -1, 1.5, 2);
+	ctx.moveTo(0, 2);
+	ctx.lineTo(2, 0);
+	ctx.lineTo(0, -2);
+	ctx.fill();
+	//patch 22.11.2022: doppelte Pfeile
+	ctx.translate(11, 0);
+	ctx.fillRect(-1.5, -1, 1.5, 2);
+	ctx.moveTo(0, 2);
+	ctx.lineTo(2, 0);
+	ctx.lineTo(0, -2);
+	ctx.fill();
+
+	ctx.restore();
+}
+function ventilFilled(ctx, x, y, scale, rot) {
+	// 6x6
+	ctx.save();
+	ctx.strokeStyle = "black";
+	ctx.fillStyle = "black";
+	ctx.lineWidth = 1;
+	ctx.translate(x, y);
+	ctx.rotate(Math.PI / 180 * rot);
+	ctx.scale(scale, scale);
+	ctx.beginPath();
 	
 	ctx.moveTo(-8, -8);
 	ctx.lineTo(-8, 8);
@@ -2137,6 +2162,8 @@ function drawVCOItem(item) {
 				
 				if (Symbol === "Ventil" && value)
 					ventil(vDynCtx, x, y, 1, rotation);
+				if (Symbol === "VentilFilled" && value)
+					ventilFilled(vDynCtx, x, y, 1, rotation);
 				
 				if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
 					const val = (value === 1) ? 100 : value;
