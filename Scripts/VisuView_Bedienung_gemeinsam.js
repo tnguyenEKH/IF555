@@ -546,39 +546,36 @@ function buildFaceplateNEW() {
 	let fpSection;
 	ClickableElement.forEach(el => {
 		//console.log(el);
-		const {sectionIndicator, wert, name} = el
+		const wert = (el.wert) ? el.wert.trim() : undefined;
+		const name = (el.name) ? el.name.trim() : undefined;
 		
-		if (sectionIndicator.toUpperCase() == 'H')
-			document.querySelector('#h4FpHeader').innerHTML = 'Einstellungen für ' + wert.trim();
+		if (el.sectionIndicator.match(/H/i)) {
+			document.querySelector('#h4FpHeader').innerText = `Einstellungen für ${wert}`;
+		}
 		
-		let zwischenüberschrift;
-		if (name.includes('Betriebsart') || name.includes('Wochenkalender') || name.includes(`Tagbetrieb`))
-			zwischenüberschrift = name.trim();
-		if (name.includes('NennVL'))
-			zwischenüberschrift = 'HK-Temperaturparameter';
-		if (name.includes('20 &degC'))
-			zwischenüberschrift = 'Pumpenkennlinie\n(nach Außentemperatur)';
-		if (name.includes(`Tagbetrieb`))
-			zwischenüberschrift = `Partytaster`;
-		if (sectionIndicator.toUpperCase() == 'S')
-			zwischenüberschrift = name;
+		const zwischenüberschrift = el.sectionIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
+									name.includes(`NennVL`) ? `HK-Temperaturparameter` :
+									name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
+									name.includes(`Tagbetrieb`) ? `Partytaster` :
+									undefined;
 		
 		if (zwischenüberschrift || !fpSection) {
 			//Beginn neue Section
 			//neue Section erzeugen & anhängen
 			fpSection = document.createElement('div');
 			(zwischenüberschrift === `Partytaster`) ? fpBody.insertBefore(fpSection, fpBody.firstElementChild) : fpBody.appendChild(fpSection);
-			fpSection.className = 'fpSection';
+			fpSection.classList.add(`fpSection`);
 			
 			//Zwischenüberschrift erzeugen & anhängen
-			let h5fpSection = document.createElement('h5');
+			const h5fpSection = document.createElement('h5');
 			fpSection.appendChild(h5fpSection)
-			if (zwischenüberschrift)
-				h5fpSection.innerHTML = zwischenüberschrift;
+			if (zwischenüberschrift) {
+				h5fpSection.innerText = zwischenüberschrift;
+			}
 		}
 		
 		//FP-Zeile erzeugen
-		if (sectionIndicator.toUpperCase() != 'H' && wert.trim() != '') {
+		if (el.sectionIndicator.toUpperCase() != 'H' && wert) {
 			const divRtosVar = createControlGroup(el);
 			fpSection.appendChild(divRtosVar);
 			initControlGroup(divRtosVar);
