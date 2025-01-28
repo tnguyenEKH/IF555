@@ -446,10 +446,7 @@ function createControlGroup(el) {
 		case 102:
 			lblName.innerHTML = 'Handwert\n\n' + lblName.innerHTML;
 							
-			const iterations = range - 100 + 1;
-			/*console.log(name.toUpperCase().includes('MISCHER'));*/
-			if (name.toUpperCase().includes('MISCHER') || name.toUpperCase().includes('VENTIL'))
-				iterations = 1;//*/			//SONDERFALL MISCHER!
+			const iterations = (name.match(/(mischer)|(ventil)/i)) ? 1 : range - 100 + 1;
 			
 			for (let i=0; i<=iterations; i++) {
 				const inpBtn = document.createElement('input');				
