@@ -2408,129 +2408,11 @@ function sleep(miliseconds) {
    }
 }
 
-/*
-function sendValueFromVisuToRtos(option) {
-	var sendBackToRtosUrlList = [];
-	var faceplateBody = document.getElementById('fpBody');
-	var faceplateBodyList = Array.from(faceplateBody.children);
-	faceplateBodyList.forEach(el => el.childNodes.forEach(function (ele) {
-		if (ele.id.includes('v')) console.log(ele);
-		
-	}));	
-		
-	console.log(faceplateBodyList);
-	var errorString = '';
-	
-	//normale Zurückübertragen mit Validierung der Eingabe; undefined kommt aus der onlickevent des html button (index.html)
-	if (option == undefined) {	
-		faceplateBodyList.forEach(function(div) {
-			var idx = parseInt(div.id.slice(-3)) - 90;
-			div.childNodes.forEach(function(el) {
-				if (el.className == 'inputWert') {//el.id.includes('inputWert')) {
-					if (idx == 0) {
-						ClickableElement[idx].wert = el.value.padEnd(20, ' ').slice(0, 20);
-					}
-					else {					
-						//Numerische Validierung
-						var value = parseFloat(el.value);
-						if (!isNaN(value) && el.value.trim() != '') {		//Wenn nicht leer und Fehlerfrei: neuen rtos-Wert prüfen & überschreiben
-							//Wertebereich prüfen und ggf. korrigieren
-							var unterGrenze = parseFloat(ClickableElement[idx].unterGrenze.trim());
-							var oberGrenze = parseFloat(ClickableElement[idx].oberGrenze.trim());
-							
-							el.style.color = 'black';
-							el.previousSibling.style.color = 'black';
-							el.nextSibling.style.color = 'black';
-								
-							if (value < unterGrenze){
-								errorString += el.previousSibling.textContent + ': ' + 'min = ' + unterGrenze + '\n';
-								el.style.color = '#C31D64';
-								el.previousSibling.style.color = '#C31D64';
-								el.nextSibling.style.color = '#C31D64';
-								//el.value = unterGrenze.toString();
-							}
-							if (value > oberGrenze){
-								errorString += el.previousSibling.textContent + ': ' + 'max = ' + oberGrenze + '\n';
-								el.style.color = '#C31D64';
-								el.previousSibling.style.color = '#C31D64';
-								el.nextSibling.style.color = '#C31D64';
-								//el.value = oberGrenze.toString();//ClickableElement[idx].oberGrenze;
-							}
-							
-							var returnValue = el.value.split('.');	//Trennung in Vor- & Nachkommastellen zur Formatierung; hier auch stringLängenkorrektur
-							ClickableElement[idx].wert = returnValue[0].padStart(5, ' ').slice(-5) + '.';
-							if (returnValue.length > 1) {
-								ClickableElement[idx].wert += returnValue[1].padEnd(4, '0').slice(0, 4);
-							}
-							else {
-								ClickableElement[idx].wert += '0000';
-							}
-						}
-						else {	//isNaN || empty
-							el.style.color = '#C31D64';
-							if (el.previousSibling != null) el.previousSibling.style.color = '#C31D64';
-							if (el.nextSibling != null) el.nextSibling.style.color = '#C31D64';
-							if (el.previousSibling != null) errorString += el.previousSibling.textContent + ': ';
-							errorString += 'ungültige Zahl!' + '\n';
-						}
-					}
-				}
-			});
-		});
-	}
-	//Wenn "Zum Wochekalender" -> Wert "HK Wochenkalender" auf 1 umstellen und weitere Daten unverändert zurückübertragen
-	else { //if (option == 'openHKWochenKalender' || option == 'closeHKWochenKalender') {
-		ClickableElement.forEach(function(el) {
-			//console.log(el.name.trim());
-			if (el.name.includes('Wochenk')) {
-				//console.log('+' + el.wert + '+');
-				//Kalender mit Schreibrechten öffnen
-				if (option == 'openHKWochenKalender' && !locked) el.wert = el.wert.replace('0', '1');
-				//Kalender OHNE Schreibrechte öffnen
-				if (option == 'openHKWochenKalender' && locked) el.wert = el.wert.replace('0', '2');
-				//if (option == 'closeHKWochenKalender') el.wert = el.wert.replace('1', '0');
-				//console.log('+' + el.wert + '+');
-			}
-		});
-	}
-	if(errorString == ''){
-		//erzeugt Linkliste
-		for (var i=0; i<20 ; i++) {
-			var sendBackData = '';
-			var link = ''
-			var idForTranfer = 'v' + (i+90).toString().padStart(3,'0');
-			//1.Zeile auffüllen auf 60 Zeichen
-			if (i == 0) {
-				sendBackData += (ClickableElement[i].name + ClickableElement[i].wert).padEnd(60, ' ');
-				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
-				sendBackToRtosUrlList.push(link);
-			}
-			else {		
-				sendBackData = ClickableElement[i].name + ClickableElement[i].wert + '  ' + ClickableElement[i].oberGrenze + ' ' +
-				ClickableElement[i].unterGrenze + ' ' +	ClickableElement[i].nachKommaStellen + ' ' + ClickableElement[i].einheit + '    ' + ClickableElement[i].sectionIndicator;
-				link = `${mpcJsonPutUrl}${idForTranfer}=${encodeURIComponent(`"${sendBackData}"`)}`;
-				sendBackToRtosUrlList.push(link);
-			}
-		}
-		//Linkliste an Rtos senden
-		for (var j=0; j<sendBackToRtosUrlList.length; j++){
-			sendData(sendBackToRtosUrlList[j]);
-			//console.log(sendBackToRtosUrlList[j]);
-		}
-		if (option == undefined) closeFaceplate();
-		return 0;
-	}
-	else{
-		alert(errorString);
-		return -100;
-	}
-}
-*/
 function sendDataToRtosEventHandler(ev) {
-	sendDataToRtosNEW(ev.target);
+	sendDataToRtos(ev.target);
 }
 
-function sendDataToRtosNEW(target) {	
+function sendDataToRtos(target) {	
 	const {id, idx} = target;
 
 	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
@@ -2564,11 +2446,12 @@ function sendDataToRtosNEW(target) {
 	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
 }
 
-
+/*
 function showOSK(event) {
 	if (event.target.id.includes('inputWert')) showElemementById('osk');	
 }
 
+/*
 function showFaceplate(matchItem) {
 	const OFFSET_ICON_2_FACEPLATE_PX = 80;
 	const OFFSET_FP_2_OSK = 40;
@@ -2608,4 +2491,554 @@ function showFaceplate(matchItem) {
 	}
 	hideElemementById('osk'); //Anordnungsberechnung abgeschlossen -> osk ausblenden!
 }
+*/
 
+
+
+
+//ehemals VisuView_Bedienung_gemeinsam.js
+function timeout(delay) {
+    return new Promise(resolve => setTimeout(resolve, delay));
+}
+async function asyncSleep(fn, delay, ...args) {
+    await timeout(delay);
+    return fn(...args);
+}
+
+async function openFaceplate() {
+	/*SettingsFromVisualisierung*/
+	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
+	//console.log(ClickableElementList);
+	
+	matchItem = ClickableElementList.find(el => {
+		const {x, y, radius, bitmapIndex} = el;
+		dx = mx - x;
+		dy = my - y;
+		return (bitmapIndex === bmpIndex && dx * dx + dy * dy < radius * radius);
+	});
+	//console.log(matchItem);
+	
+	if (matchItem) {
+		const body = document.querySelector(`body`);
+		body.setAttribute(`cursorStyle`, `progress`);
+		showElemementById('fpBg');
+		hideElemementById('fpContent');
+		//showElemementById('visLoader');
+		clickableElementUrl = ClickableElementUrlList.find(el => el.includes(matchItem.id));
+		try {
+			const test = await fetchData(clickableElementUrl);
+			const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
+			//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
+			if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
+				ClickableElement = [];
+				Object.entries(adjustmentOptions).forEach(([key, value]) => {
+					const originalKeyNo = parseInt(key.match(/\d+/g));
+					let item = {};
+					item.idx = originalKeyNo + 20;
+					item.sectionIndicator = value.substr(59, 1);
+					
+					switch (item.sectionIndicator) {
+						case 'H':
+							item.name = value.substr(0, 24);
+							item.wert = value.substr(24,35)
+							break;
+						case 'S':
+							item.name = value.substr(0, 59);
+							break;
+						default:
+							item.name = value.substr(0, 24);
+							item.wert = value.substr(24,12);
+							item.oberGrenze = value.substr(36,6);
+							item.unterGrenze = value.substr(42,6);
+							item.nachKommaStellen = value.substr(48,2);
+							item.einheit = value.substr(50,9);
+						}
+
+						ClickableElement.push(item);
+				});
+				buildFaceplate();
+				//showFaceplate(matchItem);
+				showElemementById(`fpBg`);
+				showElemementById(`fpContent`);
+			}
+			else {
+				alert(`timeout`);
+				hideElemementById('fpBg');
+				hideElemementById('visLoader');
+			}
+			body.removeAttribute(`cursorStyle`);
+		}
+		catch(err) {
+			console.error(err);
+		}
+	}
+}
+
+function convertHexToRGBArray(hex) {
+	if (hex.startsWith('#')) hex = hex.slice(1);
+	const rgb = (hex.length === 3) ? [parseInt(hex[0] + hex[0], 16), parseInt(hex[1] + hex[1], 16), parseInt(hex[2] + hex[2], 16)] :
+				(hex.length === 6) ? [parseInt(hex[0] + hex[1], 16), parseInt(hex[2] + hex[3], 16),	parseInt(hex[4] + hex[5], 16)] :
+				undefined;
+	return rgb;
+}
+
+function convertRGBArrayToHex(rgb) {
+	let hex = '#';
+	rgb.forEach(el => (Math.abs(el) < 256) ? hex += Math.round(el).toString(16).toUpperCase().padStart(2, '0') : hex += '00');
+	return hex;
+}
+
+function calcColor(percentVal, minColorHex = `#1F94B9`, maxColorHex = `#C31D64`) {
+	//console.log(percentVal, minColorHex, maxColorHex);
+	percentVal = constrain(percentVal, 0, 100);
+
+	const minColorRGB = convertHexToRGBArray(minColorHex);
+	const maxColorRGB = convertHexToRGBArray(maxColorHex);
+	const retColorRGB = [	Math.round(percentVal/100 * (maxColorRGB[0] - minColorRGB[0]) + minColorRGB[0]),
+						Math.round(percentVal/100 * (maxColorRGB[1] - minColorRGB[1]) + minColorRGB[1]),
+						Math.round(percentVal/100 * (maxColorRGB[2] - minColorRGB[2]) + minColorRGB[2])
+						];
+	//console.log(retColorRGB);
+	const retColorHex = convertRGBArrayToHex(retColorRGB);
+	//console.log(retColorHex);
+	return retColorHex;
+}
+
+
+function sliderStyling(target) {
+	const {value, min, max, disabled, minColor, maxColor, classList} = target;
+	const percentVal = (value - min) / (max - min) * 100;
+	const _minColor = (disabled) ? '#C0C0C0' : minColor;
+	const currentColor = (disabled) ? '#C0C0C0' : calcColor(percentVal, minColor, maxColor);
+	//console.log(target);
+	if (!disabled) {
+		if (maxColor == '#C31D64') {
+			classList.remove('quarter', 'half', 'threequarter', 'full');
+			if (percentVal > 80) {
+				classList.add('full');
+			} else if (percentVal > 60) {
+				classList.add('threequarter');
+			} else if (percentVal > 40) {
+				classList.add('half');
+			} else if (percentVal > 20) {
+				classList.add('quarter');
+			}
+		}		
+	}
+	
+	//console.log(currentColor);
+	target.style.background = `linear-gradient(to right, ${_minColor} 0%, ${currentColor} ${percentVal}%, #E0E0E0 ${percentVal}%, #E0E0E0 100%)`;
+}
+
+function sliderHandler(target) {	//sliderHandler
+	//console.log(target.value);
+	sliderStyling(target);
+	const {min, max} = target;
+
+	const divRtosVar = target.closest(`.divRtosVar`);
+	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
+	
+	if (max - min == 101 && target.value <= 0) {
+		target.value = -1;
+	}
+	target.wert = target.value;
+	divRtosVar.wert = target.wert;
+	const btnHand = divRtosVar.querySelector(`.btnHand`);
+	if (btnHand)
+		btnHand.wert = target.wert;
+	lblUnit.wert = target.wert;
+	lblUnit.value = target.value;
+	
+	//min <= 0 
+	lblUnit.innerText = (max - min == 101 && target.value <= 0) ? 'Zu' : `${lblUnit.value} ${lblUnit.unit}`;
+	
+	return lblUnit;
+}
+function sliderAdjustValueBtnEventHandler(ev) {
+	const {type, target} = ev;
+	console.log(ev.type);
+	if (type.match(/(touchstart)/))
+		ev.preventDefault();
+	if (!target.timerMousePressed && type.match(/(mousedown|touchstart)/)) {
+		target.timerMousePressed = setInterval(sliderAdjustValueBtnHandler, 100, target);
+	}
+	else if (target.timerMousePressed){
+		clearInterval(target.timerMousePressed);
+		target.timerMousePressed = undefined;
+	}
+}
+
+function sliderAdjustValueBtnHandler(target) {
+	const slider = Array.from(target.parentElement.childNodes).find(el => (el.type === `range`));
+	
+	//const slider = (target.classList.contains(`btnDec`)) ? target.nextElementSibling : target.previousElementSibling;
+	//console.log(slider, target.wert);
+	slider.value = parseFloat(slider.value) + parseFloat(target.wert);
+	//Sonderfall Analogmischer
+	if (slider.unit == '%' && slider.value == 0)
+		slider.value = parseFloat(slider.value) + parseFloat(slider.step);
+	sliderHandler(slider);	
+}
+
+function radioBtnByName(target) {
+	//console.log(target);
+	const {idx, name, id} = target;		
+	
+	//var changedBtns = [];
+	const relatedBtns = document.getElementsByName(name);
+	const btnToggleForceVal = (target.classList.contains(`uncheckable`)) ? undefined : true;
+	relatedBtns.forEach(el => el.classList.toggle(`checked`, (el === target) ? btnToggleForceVal : false));
+	
+	if (target.wert.toString() == '') {
+		const slider = document.querySelector(`#inpWert${idx}`);
+		target.wert = slider.wert;
+	}
+	//const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
+	const divRtosVar = target.closest(`.divRtosVar`);
+	if (id === `triggerBtnTagbetrieb`) {
+		divRtosVar.wert = (target.classList.contains(`checked`)) ? 1 : 0;
+	}
+	else {
+		divRtosVar.wert = target.wert;
+	}
+	if (id === `triggerBtnTagbetrieb`) sendDataToRtos(target);
+}
+
+function toggleSliderAbilityByBtnHand(target) {	
+	const enabled = target.className.toUpperCase().includes('HAND');
+	//console.log(target.parentElement.childNodes);
+	const relevantSiblings = Array.from(target.parentElement.childNodes).filter(el => (el.type === `range` || el.classList.contains(`btnIncDec`)));
+	relevantSiblings.forEach(el => {
+		el.disabled = !enabled;
+		if (el.type === `range`) {
+			el.classList.toggle(`disabled`, !enabled);
+			sliderStyling(el);
+		}
+	});
+}
+
+function updateLblUnit(target) {
+	const divRtosVar = target.closest(`.divRtosVar`);
+	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
+	
+	const targetIsBtnHand = target.title.toUpperCase().includes('HAND');
+	lblUnit.innerText = (!targetIsBtnHand) ? target.title : (lblUnit.value <= 0) ? `Zu` : `${lblUnit.value} ${lblUnit.unit}`;
+}
+
+function controlGroupBtnHandler(target) {
+	radioBtnByName(target);
+	toggleSliderAbilityByBtnHand(target);
+	updateLblUnit(target);
+	//console.log(btn);
+}
+
+function createControlGroup(el) {
+	const {idx, name, wert, oberGrenze, unterGrenze, nachKommaStellen, einheit} = el;
+	//div mit ID=rtosVariable erzeugen & anhängen (return object)
+	const divRtosVar = document.createElement('div');
+	divRtosVar.id = `v${idx.toString().padStart(3,'0')}`;
+	divRtosVar.className = 'divRtosVar';
+	divRtosVar.idx = idx;
+	
+	//Namenslabel erzeugen & anhängen
+	const lblName = document.createElement('label');				
+	divRtosVar.appendChild(lblName);
+	lblName.className = 'lblName';
+	lblName.innerText = name.trim().replace(`&deg`, `°`);
+	
+	//Inputelemente (btns, slider, number, etc.) erzeugen & anhängen
+	const divInpWert = document.createElement('div');
+	divRtosVar.appendChild(divInpWert);
+	divInpWert.className = 'divInpWert';
+	divInpWert.id = divInpWert.className + idx;
+	divInpWert.idx = idx;
+	
+	//zu erzeugende Elemente auf Basis der Range ermitteln:
+	const range = (parseFloat(oberGrenze.trim()) - parseFloat(unterGrenze.trim()) + 1) * Math.pow(10, nachKommaStellen);
+	
+	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
+	if (range <= 4 && !name.match(/(kalender|tagbetrieb)/gi)) lblName.innerText = '\n' + lblName.innerText;
+	
+	const inpWert = document.createElement('input');				
+	divInpWert.appendChild(inpWert);
+	inpWert.className = `inpWert`;
+	inpWert.id = `inpWert${idx}`;
+	inpWert.idx = idx;
+	inpWert.unit = einheit.trim().replace(`&deg`, `°`);
+	inpWert.unterGrenze = parseFloat(unterGrenze.trim());
+	inpWert.oberGrenze = parseFloat(oberGrenze.trim());
+	inpWert.min = inpWert.unterGrenze;
+	inpWert.minColor = '#1F94B9';
+	inpWert.max = inpWert.oberGrenze;
+	if (inpWert.unit === `°C` || lblName.innerText.match(/(Kessel)|(BHKW)/)) {
+		inpWert.maxColor = '#C31D64';
+	}
+	else {
+		inpWert.maxColor = '#1F94B9';
+	}
+	inpWert.step = Math.pow(10, -nachKommaStellen);
+	inpWert.wert = parseFloat(wert);
+	
+	//+-Buttons neben Slider erzeugen
+	if (range > 4) {
+		const adjustBtnArray = [`-`, `+`];
+		adjustBtnArray.forEach(el => {
+			const btnIncDec = document.createElement('input');
+			btnIncDec.type = 'button';
+			btnIncDec.className = `btnIncDec`;
+			btnIncDec.value = el;
+			btnIncDec.wert = Math.pow(10, -nachKommaStellen);
+			btnIncDec.addEventListener(`mousedown`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`mouseup`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`mouseout`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchstart`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchend`, sliderAdjustValueBtnEventHandler);
+			btnIncDec.addEventListener(`touchcancel`, sliderAdjustValueBtnEventHandler);
+			if (el === `-`) {
+				btnIncDec.wert *= -1;
+				divInpWert.insertBefore(btnIncDec, inpWert);
+				btnIncDec.classList.add(`btnDec`); 
+			}
+			else if (el === `+`) {
+				divInpWert.appendChild(btnIncDec);
+				btnIncDec.classList.add(`btnInc`);
+			}
+		});
+	}
+	
+	//console.log(range);
+	//let checkedBtn;
+	switch (range) {			
+		//createTriggerBtn (Einmalig...); radioBtnByName
+		case 2:
+			inpWert.type = 'button';
+			inpWert.classList.add(`btnBA`,`uncheckable`);
+			inpWert.classList.toggle(`checked`, parseInt(wert));
+			inpWert.name = 'triggerBtn';
+			inpWert.wert = 1;
+			inpWert.title = name.trim();
+			inpWert.addEventListener(`click`, (ev) => radioBtnByName(ev.target));
+			if (name.toUpperCase().includes('AUS')) {
+				inpWert.id = `triggerBtnAus`;
+				inpWert.classList.add('btnAus');
+			}
+			else if (name.toUpperCase().includes('EIN')) {
+				inpWert.id = `triggerBtnEin`;
+				inpWert.classList.add('btnEin');
+			}
+			else if (name.toUpperCase().includes('TAGBETRIEB')) {
+				inpWert.id = `triggerBtnTagbetrieb`;
+				inpWert.value = `Partytaster`;
+				inpWert.classList.add(`btnTagbetrieb`);
+			}
+			//if (wert == inpWert.wert) checkedBtn = inpWert;
+			break;
+		//createBtnCalender || createBtnGroup
+		case 3:
+		//createBtnGroup3PMischer (Auto, HandOpen, HandClose, Stop)
+		case 4:
+			if (parseFloat(unterGrenze.trim()) == 0) {
+				inpWert.type = 'button';
+				inpWert.id = 'calenderBtn';
+				inpWert.classList.add(`calenderBtn`);
+				inpWert.wert = locked ? 2 : 1;
+				inpWert.value = 'zum Kalender';
+				inpWert.title = `Absenkungswochenkalender öffnen${locked ? ' (schreibgeschützt)' : ''}`;
+				//inpWert.title = 'Absenkungswochenkalender öffnen';
+				//if (inpWert.wert == 2) inpWert.title += ' (schreibgeschützt)';
+				inpWert.addEventListener(`click`, (ev) => jumpToWochenKalender(ev.target));
+			}
+			
+			if (parseFloat(unterGrenze.trim()) == -1) {
+				const idArray = (range === 3) ? [`Auto`, `Ein`, `Aus`] : [`Auto`, `Auf`, `Zu`, `Stopp`];
+				idArray.forEach((el, elIdx) => {
+					const inpBtn = (elIdx === 0) ? inpWert : document.createElement('input');
+					if (i > 0) {			
+						divInpWert.appendChild(inpBtn);
+						inpBtn.className = 'inpWert';
+						inpBtn.idx = idx;
+					}
+					inpBtn.type = 'button';
+					inpBtn.title = el;
+					inpBtn.id = `btn${el}${idx}`;	//idx nutzen um eindeutige IDs zu erzeugen
+					inpBtn.classList.add(`btnBA`, `btn${el}`);
+					inpBtn.name = `btnValve${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
+					inpBtn.wert = (elIdx === idArray.length - 1) ? -1 : elIdx;
+					inpBtn.addEventListener(`click`, (ev) => radioBtnByName(ev.target));
+					if (wert == inpBtn.wert)
+						divRtosVar.initCheckedBtn = inpBtn;
+				});
+			}
+			break;
+			
+		//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
+		case 101: //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
+			inpWert.min = 1;
+		case 102:
+			lblName.innerText = 'Handwert\n\n' + lblName.innerText;
+							
+			const iterations = (name.match(/(mischer)|(ventil)/i)) ? 1 : range - 100 + 1;
+			
+			for (let i=0; i<=iterations; i++) {
+				const inpBtn = document.createElement('input');				
+				divInpWert.appendChild(inpBtn);
+				inpBtn.className = 'inpWert';
+				inpBtn.idx = idx;
+				
+				let id;
+				if (i == 0) {
+					id = 'Auto';
+					inpBtn.wert = 0;
+				}
+				else if (i == 1) {
+					id = 'Hand';
+					inpBtn.wert = '';
+				}
+				else if (i == 2) {
+					id = 'Ein';
+					inpBtn.wert = 1;
+				}
+				else if (i == 3) {
+					id = 'Aus';
+					inpBtn.wert = -1;
+					inpWert.min = 2;
+				}
+				
+				inpBtn.type = 'button';
+				inpBtn.title = (id == 'Ein') ? `${id} (Sollw. intern)` : id;
+				inpBtn.id = `btn${id}${idx}`;	//idx nutzen um eindeutige IDs zu erzeugen
+				inpBtn.classList.add(`btnBA`, `btn${id}`);
+				inpBtn.name = `btnBA${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
+				inpBtn.addEventListener(`click`, (ev) => controlGroupBtnHandler(ev.target));
+				
+				if (wert == inpBtn.wert || (!divRtosVar.initCheckedBtn && id === `Hand`))
+					divRtosVar.initCheckedBtn = inpBtn;	
+			}
+			//hier KEIN break um zusätzlichen slider zu erzeugen!
+			//break;
+		//createSlider/Number?
+		default:
+			inpWert.type = 'range';
+			inpWert.value = constrain(inpWert.wert, inpWert.min, inpWert.max);
+			inpWert.wert = inpWert.value;
+			
+			if (inpWert.type == 'number' || inpWert.type == 'text')
+				inpWert.addEventListener(`click`, showOSK); //OSK für 'text' & 'number' bei Eingabe einblenden
+			if (inpWert.type == 'range')
+				inpWert.addEventListener(`input`, (ev) => sliderHandler(ev.target));
+	}	
+	
+	//Unit-Label erzeugen & anhängen
+	const lblUnit = document.createElement('label');				
+	divRtosVar.appendChild(lblUnit);
+	lblUnit.className = 'lblUnit';
+	lblUnit.idx = idx;
+	lblUnit.value = inpWert.value;//parseFloat(wert);
+	lblUnit.unit = (range > 4) ? einheit.trim().replace(`&deg`, `°`) : ``;
+	if (lblUnit.unit && lblUnit.unit != '3P')
+		lblUnit.innerText = `${inpWert.value} ${inpWert.unit}`;
+	if (lblUnit.innerText.includes('undefined')) {
+		lblUnit.innerText = "";
+	}
+	return divRtosVar;
+}
+
+function initControlGroup(divRtosVar) {
+	//console.log(divRtosVar);
+	const {initCheckedBtn} = divRtosVar;
+	const slider = divRtosVar.querySelector(`[type = "range"]`);
+	
+	//targetHandler ausführen um aktuellen Zustand zu Initiieren
+	if (slider) {
+		sliderHandler(slider);
+		if (initCheckedBtn) {
+			controlGroupBtnHandler(initCheckedBtn);
+		}
+	}
+	else if (initCheckedBtn) {
+		radioBtnByName(initCheckedBtn);
+	}
+}
+
+function buildFaceplate() {
+	const fpBody = document.querySelector('#fpBody');
+	
+	let fpSection;
+	ClickableElement.forEach(el => {
+		//console.log(el);
+		const wert = (el.wert) ? el.wert.trim() : undefined;
+		const name = (el.name) ? el.name.trim() : undefined;
+		
+		if (el.sectionIndicator.match(/H/i)) {
+			document.querySelector('#h4FpHeader').innerText = `Einstellungen für ${wert}`;
+		}
+		
+		const zwischenüberschrift = el.sectionIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
+									name.includes(`NennVL`) ? `HK-Temperaturparameter` :
+									name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
+									name.includes(`Tagbetrieb`) ? `Partytaster` :
+									undefined;
+		
+		if (zwischenüberschrift || !fpSection) {
+			//Beginn neue Section
+			//neue Section erzeugen & anhängen
+			fpSection = document.createElement('div');
+			(zwischenüberschrift === `Partytaster`) ? fpBody.insertBefore(fpSection, fpBody.firstElementChild) : fpBody.appendChild(fpSection);
+			fpSection.classList.add(`fpSection`);
+			
+			//Zwischenüberschrift erzeugen & anhängen
+			const h5fpSection = document.createElement('h5');
+			fpSection.appendChild(h5fpSection)
+			if (zwischenüberschrift) {
+				h5fpSection.innerText = zwischenüberschrift;
+			}
+		}
+		
+		//FP-Zeile erzeugen
+		if (el.sectionIndicator.toUpperCase() != 'H' && wert) {
+			const divRtosVar = createControlGroup(el);
+			fpSection.appendChild(divRtosVar);
+			initControlGroup(divRtosVar);
+		}
+	});	
+}
+
+function jumpToWochenKalender(target){
+	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
+	clearInterval(fernbedienungAutoReload);
+	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
+	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
+	//var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
+	const divRtosVar = target.closest(`.divRtosVar`);
+	divRtosVar.wert = target.wert;
+
+	const sendError = sendDataToRtos(target);
+	if (!sendError) {
+		showWochenKalenderVisu();
+		activeTabID = 'visuWochenkalender';
+		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
+	}
+}
+
+function closeModalWochenKalenderImVisu(){
+	hideElemementById('visuWochenkalender');
+	sendData(clickableElementUrl);
+}
+
+function showWochenKalenderVisu() {
+	const kalenderHeader = document.querySelector('#txtWochenKalenderImVisuHeader');
+	const faceplateHeader = document.querySelector('#h4FpHeader');
+	kalenderHeader.textContent = faceplateHeader.textContent.replace('Einstellungen', 'Wochenkalender');
+	
+	const visuWochenkalender = document.querySelector('#visuWochenkalender');
+	visuWochenkalender.style.display = "block";
+	
+	const fpContentBox = document.querySelector('#fpContent').getBoundingClientRect();
+	const visuWochenkalenderContent = document.querySelector('#visuWochenkalenderContent');
+	const visuWochenkalenderContentBox = visuWochenkalenderContent.getBoundingClientRect();
+	const kalenderLeft = Math.max(10, fpContentBox.x + fpContentBox.width - visuWochenkalenderContentBox.width);
+	
+	visuWochenkalenderContent.style.left = `${kalenderLeft}px`;
+	visuWochenkalenderContent.style.top = `${fpContentBox.y}px`;
+	hideElemementById('osk');	//osk ausblenden wenn Kalender geöffnet wird
+}

@@ -1,3 +1,5 @@
+const LOAD_QH_DATA = false;
+
 /********************* URL SETTINGS *********************/
 const mpcJsonAddUrl = `http://172.16.0.102/JSONADD/`;
 const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
@@ -134,9 +136,11 @@ function init() {
 	handleConfirmBtn(locked);		//Visubedienung verriegeln
    
   /*********Data evaluation********/
-	//jw startQH();
-	readQHFromFile(QHDataFile);
-	numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
+  //jw startQH();
+  if (LOAD_QH_DATA) {
+    readQHFromFile(QHDataFile);
+    numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
+  }
 
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
@@ -1242,7 +1246,7 @@ function EthernetButtonHanlder(id) {      /* <<< */
 $(document).keydown(function (event) {
 
 	//Fernbedienung aktiv	
-	if ((activeTabID == 'fernbedienung') || (activeTabID == 'wochenKalenderImVisu')) {
+	if (activeTabID.match(/(fernbedienung)|(visuWochenkalender)/)) {
 		//set focus on "#displayPanel" when a key was pressed. This prevent scroll effect, when the sidebar overflow
 		var displayPanel = document.getElementById('displayPanel');
 		displayPanel.focus();
