@@ -5,6 +5,9 @@
 input[type = "button"].visuTxtElement {
 	padding: 6px;
 }
+.hidden {
+	visibility: hidden;
+}
 /*******************24016 JW: cursor appearance start*******************/
 [cursorStyle = "progress"] {
     cursor: progress;
