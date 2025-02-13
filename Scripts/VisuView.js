@@ -2,7 +2,7 @@ var DEVMODE = false; //no Lock/AutoLock
 var DEBUG = false;
 var FORCE_ANALOGMISCHER = false;
 
-var deployedVisuFile = "./Visu/Visu.txt";
+const DEPLOYED_VISU_FILE = "./Visu/Visu.txt";
 var visuDataFile = "./DATA/visdat.txt";
 var zahlerDataFile = "./DATA/zaehl.txt";
 // Diverse globale Variablen
@@ -13,9 +13,7 @@ var vDynCanvas;
 var vStatCanvas;
 var vDynCtx;
 var vStatCtx;
-var visudata;
 var bmpIndex = 0;
-var VisuDownload = {};
 var LinkButtonList = [];
 var canvasOffset;
 var canvasOffsetX;
@@ -37,7 +35,6 @@ var wInit;
 var startAngle = 1.1 * Math.PI;
 var endAngle = 1.9 * Math.PI;
 var stoerungen;
-var stoerungText = "";
 var xStoerButtonMin;
 var yStoerButtonMin;
 var xStoerButtonMax;
@@ -121,9 +118,6 @@ function initVisu()
 	vDynCanvas.height = 630;
 	vDynCtx = vDynCanvas.getContext('2d');
 
-	// test listener for stoerung
-	vStatCanvas.addEventListener("mousedown", getPosition, false);
-	
 	vtipCanvas = document.getElementById("vtipCanvas");
 	vtipCanvas.width = 170;
 	vtipCanvas.height = 25;
@@ -137,7 +131,7 @@ function initVisu()
 	
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
-	visudata = $.parseJSON(readFromTextFile(deployedVisuFile));
+	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 	if (visudata != ''){
 		prj = visudata.VCOData.Projektnumer;
 	}
@@ -148,41 +142,24 @@ function initVisu()
 	/*SettingsFromVisualisierung*/
 	addClickableElementToList(visudata);			
 
-	// Tooltips einlesen
-	initTooltips();
 	
-	// Mouse-hover-handler für ToolTip dynamischer Elemente
-	$("#vimgArea").mousemove(function (e) {
-		handleMouseMove(e);
-	});
-	
-	// Mouse-down-handler für bmp wechsel (statische Elemente)
-	$("#vStatCanvas").mousedown(function (e) {
-		handleMouseDown(e);
-	});	
-	setBitmap(bmpIndex);
+	setBitmap(visudata);
 }
 
 
 function startVisu() {
-	try {
-		//read visudata from visdat.txt
-		var rawvisuData = readFromTextFile(visuDataFile);
-		//create visuitem from rawdata
-		//remove all json parser coz lokale data tranfer
-		parseLiveData(rawvisuData);
-		var Stoerungen = VisuDownload.Stoerungen;
-		var stoerungencount = Stoerungen.length;
-		stoerungText ="";
-		for (var i = 0; i < stoerungencount; i++) {
-			stoerungText += Stoerungen[i].BezNr + ". " + Stoerungen[i].StoerungText.trim() + "<br/>";
-		}
-	}
-	catch (e) {
-		log(e.message);
-		log("Es konnten keine Visualisierungsdaten heruntergeladen werden von Steuerung " + prj);
-	}	
-	DrawVisu(true);
+	//read visudata from visdat.txt
+	const liveDataRaw = readFromTextFile(visuDataFile);
+	//create visuitem from rawdata
+	//remove all json parser coz lokale data tranfer
+	const liveData = parseLiveData(liveDataRaw);
+	window.stoerungText = ``;
+	liveData.alarms.forEach(alarm => window.stoerungText += `${alarm.id}. ${alarm.txt}\n`);
+
+	//Read deployed visufile /visu/visu.txt 
+	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
+	
+	DrawVisu(visudata, liveData, true);
 }
 
 
@@ -197,90 +174,34 @@ function createLinkForClickableElement(id) {
 	}
 }
 
-function addLinkButtonToList(visudata) {
-	try{
-		var FreitextList = visudata.FreitextList;
-		var n = FreitextList.length;
-		for (var i = 0; i < n; i++) {
-			var item = new Object();
-			var freiTextListItem = FreitextList[i];
-			var x = freiTextListItem.x;
-			var y = freiTextListItem.y;
-			var txt = freiTextListItem.Freitext;
-			var w = ctx.measureText(txt).width;
-			var h = freiTextListItem.BgHeight;
-			var orientation = freiTextListItem.VerweisAusrichtung;
-			var targetBmp = freiTextListItem.idxVerweisBitmap;
-			
-			item["x"] = freiTextListItem.x;
-			item["y"] = freiTextListItem.y;
-
-			if (orientation == "hor") {
-				item["x_min"] = x - 6;
-				item["y_min"] = y - h - 6;
-				item["x_max"] = x + w + 16;
-				item["y_max"] = y + 6;
-				item["bmp"] = targetBmp;
-				item["text"] = txt;
-			}
-			if (orientation == "up") {
-				item["x_min"] = x - h - 16;
-				item["y_min"] = y - w - 16;
-				item["x_max"] = x + 6;
-				item["y_max"] = y + 6;
-				item["bmp"] = targetBmp;
-				item["text"] = txt;
-			}
-
-			if (orientation == "dn") {
-				item["x_min"] = x - 6;
-				item["y_min"] = y - 6;
-				item["x_max"] = x + h + 16;
-				item["y_max"] = y + w + 6;
-				item["bmp"] = targetBmp;
-				item["text"] = txt;
-			}
-			LinkButtonList.push(item);
-		}
-	}
-	catch(e){
-		log(e.message);
-	}
-}
-
 // Linkbutton in Liste eintragen
 function addClickableElementToList(visudata) {
-	try {
-		//const {DropList, } = visudata;
-		visudata.DropList.forEach(el => {
-			const {VCOItem} = el;
-			if (VCOItem.clickable == true) {
-				const item = new Object();
-				item.x = el.x;
-				item.y = el.y;
-				item.clickable = true;
-				item.Bezeichnung = VCOItem.Bez.trim();
-				item.id = VCOItem.iD.trim();
-				item.h = el.BgHeight;
-				item.bitmapIndex = el.bmpIndex;
-				switch (item.Bezeichnung) {
-					case `HK`:
-					case `KES`:
-					case `BHK`:
-					case `WWL`:
-					case `WP`:
-						item.radius = 18;
-						break;
-					default:
-				}
-				createLinkForClickableElement(item.id);
-				ClickableElementList.push(item);
+	//const {DropList, } = visudata;
+	visudata.DropList.forEach(el => {
+		const {VCOItem} = el;
+		if (VCOItem.clickable == true) {
+			const item = new Object();
+			item.x = el.x;
+			item.y = el.y;
+			item.clickable = true;
+			item.Bezeichnung = VCOItem.Bez.trim();
+			item.id = VCOItem.iD.trim();
+			item.h = el.BgHeight;
+			item.bitmapIndex = el.bmpIndex;
+			switch (item.Bezeichnung) {
+				case `HK`:
+				case `KES`:
+				case `BHK`:
+				case `WWL`:
+				case `WP`:
+					item.radius = 18;
+					break;
+				default:
 			}
-		});
-	}
-	catch(e){
-		log(e.message);
-	}    
+			createLinkForClickableElement(item.id);
+			ClickableElementList.push(item);
+		}
+	});
 }
 
 function parseProjectId(liveDataRaw) {
@@ -296,7 +217,11 @@ function parseDateTimeObject(liveDataRaw) {
 function parseAlarms(liveDataRaw, alarmTxtLength = 20) {
 	const alarms = liveDataRaw.match(/(STOE\s*\d+.{20})/g);
 	const result = [];
-	alarms.forEach(alarm => result.push(alarm.match(/(?<BezNr>\d+)(?<StoerungText>.+)/).groups));
+	alarms.forEach(alarm => {
+		const object = alarm.match(/(?<id>\d+)(?<txt>.+)/).groups;
+		object.txt = object.txt.trim();
+		result.push(object);
+	});
 	return result;
 }
 
@@ -350,19 +275,19 @@ There is no List data structure in Javascript so nested array will be use instea
 Datastructure of Visudownload will be nested array + array of object
 */
 //ehemals createVisudata(sText)
-function parseLiveData(liveDataRaw) {
-	console.log(liveDataRaw);
-	console.log(parseProjectId(liveDataRaw));
-	console.log(parseDateTimeObject(liveDataRaw));
-	console.log(parseAlarms(liveDataRaw));
-	const items = parseHKnames(liveDataRaw).concat(parseFaceplateBtns(liveDataRaw)).concat(parseMSRdata(liveDataRaw));
-	console.log(items);
-	
-	
-		
-	VisuDownload.Items = items;
-	VisuDownload.Projektnummer = parseProjectId(liveDataRaw);	
-	VisuDownload.Stoerungen = parseAlarms(liveDataRaw);
+function parseLiveData(liveDataRaw) {	
+	const dateTimeObject = parseDateTimeObject(liveDataRaw);
+	const liveData = {};
+	liveData.projectId = parseProjectId(liveDataRaw);
+	liveData.date = dateTimeObject.date;
+	liveData.time = dateTimeObject.time;
+	liveData.alarms = parseAlarms(liveDataRaw);
+	liveData.HKnames = parseHKnames(liveDataRaw);
+	liveData.faceplateBtns = parseFaceplateBtns(liveDataRaw);
+	liveData.msrData = parseMSRdata(liveDataRaw);
+	liveData.items = liveData.HKnames.concat(liveData.faceplateBtns).concat(liveData.msrData);
+	window.liveData = liveData;
+	return liveData;
 }
 
 //ehemals getVisuItemEinheit(i)
@@ -371,191 +296,19 @@ function unitFromInt(int) {
   	return (unit) ? unit : ``;
 }
 
-// click event on (Stat)canvas: Zaehler- und Störungsbutton
-function getPosition(event) {
-	var x = event.x - canvasOffsetX;
-	var y = event.y - canvasOffsetY;
-
-	//click event für das anstehende Störungen button
-	if (bmpIndex == 0 && ((x > xStoerButtonMin) && (x < xStoerButtonMax)) && ((y > yStoerButtonMin) && (y < yStoerButtonMax))) {
-
-
-		var vStatCanvas = document.getElementById("vStatCanvas");
-		var modal = document.getElementById('modalStoerung');
-		window.onclick = function (event) {
-			if (event.target == modal) {
-				modal.style.display = "none";
-			}
-		}
-
-		//alert(stoerungText);
-		if (stoerungText != "") {
-			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
-			document.getElementById("modalContent").style.width = '30%';
-			document.getElementById("modalBody").innerHTML =  "</br> <pre>" + stoerungText + "</pre>";//stoerungText ;
-			var span = document.getElementById("closeModalStoerung");
-			span.onclick = function () {
-				modal.style.display = "none";
-			}
-		}
-		else {
-			document.getElementById("modalHeader").innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
-			document.getElementById("modalContent").style.width = '30%';
-			document.getElementById("modalBody").innerHTML = "keine weiteren Störungen";
-			var span = document.getElementById("closeModalStoerung");
-			span.onclick = function () {
-				modal.style.display = "none";
-			}
-		}
-		modal.style.display = "block";
-
-	}
-
-	//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
-	if (bmpIndex == 0 && ((x > xZaehlerButtonNeuMin) && (x < xZaehlerButtonNeuMax)) && ((y > yZaehlerButtonNeuMin) && (y < yZaehlerButtonNeuMax))) {
-		//alert("on area");
-		var vStatCanvas = document.getElementById("vStatCanvas");
-		var modal = document.getElementById('modalZaehler');
-		window.onclick = function (event) {
-			if (event.target == modal) {
-				modal.style.display = "none";
-			}
-		}
-		//zähler holen
-		var prj = visudata.VCOData.Projektnumer;
-		var currentdate = new Date();
-		var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
-						+ (currentdate.getMonth() + 1) + "."
-						+ currentdate.getFullYear() + " : "
-						+ currentdate.getHours() + ":"
-						+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
-						//+ currentdate.getSeconds();
-		var dateMonthYear = currentdate.getDate() + "."
-						+ (currentdate.getMonth() + 1) + "."
-						+ currentdate.getFullYear();
-
-		var gesamtZaehler = getOnlinegesamtZaehler()
-		
-		if (gesamtZaehler != "") {
-			document.getElementById("modalHeaderZaehler").innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
-			document.getElementById("modalContenZaehler").style.width = '80%';
-			document.getElementById("aktuelleZaehler").innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
-	
-			var span = document.getElementById("closeModalZaehler");
-			span.onclick = function () {
-				modalZaehler.style.display = "none";
-			}
-
-		}
-		else {
-			
-			var aktuelleZaehler = getOnlineAktuellZaehler(prj)
-			document.getElementById("modalContenZaehler").style.width = '80%';
-			document.getElementById("aktuelleZaehler").innerHTML = "Keine Zählerdaten verfügbar";
-			closeModalZaehler();
-		}
-		modal.style.display = "block";
-	}
-
-}
-
-
-// Mouse Handler für Tooltip Anzeige & Cursor Darstellung (vimgArea)
-function handleMouseMove(e) {
-	
-	var mouseX = parseInt(e.clientX - canvasOffsetX);
-	var	mouseY = parseInt(e.clientY - canvasOffsetY);
-	
-	var currentBmpIndex = bmpIndex;
-	match = false;
-	var matchTT = false;
-	
-	for (var i = 0; i < LinkButtonList.length; i++) {
-		var item = LinkButtonList[i];
-		if (mouseX > item.x_min && mouseX < item.x_max && mouseY > item.y_min && mouseY < item.y_max) {
-			match = true;
-			i = LinkButtonList.length;
-		}
-	}
-
-	
-	for (var i = 0; i < tt_dots.length; i++) {
-		var dx = mouseX - tt_dots[i].x;
-		var dy = mouseY - tt_dots[i].y;
-		if (tt_dots[i].b) {							//Bool'sches Element?
-			dx = mouseX - (tt_dots[i].x - 15);		//Referenzpunkt der Bool'schen Grafiken für tt ungünstig
-			dy = mouseY - (tt_dots[i].y + 10);		//daher Verschiebung um 15 & 10px
-		}
-		var txt = tt_dots[i].t;
-		var index = tt_dots[i].index
-		if ((dx * dx < 1600) && (dy * dy < 200) && (dx > 0) && (dy < 0) && (index == currentBmpIndex)) {
-			
-			vtipCanvas.style.left = (tt_dots[i].x) + "px";
-			vtipCanvas.style.top = (tt_dots[i].y - 40) + "px";
-			tipvctx = vtipCanvas.getContext("2d");
-			tipvctx.clearRect(0, 0, vtipCanvas.width, vtipCanvas.height);
-			//                  tipvctx.rect(0,0,vtipCanvas.width,vtipCanvas.height);
-			
-			tipvctx.font = "13.5px Arial";			
-			vtipCanvas.width = tipvctx.measureText(txt).width;//(6 * txt.length + 22);
-			vtipCanvas.height = 20;
-			tipvctx.font = "12px Arial";
-			tipvctx.fillStyle = "#F1F1F1"; /*rgb(241, 241, 241); white gray*/
-			tipvctx.fillText(txt, 5, 14);
-			
-			match = true;
-			matchTT = true;
-			
-			i = tt_dots.length;
-		}
-		
-	}
-	
-	if (match) $(".vinsideWrapper").css("cursor", "pointer");	//Vorarbeit: Pointer als Cursor für zukünftige Visu Bedienung
-	
-	if (!matchTT) vtipCanvas.style.left = "-2000px";
-	
-	if (!match && !matchTT) $(".vinsideWrapper").css("cursor", "default");
-	
-}
-
-// Tooltip pushen
-function pushToolTip(px, py, txt, idx, isbool) {
-	tt_dots.push({
-		x: px,
-		y: py,
-		t: txt,
-		index: idx,
-		b: isbool
-	});
-}
-
-// Tooltipliste aufbauen
-function initTooltips() {
-	var x = visudata;
-	var y = x;
-	var DropList = visudata.DropList;
-
-	var n = DropList.length;
-	for (i = 0; i < n; i++) {
-		if (DropList[i].ToolTip.trim() != "")
-			pushToolTip(DropList[i].x, DropList[i].y, DropList[i].ToolTip, DropList[i].bmpIndex, DropList[i].VCOItem.isBool);
-	}
-}
-
-
 // Neuzeichnung anfordern (Timer ruft auf)
 function requestDrawing() {
 	requestDrawingFlag = true;
 }
 
 // Timer-Mechanik Darstellung und Animation
-var TimerVar = setInterval(function () { globalTimer() }, 100);
+//var TimerVar = setInterval(globalTimer , 1000, window.liveData);
 var TimerToggle = false;
 var TimerToggleCounter = 0;
 var TimerCounter = 0;
 
-function globalTimer() {
+function globalTimer(visudata, liveData) {
+	console.log(liveData);
 	if (requestDrawingFlag || hasSymbolsFlag) {
 		TimerCounter++;
 		if (TimerCounter > 10000)
@@ -567,7 +320,7 @@ function globalTimer() {
 			TimerToggleCounter = 0;
 			TimerToggle = !TimerToggle;
 		}
-		DrawVisu(requestDrawingFlag);
+		DrawVisu(visudata, liveData, requestDrawingFlag);
 		requestDrawingFlag = false;
 	}
 
@@ -575,8 +328,6 @@ function globalTimer() {
 
 
 // Diverse Zeichenfunktionen wie im Editor
-
-
 function fpButton(ctx, x, y, betrieb) {
     var notches = 7,                      // num. of notches
         radiusO = 12,                    // outer radius
@@ -964,155 +715,46 @@ function initBGColors() {
 }
 
 // Bitmap setzen
-function setBitmap(idx) {
-	$("#vimgTarget").remove();
-	$("#vimgArea").prepend("<img id='vimgTarget' src='" + visudata.VCOData.Bitmaps[idx].URL + "' class='vcoveredImage'>");
-	$(".vinsideWrapper").css("background-color", bgColors[bmpIndex]);
+function setBitmap(visudata, idx = 0) {
+	const vimgArea = document.querySelector(`#vimgArea`);
+	vimgArea.setAttribute(`BgIdx`, idx)
+	vimgArea.style.background = `no-repeat url(${visudata.VCOData.Bitmaps[idx].URL})`;
 }
 
 
-// Mousebutton Eventhandler für Bitmapwechsel
-function handleMouseDown(e) {
-	mx = parseInt(e.clientX - canvasOffsetX);
-	my = parseInt(e.clientY - canvasOffsetY);
-	var n = LinkButtonList.length;
-	match = false;							//Flag zur Click-treffer Erkennung (es ist nicht davon auszugehen, dass es keine doppelten Click-treffer gibt!)
-	if (!match) {
-		for (var i = 0; i < n; i++) {
-			var item = LinkButtonList[i];
-			if (mx > item.x_min && mx < item.x_max && my > item.y_min && my < item.y_max) {
-				match = true;
-				//log(item.x + " " + item.y);
-				//log(item.x_min + " " + item.x_max + " " + item.y_min + " " + item.y_max + " - " + mx + " / " + my);
-				
-				/*bmpIndex = item.bmp;
-				setBitmap(bmpIndex);
-				requestDrawing();*/
-				
-				if (bmpIndex != item.bmp) {
-					requestDrawing();
-					bmpIndex = item.bmp;
-					setBitmap(bmpIndex);
-				}
-			}
-		}
-	}
-	
-	if (!match) openFaceplate();	
-}
 
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
-function DrawVisu(redrawStat = false) {
+function DrawVisu(visudata, liveData, redrawStat = false) {
 	vDynCtx.clearRect(0, 0, vDynCanvas.width, vDynCanvas.height);
-	drawPropertyList();
+	drawPropertyList(visudata, liveData);
 	
 	if (redrawStat) {
 		vStatCtx.clearRect(0, 0, vStatCanvas.width, vStatCanvas.height);
-		drawTextList();
+		drawTextList(visudata);
 	}
 	
-}
-
-// Linkbutton in Liste eintragen
-function addLinkButtonToList(x, y, w, h, orientation, targetBmp, txt) {
-	var item = new Object();
-	item["txt"] = txt;
-	item["x"] = x;
-	item["y"] = y;
-	0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16
-	
-	//Referenzpunkt (x,y = TextBeginn unten links bei orientation==hor)
-	if (orientation == "hor") {
-		item["x_min"] = x - 6;
-		item["y_min"] = y - h - 6;
-		item["x_max"] = item.x_min + w + h;
-		item["y_max"] = item.y_min + 2 * h;
-		item["bmp"] = targetBmp;
-	}
-	if (orientation == "up") {		
-		item["x_min"] = x - h - 6;
-		item["y_max"] = y + 6;
-		item["y_min"] = item.y_max - w - h;
-		item["x_max"] = item.x_min + 2 * h;
-		item["bmp"] = targetBmp;
-	}
-	if (orientation == "dn") {		
-		item["x_max"] = x + h + 6;
-		item["y_min"] = y - 6;
-		item["x_min"] = item.x_max - 2 * h;
-		item["y_max"] = item.y_min + w + h;
-		item["bmp"] = targetBmp;
-	}
-	
-	// get coordinate of the stoerung button
-	if (txt == "anstehende Störungen") {
-		xStoerButtonMin = item.x_min;
-		xStoerButtonMax = item.x_max;
-		yStoerButtonMin = item.y_min;
-		yStoerButtonMax = item.y_max;
-	}
-	//get coordinate of button zähler archiv
-	if (txt == "Zähler Archiv") {
-		xArchivButton = item.x_min;
-		yArchivButton = item.y_min;
-		xArchivButtonBot = item.x_max;
-		yArchivButtonBot = item.y_max;
-	}
-
-	//get coordinate of button zähler anzeigen
-	if (txt == "Zähler anzeigen") { // & FreitextList[i].BgColor == "slateBlue ") {
-		xZaehlerButtonNeuMin = item.x_min;
-		yZaehlerButtonNeuMin = item.y_min;
-		xZaehlerButtonNeuMax = item.x_max;
-		yZaehlerButtonNeuMax = item.y_max;
-	}
-
-	//get coordinate of Button IPKamera1
-	if (txt == "IP Kamera 1") { // &  FreitextList[i].BgColor == "#ff9966") {
-		xIPKamera1Button = item.x_min;
-		yIPKamera1Button = item.y_min;
-		xIPkamera1ButtonBot = item.x_max;
-		yIPkamera1ButtonBot = item.y_max;
-	}
-
-	//get coordinate of Button IPKamera2
-	if (txt == "IP Kamera 2") { // & FreitextList[i].BgColor == "#ff9966") {
-		xIPKamera2Button = item.x_min;
-		yIPKamera2Button = item.y_min;
-		xIPkamera2ButtonBot = item.x_max;
-		yIPkamera2ButtonBot = item.y_max;
-	}
-	
-	//Anzeige des Clickbereichs für Button
-	//vStatCtx.fillRect(item["x_min"], item["y_min"], item["x_max"] - item["x_min"], item["y_max"] - item["y_min"]);
-
-	LinkButtonList.push(item);
 }
 
 // Gedroptes zeichen
-function _drawDropList() {
-	var DropList = visudata.DropList;
-
-	var n = DropList.length;
-	for (i = 0; i < n; i++) {
-		drawVCOItem(DropList[i]);
-	}
+function _drawDropList(visudata, liveData) {
+	visudata.DropList.forEach(el => drawVCOItem(el, liveData));
 }
 
 
 // Properties zeichnen incl. Symbole
-function drawVCOItem(item) {
-	if (VisuDownload.Items && item.bmpIndex === bmpIndex) {
+function drawVCOItem(item, liveData) {
+	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`BgIdx`));
+	if (liveData.items && item.bmpIndex === bmpIndex) {
 		const {VCOItem, x, y, SymbolFeature, Symbol} = item;
 		
-		const foundItem = VisuDownload.Items.find(el => el.Bezeichnung.trim() === VCOItem.Bez.trim() && parseInt(el.Kanal) === parseInt(VCOItem.Kanal));
+		const foundItem = liveData.items.find(el => el.Bezeichnung.trim() === VCOItem.Bez.trim() && parseInt(el.Kanal) === parseInt(VCOItem.Kanal));
 		if (foundItem) {
 			const value = parseFloat(foundItem.Wert);
 			
 			if (foundItem.Bezeichnung.trim() === `GA`) {
-				const warnGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
-				const stoerGrenze = parseFloat(VisuDownload.Items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
+				const warnGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
+				const stoerGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
 				if (warnGrenze || stoerGrenze) {
 					item.bgColor = 	(value > stoerGrenze) ? `#fc1803` :
 									(value < stoerGrenze && value > warnGrenze) ? `#fcdf03` :
@@ -1121,162 +763,263 @@ function drawVCOItem(item) {
 			}
 			
 			if (VCOItem.isBool) {
-				if (Symbol.match(/(fpButton)|(Heizkreis)/))
+				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
 					fpButton(vDynCtx, x, y, value);
-				
-				if (Symbol === "Absenkung")
+				}
+				else if (Symbol === "Absenkung") {
 					Absenkung(vDynCtx, x, y, 1, value);
-					
-				if (Symbol === "Feuer" && value)
+				}
+				else if (Symbol === "Feuer" && value) {
 					feuer(vDynCtx, x, y, 1);
-					
-				if (Symbol === "BHKW")
+				}
+				else if (Symbol === "BHKW") {
 					BHDreh(vDynCtx, x, y, 1, value * TimerCounter * 30);
-					
-				if (Symbol === "Pumpe") 
+				}
+				else if (Symbol === "Pumpe") {
 					pmpDreh2(vDynCtx, x, y, 1, value * TimerCounter * 30);
-					
-				const rotation =    (SymbolFeature === "Rechts") ? 180 :
-									(SymbolFeature === "Oben") ? 90 :
-									(SymbolFeature === "Unten") ? 270 : 0;
-					
-				if (Symbol === "Luefter") {
-					const angle = (value) ? TimerCounter * 30 : 30;
-					luefter(vDynCtx, x, y, 1, angle, rotation);
 				}
-				
-				if (Symbol === "Ventil" && value)
-					ventil(vDynCtx, x, y, 1, rotation);
-				if (Symbol === "VentilFilled" && value)
-					ventilFilled(vDynCtx, x, y, 1, rotation);
-				
-				if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
-					const val = (value === 1) ? 100 : value;
-					lueftungsklappe(vDynCtx, x, y, 1, val, rotation);                            
-				}
-				
-				if (Symbol === "Schalter")
-					schalter(vDynCtx, x, y, 1, value, rotation);
-
-				if (Symbol === "Freitext")
-					freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
-
-					if (Symbol === "Led") {
+				else {					
+					const rotation = (SymbolFeature === "Rechts") ? 180 :
+									 (SymbolFeature === "Oben") ? 90 :
+									 (SymbolFeature === "Unten") ? 270 : 0;
+					
+					if (Symbol === "Luefter") {
+						const angle = (value) ? TimerCounter * 30 : 30;
+						luefter(vDynCtx, x, y, 1, angle, rotation);
+					}
+					else if (Symbol === "Ventil" && value) {
+						ventil(vDynCtx, x, y, 1, rotation);
+					}
+					else if (Symbol === "VentilFilled" && value) {
+						ventilFilled(vDynCtx, x, y, 1, rotation);
+					}					
+					else if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
+						const val = (value === 1) ? 100 : value;
+						lueftungsklappe(vDynCtx, x, y, 1, val, rotation);                            
+					}
+					else if (Symbol === "Schalter") {
+						schalter(vDynCtx, x, y, 1, value, rotation);
+					}
+					else if (Symbol === "Freitext") {
+						freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
+					}
+					else if (Symbol === "Led") {
 						const color = 	(SymbolFeature.match(/(\/rot)/) && value) ? `red` :
 										(SymbolFeature.match(/(rot\/)/) && !value) ? `red` :
 										(SymbolFeature.match(/(\/gruen)/) && value) ? `green` :
 										(SymbolFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
-						if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle)))
+						if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle))) {
 							Led(vDynCtx, x, y, 1, color);
+						}
 					}
 					
 					hasSymbolsFlag = true;
 				}
-				else {
-					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
-					const txt = `${svalue} ${VCOItem.sEinheit.replace(`^3`, `³`)}`;
-					vDynCtx.font = item.font;
-					const w = vDynCtx.measureText(txt).width;
-					vDynCtx.fillStyle = item.BgColor;
-					if (item.BgColor && !item.BgColor.match(/(#BEBEBE)|(#E0E0E0)/))
-					vDynCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-					vDynCtx.fillStyle = item.Color;
-					vDynCtx.fillText(txt, x, y);
-				}
-		}
-	}
-}
-
-// Aufruf Funktion
-function drawPropertyList() {
-	_drawDropList();
-}
-
-// Aufruf Funktion
-function drawTextList() {
-	var FreitextList = visudata.FreitextList;
-	var n = FreitextList.length;
-	LinkButtonList = [];	//LinkButtonList leeren -> wird nachfolgend neu erzeugt
-	for (i = 0; i < n; i++) {
-		var item = FreitextList[i];
-		if (FreitextList[i].bmpIndex == bmpIndex) {
-			var x = item.x;
-			var y = item.y;
-			var txt = item.Freitext;
-			vStatCtx.font = item.font;
-			vStatCtx.fillStyle = item.BgColor;
-			var w = vStatCtx.measureText(txt).width;
-
-			if (item.isVerweis) {
-				vStatCtx.save();
-				vStatCtx.translate(x, y);
-				if (item.VerweisAusrichtung == "up")
-					vStatCtx.rotate(-Math.PI / 2);
-				if (item.VerweisAusrichtung == "dn")
-					vStatCtx.rotate(Math.PI / 2);
-				if (item.BgColor) vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vStatCtx.strokeStyle = "black";
-				vStatCtx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vStatCtx.fillStyle = item.Color;
-				vStatCtx.fillText(txt, 0, 0);
-				vStatCtx.restore();
-				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap, txt);
 			}
 			else {
-				if (item.BgColor) vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-				vStatCtx.fillStyle = item.Color;
-				vStatCtx.fillText(txt, x, y);
+				const vimgArea = document.querySelector(`#vimgArea`);
+				const msr = `${VCOItem.Bez.trim()}${parseInt(VCOItem.Kanal)}`;
+				const existingLbl = document.querySelector(`.${msr}`);
+				if (existingLbl) {
+					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
+					existingLbl.innerText = `${svalue} ${VCOItem.sEinheit.replace(`^3`, `³`)}`;
+				}
+				else {
+					const htmlEl = document.createElement(`label`);
+					vimgArea.appendChild(htmlEl);
+					htmlEl.classList.add(`visuTxtElement`, msr);
+					htmlEl.style.font = item.font;
+					htmlEl.style.color = item.Color;
+					if (item.BgColor && !item.BgColor.match(/(#BEBEBE)|(#E0E0E0)/)) {
+						htmlEl.style.background = item.BgColor;
+					}
+					
+					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
+					htmlEl.innerText = `${svalue} ${VCOItem.sEinheit.replace(`^3`, `³`)}`;
+					
+					htmlEl.title = item.ToolTip.replace(`<<<`, ``).trim();
+					
+					htmlEl.style.left = `${item.x}px`;
+					htmlEl.style.top = `${item.y - parseInt(item.font)}px`;
+				}
 			}
 		}
 	}
 }
 
-
-// 
-
-// Loggen
-function log(s) {
-	$('#output').append(new Date().toLocaleTimeString() + " " + s + "<br />");
-	//var objDiv = document.getElementById("output");
-	//objDiv.scrollTop = objDiv.scrollHeight;
+// Aufruf Funktion
+function drawPropertyList(visudata, liveData) {
+	_drawDropList(visudata, liveData);
 }
 
+// Aufruf Funktion
+function drawTextList(visudata) {
+	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`BgIdx`));
+	visudata.FreitextList.forEach(txtEl => {
+		if (txtEl.bmpIndex == bmpIndex) {
+			//htmlElements
+			const vimgArea = document.querySelector(`#vimgArea`);
+			const htmlEl = document.createElement(`${(txtEl.isVerweis) ? 'input' : 'label'}`);
+			vimgArea.appendChild(htmlEl);
+			htmlEl.classList.add(`visuTxtElement`);
+			htmlEl.style.font = txtEl.font;
+			htmlEl.style.color = txtEl.Color;
+			htmlEl.style.background = txtEl.BgColor;
+
+			const rotation = (txtEl.VerweisAusrichtung == "up") ? -90 : (txtEl.VerweisAusrichtung == "dn") ? 90 : undefined;
+			if (rotation) {
+				//ToDo: translate Calc!
+				htmlEl.style.transform = `rotate(${rotation}deg) translate(0px, 0px)`;
+			}
+			
+			const paddingAsPx = (txtEl.isVerweis) ? 6 : 0;
+			htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
+			htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
+			
+			if (txtEl.isVerweis) {
+				htmlEl.type = `button`;
+				htmlEl.value = txtEl.Freitext;
+
+				const link = (txtEl.Freitext.includes(`anstehende Störungen`)) ? `alarms` :
+							 (txtEl.Freitext.includes(`Zähler anzeigen`)) ? `counter` :
+							 (txtEl.Freitext.includes(`Zähler Archiv`)) ? `counterArchive` :
+							 (txtEl.Freitext.includes(`IP Kamera`)) ? `IPcamera` :
+							 parseInt(txtEl.idxVerweisBitmap);
+				htmlEl.setAttribute(`link`, link);
+				htmlEl.addEventListener(`click`, visuBtnClickEventHandler);
+			}
+			else {
+				htmlEl.innerText = txtEl.Freitext;
+			}
+		}
+	});
+}
+
+function visuBtnClickEventHandler(ev) {
+	const link = ev.target.getAttribute(`link`);
+	const linkBgIdx = parseInt(link);
+	if (Number.isNaN(linkBgIdx)) {
+		/*
+		window.addEventListener(`click`, (ev) => {
+			if (ev.target == modal) {
+				modal.style.display = "none";
+			}
+		});
+
+
+		if (link === `alarms`) {
+			const modal = document.querySelector(`#modalStoerung`);
+			const h5 = document.createElement(`h5`);
+			modal.appendChild(h5);
+			h5.innerText = `Aktuelle Störungen`;
+			
+
+			if (window.stoerungText != "") {
+				document.querySelector(`#modalHeader`).innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
+				document.querySelector(`#modalContent`).style.width = '30%';
+				document.querySelector(`#modalBody`).innerHTML =  "</br> <pre>" + window.stoerungText + "</pre>";
+				var span = document.querySelector(`#closeModalStoerung`);
+				span.onclick = function () {
+					modal.style.display = "none";
+				}
+			}
+			else {
+				document.querySelector(`#modalHeader`).innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
+				document.querySelector(`#modalContent`).style.width = '30%';
+				document.querySelector(`#modalBody`).innerHTML = "keine weiteren Störungen";
+				var span = document.querySelector(`#closeModalStoerung`);
+				span.onclick = function () {
+					modal.style.display = "none";
+				}
+			}
+			modal.style.display = "block";
+
+		}
+
+		
+
+	}
+	else if (link === `counter`) {
+		//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
+		if (bmpIndex == 0 && ((x > xZaehlerButtonNeuMin) && (x < xZaehlerButtonNeuMax)) && ((y > yZaehlerButtonNeuMin) && (y < yZaehlerButtonNeuMax))) {
+			var modal = document.querySelector(`#modalZaehler`);
+			window.onclick = function (event) {
+				if (event.target == modal) {
+					modal.style.display = "none";
+				}
+			}
+			//zähler holen
+			var prj = visudata.VCOData.Projektnumer;
+			var currentdate = new Date();
+			var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
+							+ (currentdate.getMonth() + 1) + "."
+							+ currentdate.getFullYear() + " : "
+							+ currentdate.getHours() + ":"
+							+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
+							//+ currentdate.getSeconds();
+			var dateMonthYear = currentdate.getDate() + "."
+							+ (currentdate.getMonth() + 1) + "."
+							+ currentdate.getFullYear();
+
+			var gesamtZaehler = getOnlinegesamtZaehler()
+			
+			if (gesamtZaehler != "") {
+				document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
+				document.querySelector(`#modalContenZaehler`).style.width = '80%';
+				document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
+		
+				var span = document.querySelector(`#closeModalZaehler`);
+				span.onclick = function () {
+					modalZaehler.style.display = "none";
+				}
+
+			}
+			else {
+				
+				var aktuelleZaehler = getOnlineAktuellZaehler(prj)
+				document.querySelector(`#modalContenZaehler`).style.width = '80%';
+				document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
+				closeModalZaehler();
+			}
+			modal.style.display = "block";
+		}
+
+	}
+	else if (link === `counterArchive`) {
+		
+	}
+	else if (link === `IPcamera`) {
+	*/	
+	}
+	else {		
+		const bgIdx = parseInt(document.querySelector(`#vimgArea`).getAttribute(`BgIdx`));
+		if (bgIdx !== parseInt(link)) {
+			requestDrawing();
+			const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
+			setBitmap(visudata, parseInt(link));
+		}	
+	}
+}
 
 function ReloadData() {
 	var date = new Date();
 	var rawvisuData = readFromTextFile(visuDataFile);
-	parseLiveData(rawvisuData);
+	const liveData = parseLiveData(rawvisuData);
+
+	//Read deployed visufile /visu/visu.txt 
+	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 
 	if (rawvisuData != "") {
-		DrawVisu();
+		DrawVisu(visudata, liveData);
 		document.querySelector('#vupdateStatus-bar').style.color = 'black';
 		document.querySelector('#vupdateStatus-info').textContent = 'Letzte Datenaktualisierung: ' + date.toLocaleString("de-DE");
-		//console.log("Letzte Datenaktualisierung:" + Date().toLocaleString());
 	}
 	else
 	{
 		document.querySelector('#vupdateStatus-bar').style.color = 'red';
 		if(document.querySelector('#vupdateStatus-info').textContent == " ") document.querySelector('#vupdateStatus-info').textContent = 'Datenaktualisierung fehlgeschlagen!';
-		//console.log("Datenaktualisierung fehlgeschlagen!");
 	}
 }
-
-function toggleBools() {
-	var x = VisuDownload;
-	var n = VisuDownload.Items.length;
-	for (i = 0; i < n; i++) {
-		var itm = VisuDownload.Items[i];
-		if (itm.isBool == true) {
-
-			itm.BooVal = !itm.BooVal;
-			if (itm.Wert == 1)
-				itm.Wert = 0;
-			else
-				itm.Wert = 1;
-		}
-	};
-}
-
 
 function UpdateLabelMouseOverHandler() {
 	$('#xlabel').css("background-color", "red");
@@ -1348,18 +1091,15 @@ function pinUnlock(id) {
   txtPin.value = "";  
   txtPin.focus();
   showElemementById('osk');
-  //console.log(modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK, modal.offsetTop, modal.offsetHeight, OFFSET_MODAL_2_OSK);
   osk.style.top = modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK + 'px';
   osk.style.left = modal.offsetLeft + modal.offsetWidth - osk.offsetWidth + 'px';  
 }
 
 function switchPinFocus(value) {
-  //console.log(value);
   if (value.length >= 4) document.getElementById("btnPinConfirm").focus();
 }
 
 function handlePinVisibility(checked) {
-  //console.log(checked);
   var txtPin = document.getElementById("txtPin");
   checked ? txtPin.type = "password" : txtPin.type = "text";
 }
@@ -1367,7 +1107,6 @@ function handlePinVisibility(checked) {
 function checkPin() {
   var txtPin = document.getElementById("txtPin");
   let hash = readFromTextFile(HASH_FILE);
-  if(DEBUG) console.log(txtPin.value, md5(txtPin.value), hash);
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");
@@ -1403,9 +1142,7 @@ function sendDataToRtos(target) {
 	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
 	if (id === `calenderBtn` || id === `triggerBtnTagbetrieb`) {
 		const foundEl = ClickableElement.find(el => idx === el.idx);
-		//console.log(parseInt(foundEl.wert.trim()), parseInt(foundEl.wert));
 		const divRtosVar = target.closest(`.divRtosVar`);
-		//console.log(divRtosVar, divRtosVar.wert);
 		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
 	}
 	else {
@@ -1420,10 +1157,8 @@ function sendDataToRtos(target) {
 	
 	ClickableElement.forEach(el => {
 		const rtosVar = `"${el.name}${el.wert}${el.oberGrenze}${el.unterGrenze}${el.nachKommaStellen}${el.einheit}${el.sectionIndicator}"`;
-		//console.log(rtosVar);
 		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
 		const ans = sendData(url);
-		//console.log(url);
 		if (!ans.includes('OK'))
 			console.error(ans);
 	}); 
@@ -1493,7 +1228,6 @@ async function asyncSleep(fn, delay, ...args) {
 async function openFaceplate() {
 	/*SettingsFromVisualisierung*/
 	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
-	//console.log(ClickableElementList);
 	
 	matchItem = ClickableElementList.find(el => {
 		const {x, y, radius, bitmapIndex} = el;
@@ -1501,7 +1235,6 @@ async function openFaceplate() {
 		dy = my - y;
 		return (bitmapIndex === bmpIndex && dx * dx + dy * dy < radius * radius);
 	});
-	//console.log(matchItem);
 	
 	if (matchItem) {
 		const body = document.querySelector(`body`);
@@ -1513,7 +1246,6 @@ async function openFaceplate() {
 		try {
 			const test = await fetchData(clickableElementUrl);
 			const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
-			//console.log(adjustmentOptions.v070.slice(0,5), clickableElementUrl.slice(-5))
 			if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
 				ClickableElement = [];
 				Object.entries(adjustmentOptions).forEach(([key, value]) => {
@@ -1574,7 +1306,6 @@ function convertRGBArrayToHex(rgb) {
 }
 
 function calcColor(percentVal, minColorHex = `#1F94B9`, maxColorHex = `#C31D64`) {
-	//console.log(percentVal, minColorHex, maxColorHex);
 	percentVal = constrain(percentVal, 0, 100);
 
 	const minColorRGB = convertHexToRGBArray(minColorHex);
@@ -1583,9 +1314,7 @@ function calcColor(percentVal, minColorHex = `#1F94B9`, maxColorHex = `#C31D64`)
 						Math.round(percentVal/100 * (maxColorRGB[1] - minColorRGB[1]) + minColorRGB[1]),
 						Math.round(percentVal/100 * (maxColorRGB[2] - minColorRGB[2]) + minColorRGB[2])
 						];
-	//console.log(retColorRGB);
 	const retColorHex = convertRGBArrayToHex(retColorRGB);
-	//console.log(retColorHex);
 	return retColorHex;
 }
 
@@ -1595,7 +1324,6 @@ function sliderStyling(target) {
 	const percentVal = (value - min) / (max - min) * 100;
 	const _minColor = (disabled) ? '#C0C0C0' : minColor;
 	const currentColor = (disabled) ? '#C0C0C0' : calcColor(percentVal, minColor, maxColor);
-	//console.log(target);
 	if (!disabled) {
 		if (maxColor == '#C31D64') {
 			classList.remove('quarter', 'half', 'threequarter', 'full');
@@ -1611,12 +1339,10 @@ function sliderStyling(target) {
 		}		
 	}
 	
-	//console.log(currentColor);
 	target.style.background = `linear-gradient(to right, ${_minColor} 0%, ${currentColor} ${percentVal}%, #E0E0E0 ${percentVal}%, #E0E0E0 100%)`;
 }
 
 function sliderHandler(target) {	//sliderHandler
-	//console.log(target.value);
 	sliderStyling(target);
 	const {min, max} = target;
 
@@ -1641,7 +1367,6 @@ function sliderHandler(target) {	//sliderHandler
 }
 function sliderAdjustValueBtnEventHandler(ev) {
 	const {type, target} = ev;
-	console.log(ev.type);
 	if (type.match(/(touchstart)/))
 		ev.preventDefault();
 	if (!target.timerMousePressed && type.match(/(mousedown|touchstart)/)) {
@@ -1656,8 +1381,6 @@ function sliderAdjustValueBtnEventHandler(ev) {
 function sliderAdjustValueBtnHandler(target) {
 	const slider = Array.from(target.parentElement.childNodes).find(el => (el.type === `range`));
 	
-	//const slider = (target.classList.contains(`btnDec`)) ? target.nextElementSibling : target.previousElementSibling;
-	//console.log(slider, target.wert);
 	slider.value = parseFloat(slider.value) + parseFloat(target.wert);
 	//Sonderfall Analogmischer
 	if (slider.unit == '%' && slider.value == 0)
@@ -1666,7 +1389,6 @@ function sliderAdjustValueBtnHandler(target) {
 }
 
 function radioBtnByName(target) {
-	//console.log(target);
 	const {idx, name, id} = target;		
 	
 	//var changedBtns = [];
@@ -1691,7 +1413,6 @@ function radioBtnByName(target) {
 
 function toggleSliderAbilityByBtnHand(target) {	
 	const enabled = target.className.toUpperCase().includes('HAND');
-	//console.log(target.parentElement.childNodes);
 	const relevantSiblings = Array.from(target.parentElement.childNodes).filter(el => (el.type === `range` || el.classList.contains(`btnIncDec`)));
 	relevantSiblings.forEach(el => {
 		el.disabled = !enabled;
@@ -1714,7 +1435,6 @@ function controlGroupBtnHandler(target) {
 	radioBtnByName(target);
 	toggleSliderAbilityByBtnHand(target);
 	updateLblUnit(target);
-	//console.log(btn);
 }
 
 function createControlGroup(el) {
@@ -1791,7 +1511,6 @@ function createControlGroup(el) {
 		});
 	}
 	
-	//console.log(range);
 	//let checkedBtn;
 	switch (range) {			
 		//createTriggerBtn (Einmalig...); radioBtnByName
@@ -1929,7 +1648,6 @@ function createControlGroup(el) {
 }
 
 function initControlGroup(divRtosVar) {
-	//console.log(divRtosVar);
 	const {initCheckedBtn} = divRtosVar;
 	const slider = divRtosVar.querySelector(`[type = "range"]`);
 	
@@ -1950,7 +1668,6 @@ function buildFaceplate() {
 	
 	let fpSection;
 	ClickableElement.forEach(el => {
-		//console.log(el);
 		const wert = (el.wert) ? el.wert.trim() : undefined;
 		const name = (el.name) ? el.name.trim() : undefined;
 		

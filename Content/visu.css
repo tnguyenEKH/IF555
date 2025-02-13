@@ -1,3 +1,10 @@
+/*******************upgrade JW*******************/
+.visuTxtElement {
+	position: absolute;
+}
+input[type = "button"].visuTxtElement {
+	padding: 6px;
+}
 /*******************24016 JW: cursor appearance start*******************/
 [cursorStyle = "progress"] {
     cursor: progress;
