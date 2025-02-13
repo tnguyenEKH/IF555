@@ -1,50 +1,16 @@
-var DEVMODE = false; //no Lock/AutoLock
-var DEBUG = false;
-var FORCE_ANALOGMISCHER = false;
+const DEVMODE = false; //no Lock/AutoLock
+const DEBUG = false;
+const FORCE_ANALOGMISCHER = false;
 
-const DEPLOYED_VISU_FILE = "./Visu/Visu.txt";
-var visuDataFile = "./DATA/visdat.txt";
-var zahlerDataFile = "./DATA/zaehl.txt";
+const DEPLOYED_VISU_FILE = `./Visu/Visu.txt`;
+const LIVE_DATA_URL = `./DATA/visdat.txt`;
+const COUNTER_URL = `./DATA/zaehl.txt`;
 // Diverse globale Variablen
 // Vorgehensweise analog zu der in VCO_Edit.aspx
-var prj;
-var IdVisu;
-var vDynCanvas;
-var vStatCanvas;
-var vDynCtx;
-var vStatCtx;
-var bmpIndex = 0;
-var LinkButtonList = [];
-var canvasOffset;
-var canvasOffsetX;
-var canvasOffsetY;
-var requestDrawingFlag = false;
-var bgColors = [];
-var hasSymbolsFlag = false;
-var vtipCanvas;
-var tipvctx;
-var tt_dots = []; // Liste der tooltips: Koordinate und Text and BitmapIndex
-var waitReloadMS = 5000;
-var nReloadCycles = 0;
-var maxReloadCycles = 100;
-var bAutoReload;
-var ReloadTimerVar;
-var showLog;
-var hInit;
-var wInit;
-var startAngle = 1.1 * Math.PI;
-var endAngle = 1.9 * Math.PI;
-var stoerungen;
-var xStoerButtonMin;
-var yStoerButtonMin;
-var xStoerButtonMax;
-var yStoerButtonMax;
-var xZaehlerButtonNeuMin;
-var xZaehlerButtonNeuMax;
-var yZaehlerButtonNeuMin;
-var yZaehlerButtonNeuMax;
-var match;
 
+
+var requestDrawingFlag = false;
+var hasSymbolsFlag = false;
 
 
 //Einstellungen Visualisierungen
@@ -78,7 +44,7 @@ function copyToClip() {
 
 function getOnlinegesamtZaehler()
 {
-	res = readFromTextFile(zahlerDataFile);
+	res = readFromTextFile(COUNTER_URL);
     var resWithoutDate = res.substring(41);//27
 	var index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
 	return resWithoutDate.substr(0, index -1);
@@ -102,42 +68,23 @@ function closeModalZaehler() {
 	}
 }
 
-function initVisu()
-{
-	wInit = window.outerWidth;
-	hInit = window.outerHeight;
-	bAutoReload = false;
-	
-	vStatCanvas = document.getElementById('vStatCanvas');
+function initVisu() {	
+	const vStatCanvas = document.querySelector(`#vStatCanvas`);
 	vStatCanvas.width = 1400;
 	vStatCanvas.height = 630;
-	vStatCtx = vStatCanvas.getContext('2d');
 	
-	vDynCanvas = document.getElementById('vDynCanvas');
+	const vDynCanvas = document.querySelector(`#vDynCanvas`);
 	vDynCanvas.width = 1400;
 	vDynCanvas.height = 630;
-	vDynCtx = vDynCanvas.getContext('2d');
 
-	vtipCanvas = document.getElementById("vtipCanvas");
-	vtipCanvas.width = 170;
-	vtipCanvas.height = 25;
-	vtipCanvas.style.left = "-2000px";
-	tipvctx = vtipCanvas.getContext("2d");
+	
 
-	canvasOffset = $("body").offset(); //$("vinsideWrapper").offset();
-	canvasOffsetX = canvasOffset.left;
-	canvasOffsetY = canvasOffset.top + $(".tab").height() + 2 * parseInt($(".tab").css('border-bottom-width')) + parseInt($(".tab").css('margin-bottom'));	// + $(".tab").marginBottom;
 	
 	
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
 	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
-	if (visudata != ''){
-		prj = visudata.VCOData.Projektnumer;
-	}
-	else{
-		prj = '';
-	} 
+	
 		
 	/*SettingsFromVisualisierung*/
 	addClickableElementToList(visudata);			
@@ -149,7 +96,7 @@ function initVisu()
 
 function startVisu() {
 	//read visudata from visdat.txt
-	const liveDataRaw = readFromTextFile(visuDataFile);
+	const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
 	//create visuitem from rawdata
 	//remove all json parser coz lokale data tranfer
 	const liveData = parseLiveData(liveDataRaw);
@@ -176,7 +123,6 @@ function createLinkForClickableElement(id) {
 
 // Linkbutton in Liste eintragen
 function addClickableElementToList(visudata) {
-	//const {DropList, } = visudata;
 	visudata.DropList.forEach(el => {
 		const {VCOItem} = el;
 		if (VCOItem.clickable == true) {
@@ -511,7 +457,7 @@ function pmpDreh2(ctx, x, y, scale, rot) {
 	ctx.fill();
 	ctx.closePath();
 	ctx.beginPath();
-	ctx.arc(0, 0, 6, startAngle, endAngle, true);
+	ctx.arc(0, 0, 6, 1.1 * Math.PI, 1.9 * Math.PI, true);
 	ctx.lineTo(0, 0);
 	ctx.fillStyle = 'white';
 	ctx.fill();
@@ -703,17 +649,6 @@ function freitext(ctx, x, y, scale, font, color, txt, bgHeight, bgColor, active)
     ctx.restore();
 }
 
-
-// Hintergrundfarbe setzen
-function initBGColors() {
-	var n = visudata.VCOData.Bitmaps.length;
-	for (var i = 0; i < n; i++) {
-		var url = visudata.VCOData.Bitmaps[i].URL;
-		var bgcol = getBGColor(url);
-		bgColors.push(bgcol);
-	}
-}
-
 // Bitmap setzen
 function switchVisuTab(visudata, idx = 0) {
 	const vimgArea = document.querySelector(`#vimgArea`);
@@ -727,10 +662,14 @@ function switchVisuTab(visudata, idx = 0) {
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
 function DrawVisu(visudata, liveData, redrawStat = false) {
+	const vDynCanvas = document.querySelector(`#vDynCanvas`);
+	const vDynCtx = vDynCanvas.getContext('2d');
 	vDynCtx.clearRect(0, 0, vDynCanvas.width, vDynCanvas.height);
 	drawPropertyList(visudata, liveData);
 	
 	if (redrawStat) {
+		const vStatCanvas = document.querySelector(`#vStatCanvas`);
+		const vStatCtx = vStatCanvas.getContext('2d');
 		vStatCtx.clearRect(0, 0, vStatCanvas.width, vStatCanvas.height);
 		drawTextList(visudata);
 	}
@@ -764,6 +703,8 @@ function drawVCOItem(item, liveData) {
 			}
 			
 			if (VCOItem.isBool && item.bmpIndex === bmpIndex) {
+				const vDynCanvas = document.querySelector(`#vDynCanvas`);
+				const vDynCtx = vDynCanvas.getContext('2d');
 				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
 					fpButton(vDynCtx, x, y, value);
 				}
@@ -944,48 +885,46 @@ function visuBtnClickEventHandler(ev) {
 	}
 	else if (link === `counter`) {
 		//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
-		if (bmpIndex == 0 && ((x > xZaehlerButtonNeuMin) && (x < xZaehlerButtonNeuMax)) && ((y > yZaehlerButtonNeuMin) && (y < yZaehlerButtonNeuMax))) {
-			var modal = document.querySelector(`#modalZaehler`);
-			window.onclick = function (event) {
-				if (event.target == modal) {
-					modal.style.display = "none";
-				}
+		var modal = document.querySelector(`#modalZaehler`);
+		window.onclick = function (event) {
+			if (event.target == modal) {
+				modal.style.display = "none";
 			}
-			//zähler holen
-			var prj = visudata.VCOData.Projektnumer;
-			var currentdate = new Date();
-			var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
-							+ (currentdate.getMonth() + 1) + "."
-							+ currentdate.getFullYear() + " : "
-							+ currentdate.getHours() + ":"
-							+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
-							//+ currentdate.getSeconds();
-			var dateMonthYear = currentdate.getDate() + "."
-							+ (currentdate.getMonth() + 1) + "."
-							+ currentdate.getFullYear();
-
-			var gesamtZaehler = getOnlinegesamtZaehler()
-			
-			if (gesamtZaehler != "") {
-				document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
-				document.querySelector(`#modalContenZaehler`).style.width = '80%';
-				document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
-		
-				var span = document.querySelector(`#closeModalZaehler`);
-				span.onclick = function () {
-					modalZaehler.style.display = "none";
-				}
-
-			}
-			else {
-				
-				var aktuelleZaehler = getOnlineAktuellZaehler(prj)
-				document.querySelector(`#modalContenZaehler`).style.width = '80%';
-				document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
-				closeModalZaehler();
-			}
-			modal.style.display = "block";
 		}
+		//zähler holen
+		
+		var currentdate = new Date();
+		var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
+						+ (currentdate.getMonth() + 1) + "."
+						+ currentdate.getFullYear() + " : "
+						+ currentdate.getHours() + ":"
+						+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
+						//+ currentdate.getSeconds();
+		var dateMonthYear = currentdate.getDate() + "."
+						+ (currentdate.getMonth() + 1) + "."
+						+ currentdate.getFullYear();
+
+		var gesamtZaehler = getOnlinegesamtZaehler()
+		
+		if (gesamtZaehler != "") {
+			document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
+			document.querySelector(`#modalContenZaehler`).style.width = '80%';
+			document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
+	
+			var span = document.querySelector(`#closeModalZaehler`);
+			span.onclick = function () {
+				modalZaehler.style.display = "none";
+			}
+
+		}
+		else {
+			const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
+			const aktuelleZaehler = getOnlineAktuellZaehler(visudata.VCOData.Projektnumer);
+			document.querySelector(`#modalContenZaehler`).style.width = '80%';
+			document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
+			closeModalZaehler();
+		}
+		modal.style.display = "block";
 
 	}
 	else if (link === `counterArchive`) {
@@ -1006,7 +945,7 @@ function visuBtnClickEventHandler(ev) {
 
 function ReloadData() {
 	var date = new Date();
-	var rawvisuData = readFromTextFile(visuDataFile);
+	var rawvisuData = readFromTextFile(LIVE_DATA_URL);
 	const liveData = parseLiveData(rawvisuData);
 
 	//Read deployed visufile /visu/visu.txt 
@@ -1231,7 +1170,7 @@ async function asyncSleep(fn, delay, ...args) {
 async function openFaceplate() {
 	/*SettingsFromVisualisierung*/
 	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
-	
+	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
 	matchItem = ClickableElementList.find(el => {
 		const {x, y, radius, bitmapIndex} = el;
 		dx = mx - x;
