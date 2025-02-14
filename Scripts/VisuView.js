@@ -69,10 +69,6 @@ function closeModalZaehler() {
 }
 
 function initVisu() {	
-	const vStatCanvas = document.querySelector(`#vStatCanvas`);
-	vStatCanvas.width = 1400;
-	vStatCanvas.height = 630;
-	
 	const vDynCanvas = document.querySelector(`#vDynCanvas`);
 	vDynCanvas.width = 1400;
 	vDynCanvas.height = 630;
@@ -95,15 +91,9 @@ function initVisu() {
 
 
 function startVisu() {
-	//read visudata from visdat.txt
 	const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
-	//create visuitem from rawdata
-	//remove all json parser coz lokale data tranfer
 	const liveData = parseLiveData(liveDataRaw);
-	window.stoerungText = ``;
-	liveData.alarms.forEach(alarm => window.stoerungText += `${alarm.id}. ${alarm.txt}\n`);
-
-	//Read deployed visufile /visu/visu.txt 
+	
 	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 	
 	DrawVisu(visudata, liveData, true);
@@ -668,9 +658,6 @@ function DrawVisu(visudata, liveData, redrawStat = false) {
 	drawPropertyList(visudata, liveData);
 	
 	if (redrawStat) {
-		const vStatCanvas = document.querySelector(`#vStatCanvas`);
-		const vStatCtx = vStatCanvas.getContext('2d');
-		vStatCtx.clearRect(0, 0, vStatCanvas.width, vStatCanvas.height);
 		drawTextList(visudata);
 	}
 	
@@ -843,96 +830,58 @@ function visuBtnClickEventHandler(ev) {
 	const link = ev.target.getAttribute(`link`);
 	const linkBgIdx = parseInt(link);
 	if (Number.isNaN(linkBgIdx)) {
-		/*
-		window.addEventListener(`click`, (ev) => {
-			if (ev.target == modal) {
-				modal.style.display = "none";
-			}
-		});
+		const modal = document.querySelector(`.modalBg`);
+		modal.classList.remove(`hidden`);
 
-
+		const content = modal.querySelector(`.modalContent`);
+		content.classList.toggle(`alarms`, link === `alarms`);
+		
+		const h5 = content.querySelector(`h5`);
 		if (link === `alarms`) {
-			const modal = document.querySelector(`#modalStoerung`);
-			const h5 = document.createElement(`h5`);
-			modal.appendChild(h5);
-			h5.innerText = `Aktuelle Störungen`;
+			h5.innerText = `Aktuelle Störungen:`;
+			const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
+			const alarms = parseAlarms(liveDataRaw);
+			const alarmTxt = (alarms.length) ? `\n` : `keine anstehenden Störungen`;
+			alarms.forEach(alarm => alarmTxt += `${alarm.id}. ${alarm.txt}\n`);
+			content.querySelector(`.modalBody`).innerText = alarmTxt;
+		}
+		else if (link === `counter`) {			
+			var currentdate = new Date();
+			var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
+							+ (currentdate.getMonth() + 1) + "."
+							+ currentdate.getFullYear() + " : "
+							+ currentdate.getHours() + ":"
+							+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
+							//+ currentdate.getSeconds();
 			
 
-			if (window.stoerungText != "") {
-				document.querySelector(`#modalHeader`).innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
-				document.querySelector(`#modalContent`).style.width = '30%';
-				document.querySelector(`#modalBody`).innerHTML =  "</br> <pre>" + window.stoerungText + "</pre>";
-				var span = document.querySelector(`#closeModalStoerung`);
+			var gesamtZaehler = getOnlinegesamtZaehler()
+			
+			if (gesamtZaehler != "") {
+				document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
+				document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
+		
+				var span = document.querySelector(`#closeModalZaehler`);
 				span.onclick = function () {
-					modal.style.display = "none";
+					modalZaehler.style.display = "none";
 				}
+
 			}
 			else {
-				document.querySelector(`#modalHeader`).innerHTML = '<h5> Aktuelle Störungen' + '<span id="closeModalStoerung" class="close">&times;</span>';
-				document.querySelector(`#modalContent`).style.width = '30%';
-				document.querySelector(`#modalBody`).innerHTML = "keine weiteren Störungen";
-				var span = document.querySelector(`#closeModalStoerung`);
-				span.onclick = function () {
-					modal.style.display = "none";
-				}
-			}
-			modal.style.display = "block";
-
-		}
-
-		
-
-	}
-	else if (link === `counter`) {
-		//click event für das neue Zähler button, die Ohne verweis auf Zähler.png funktioniert
-		var modal = document.querySelector(`#modalZaehler`);
-		window.onclick = function (event) {
-			if (event.target == modal) {
-				modal.style.display = "none";
-			}
-		}
-		//zähler holen
-		
-		var currentdate = new Date();
-		var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
-						+ (currentdate.getMonth() + 1) + "."
-						+ currentdate.getFullYear() + " : "
-						+ currentdate.getHours() + ":"
-						+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
-						//+ currentdate.getSeconds();
-		var dateMonthYear = currentdate.getDate() + "."
-						+ (currentdate.getMonth() + 1) + "."
-						+ currentdate.getFullYear();
-
-		var gesamtZaehler = getOnlinegesamtZaehler()
-		
-		if (gesamtZaehler != "") {
-			document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
-			document.querySelector(`#modalContenZaehler`).style.width = '80%';
-			document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
-	
-			var span = document.querySelector(`#closeModalZaehler`);
-			span.onclick = function () {
-				modalZaehler.style.display = "none";
+				const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
+				const aktuelleZaehler = getOnlineAktuellZaehler(visudata.VCOData.Projektnumer);
+				
+				document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
+				closeModalZaehler();
 			}
 
 		}
-		else {
-			const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
-			const aktuelleZaehler = getOnlineAktuellZaehler(visudata.VCOData.Projektnumer);
-			document.querySelector(`#modalContenZaehler`).style.width = '80%';
-			document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
-			closeModalZaehler();
+		else if (link === `counterArchive`) {
+			
 		}
-		modal.style.display = "block";
-
-	}
-	else if (link === `counterArchive`) {
+		else if (link === `IPcamera`) {
 		
-	}
-	else if (link === `IPcamera`) {
-	*/	
-	}
+		}
 	else {		
 		const bgIdx = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
 		if (bgIdx !== parseInt(link)) {

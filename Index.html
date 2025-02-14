@@ -87,14 +87,13 @@
 					<button id="btnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
 				</div>
 				
-				<!--modal benutzer-->
-				<div id="modalBenutzer" class="modalEK">
-					<div class="modal-header" id="modalHeaderZaehler">
+				<!--modal benutzer
+				<div id="modalBenutzer" class="modalBg">
+					<div class="modalHeader" id="modalHeaderZaehler">
                         <span>Aktuelle Benutzer</span>
                     </div>
-					<!-- Modal content -->
-					<div  class="modal-content">
-						<div class="modal-body">
+					<div  class="modalContent">
+						<div class="modalBody">
 							 <div id="zugeschaltetBenutzer"></div>
 						</div>
 						<div class="modal-footer">
@@ -113,12 +112,28 @@
 
 
 	<div id="visualisierungDisplay" class="tabcontent">
-		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)"><i class="fas fa-lock"></i></button>
-		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)"><i class="fa fa-unlock"></i></button>
+		<div class="modalBg hidden">
+			<div class="modalContent">
+				<div class="modalHeader">
+					<h5>Title</h5>
+					<span class="close">×</span>
+				</div>
+				<div class="modalBody">
+				</div>
+				<div class="modalFooter">
+					<input type="button" class="modalConfirmBtn">OK</button>
+			  		<input type="button" class="modalConfirmBtn">Abbrechen</button>
+				</div>
+			</div>
+		</div>
+
+
+		<button id="btnUnlock" class="btnToggleLock" onclick="pinUnlock(id)">🔒<i class="fas fa-lock"></i></button>
+		<button id="btnLock" class="btnToggleLock" onclick="pinLock(id)">🔓<i class="fa fa-unlock"></i></button>
 		<button id="vbtnVirtualKeyboard" class="btnOSK" onclick="EthernetButtonHanlder(id)">Tastatur</button>
 		
-		<!-- Lock modal -->
-		<div id="modalPinBg" class="modalVisuBg">
+		<!-- Lock modal 
+		<div id="modalPinBg" class="modalBg">
 		  <div id="Pin-content" class="modalVisuContent">
 			<div class="modalVisuHeader">
 			  <span id="xModalPin" class="close" onclick="closePinModal()">&times;</span>
@@ -140,51 +155,20 @@
 			</div>
 		  </div>
 		</div>
-		
+		-->
+
 		<div id="vimgArea" class="vinsideWrapper">
-			<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas><!-- ondrop="drop(event)" ondragover="allowDrop(event)" ondragleave="leave(event)"></canvas>-->
-			<canvas id="vStatCanvas" class="vcoveringCanvas"></canvas>
-			<canvas id="vtipCanvas" ></canvas>
+			<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas>
 		</div>
 		
 		<div id="vupdateStatus-bar" class="updateStatus-bar">
 			<bdi id="vupdateStatus-info"> </bdi>
 		</div>
 		
-		<!-- The Modal Stoerung -->
-		<div id="modalStoerung" class="modalEK">
-			<!-- Modal content -->
-			<div id="modalContent" class="modal-content">
-				<div class="modal-header" id="modalHeader">
-					<span id="closeModalStoerung" class="close">&times;</span>
-				</div>
-				<div class="modal-body" id="modalBody">
-				</div>
-			</div>
-		</div>
-		<!-- End Modal Stoerung -->		
-
-        <!--modal zähler-->
-            <div id="modalZaehler" class="modalEK">
-                <!-- Modal content -->
-                <div id="modalContenZaehler" class="modal-content">
-                    <div class="modal-header" id="modalHeaderZaehler">
-                        <span id="closeModalZaehler" class="close">&times;</span>
-                    </div>
-                    <div class="modal-body" id="ModalBodyZaehler">
-                         <div id="aktuelleZaehler"></div>
-                    </div>
-                    <!--<div class="modal-footer" id="modalFooter">
-                        <input id="btnCopyClip" type="button" class="form-control" onclick="copyToClip()" value="In Zwischenlage kopieren" />
-                    </div> -->
-                </div>
-            </div>
-       <!--end modal zähler-->
+		
 	   
-	   <!-- Modal für Einstellwerte-->
-		 <div id="fpBg" class="modalVisuBg" >
-		  <!-- <div id="visLoader" class="loader"></div> -->
-		  <!-- FP content -->
+	   <!-- Modal für Einstellwerte
+		<div id="fpBg" class="modalBg">
 		  <div id="fpContent" class="modalVisuContent">
 			<div id="fpHeader" class="modalVisuHeader">
 			  <span class="close" onclick="closeFaceplate()">&times;</span>
@@ -200,9 +184,8 @@
 		</div>
 		<!--end modal einstellwerte-->
 		
-		<!-- Modal für eingebetten HK Wochenkalender-->
-		<div id="visuWochenkalender" class="modalVisuBg">
-			<!-- Modal content -->
+		<!-- Modal für eingebetten HK Wochenkalender
+		<div id="visuWochenkalender" class="modalBg">
 			<div class="modalVisuContent" id="visuWochenkalenderContent">
 				<div class="modalVisuHeader">
 					<span class="close" onclick="closeModalWochenKalenderImVisu()">&times;</span>
@@ -215,7 +198,6 @@
 					<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
 				</div>
 			</div>
-							<!-- Button Group -->
 			<div id="buttonGroupVisu">
 				<button id="btnUpVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
 				<button id="btnDownVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
@@ -349,9 +331,9 @@
 					</div>
 
 					<div id="ModalQH" class="modal">
-						<div class="modal-content">
+						<div class="modalContent">
 							<div id="QHLoader" class="loader"></div>
-							<div id="modalbody" class="modal-body">
+							<div id="modalbody" class="modalBody">
 							</div>
 						</div>
 					</div>
