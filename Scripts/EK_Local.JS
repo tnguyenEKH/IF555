@@ -1320,18 +1320,20 @@ function constrain(_in, _min, _max) {
 }
 
 
-function hideElemementById(id)
-{
-   var selectedElement = document.getElementById(id);
-   if (selectedElement != null) selectedElement.style.display = "none";
-   return selectedElement;
+function hideElemementById(id) {
+   const el = document.querySelector(`#${id}`);
+   if (el) {
+    el.classList.add(`hidden`);
+   }
+   return el;
 }
 
-function showElemementById(id)
-{
-   var selectedElement = document.getElementById(id); 
-   if (selectedElement != null) selectedElement.style.display = "block";
-   return selectedElement;
+function showElemementById(id) {
+  const el = document.querySelector(`#${id}`);
+  if (el) {
+   el.classList.remove(`hidden`);
+  }
+  return el;
 }
 
 // return count of an object

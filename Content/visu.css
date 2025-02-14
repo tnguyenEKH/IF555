@@ -17,11 +17,15 @@
 	/*
 	*/
   }
-.visuTxtElement {
+.visuElement {
 	position: absolute;
 }
-input[type = "button"].visuTxtElement {
+input[type = "button"].visuElement {
 	padding: 6px;
+}
+.faceplateBtn {
+	width: 30px;
+	height: 30px;
 }
 .hidden {
 	visibility: hidden;
@@ -327,6 +331,8 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 			
 	/* Modal Pin/FP (background) */
 	.modalBg {
+		left: 0;
+		top: 0;
 		position: fixed;
 		z-index: 1;
 		width: 100%;

@@ -5,6 +5,7 @@ const FORCE_ANALOGMISCHER = false;
 const DEPLOYED_VISU_FILE = `./Visu/Visu.txt`;
 const LIVE_DATA_URL = `./DATA/visdat.txt`;
 const COUNTER_URL = `./DATA/zaehl.txt`;
+const FACEPLATE_DATA_URL = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;
 // Diverse globale Variablen
 // Vorgehensweise analog zu der in VCO_Edit.aspx
 
@@ -12,12 +13,10 @@ const COUNTER_URL = `./DATA/zaehl.txt`;
 const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
-var readParameterOfClickableElementUrl = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;   /*SettingsFromVisualisierung*/
 var ClickableElement = [];		   /*SettingsFromVisualisierung*/
 var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
 var clickableElementUrl;
-var currentID;
 
 function getOnlinegesamtZaehler(url) {
 	const res = readFromTextFile(url);
@@ -87,6 +86,7 @@ function addClickableElementToList(visudata) {
 				default:
 			}
 			createLinkForClickableElement(item.id);
+			console.log(item.id);
 			ClickableElementList.push(item);
 		}
 	});
@@ -591,7 +591,8 @@ function drawDropList(visudata, liveData) {
 
 // Properties zeichnen incl. Symbole
 function drawVCOItem(item, liveData) {
-	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
+	const vimgArea = document.querySelector(`#vimgArea`);
+	const bmpIndex = parseInt(vimgArea.getAttribute(`bg-idx`));
 	if (liveData.items) {
 		const {VCOItem, x, y, SymbolFeature, Symbol} = item;
 		
@@ -608,12 +609,36 @@ function drawVCOItem(item, liveData) {
 									(value < warnGrenze) ? `#42f545` : item.bgColor;
 				}
 			}
+
+			const msr = `${VCOItem.Bez.trim()}${parseInt(VCOItem.Kanal)}`;
 			
 			if (VCOItem.isBool && item.bmpIndex === bmpIndex) {
 				const vDynCanvas = document.querySelector(`#vDynCanvas`);
 				const vDynCtx = vDynCanvas.getContext('2d');
 				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
-					fpButton(vDynCtx, x, y, value);
+					const existingBtn = document.querySelector(`[msr = ${msr}]`);
+					if (existingBtn) {
+						existingBtn.classList.toggle(`btnHand`, !!value);
+						existingBtn.classList.toggle(`btnAuto`, !value);
+					}
+					else {
+						const htmlEl = document.createElement(`input`);
+						htmlEl.type = `button`;
+						vimgArea.appendChild(htmlEl);
+						htmlEl.classList.add(`visuElement`, `faceplateBtn`, msr);
+						htmlEl.classList.toggle(`btnHand`, !!value);
+						htmlEl.classList.toggle(`btnAuto`, !value);
+						htmlEl.classList.toggle(`hidden`, parseInt(item.bmpIndex) != bmpIndex);
+						htmlEl.setAttribute(`msr`, msr);
+						htmlEl.setAttribute(`faceplate-id`, VCOItem.iD.trim());
+						htmlEl.setAttribute(`bg-idx`, item.bmpIndex);
+						htmlEl.title = item.ToolTip.replace(`<<<`, ``).trim();
+						htmlEl.style.left = `${item.x}px`;
+						htmlEl.style.top = `${item.y - parseInt(item.font)}px`;
+						htmlEl.addEventListener(`click`, openFaceplate);
+					}
+					
+					//fpButton(vDynCtx, x, y, value);
 				}
 				else if (Symbol === "Absenkung") {
 					Absenkung(vDynCtx, x, y, 1, value);
@@ -664,9 +689,7 @@ function drawVCOItem(item, liveData) {
 				}
 			}
 			else if (!VCOItem.isBool) {
-				const vimgArea = document.querySelector(`#vimgArea`);
-				const msr = `${VCOItem.Bez.trim()}${parseInt(VCOItem.Kanal)}`;
-				const existingLbl = document.querySelector(`.${msr}`);
+				const existingLbl = document.querySelector(`[msr = ${msr}]`);
 				if (existingLbl) {
 					const svalue = (foundItem.Bezeichnung.trim() === `HKNA`) ? foundItem.sWert : value.toFixed(foundItem.Nachkommastellen);
 					existingLbl.innerText = `${svalue} ${VCOItem.sEinheit.replace(`^3`, `³`)}`;
@@ -674,8 +697,9 @@ function drawVCOItem(item, liveData) {
 				else {
 					const htmlEl = document.createElement(`label`);
 					vimgArea.appendChild(htmlEl);
-					htmlEl.classList.add(`visuTxtElement`, msr);
+					htmlEl.classList.add(`visuElement`);
 					htmlEl.classList.toggle(`hidden`, parseInt(item.bmpIndex) != bmpIndex);
+					htmlEl.setAttribute(`msr`, msr);
 					htmlEl.setAttribute(`bg-idx`, item.bmpIndex);
 					htmlEl.style.font = item.font;
 					htmlEl.style.color = item.Color;
@@ -704,7 +728,7 @@ function drawTextList(visudata) {
 		const vimgArea = document.querySelector(`#vimgArea`);
 		const htmlEl = document.createElement(`${(txtEl.isVerweis) ? 'input' : 'label'}`);
 		vimgArea.appendChild(htmlEl);
-		htmlEl.classList.add(`visuTxtElement`);
+		htmlEl.classList.add(`visuElement`);
 		htmlEl.classList.toggle(`hidden`, parseInt(txtEl.bmpIndex) != bmpIndex);
 		htmlEl.setAttribute(`bg-idx`, txtEl.bmpIndex);
 		htmlEl.style.font = txtEl.font;
@@ -716,11 +740,9 @@ function drawTextList(visudata) {
 		if (rotation) {
 			//ToDo: translate Calc!
 			const htmlElBox = htmlEl.getBoundingClientRect();
-			console.log(htmlElBox);
 			htmlEl.style.transform = `rotate(${rotation}deg)`;
 			const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
-			console.log(rotatedHtmlElBox);
-			htmlEl.style.transform = `rotate(${rotation}deg) translate(${rotatedHtmlElBox.y - htmlElBox.y}px, ${rotatedHtmlElBox.y - htmlElBox.y}px)`;
+			htmlEl.style.transform = `rotate(${rotation}deg) translate(${(rotatedHtmlElBox.left - htmlElBox.left)/2 - paddingAsPx}px, ${(rotatedHtmlElBox.top - htmlElBox.top + paddingAsPx)/2}px)`;
 		}
 		
 		htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
@@ -731,10 +753,10 @@ function drawTextList(visudata) {
 			htmlEl.value = txtEl.Freitext;
 
 			const link = (txtEl.Freitext.includes(`anstehende Störungen`)) ? `alarms` :
-							(txtEl.Freitext.includes(`Zähler anzeigen`)) ? `counter` :
-							(txtEl.Freitext.includes(`Zähler Archiv`)) ? `counterArchive` :
-							(txtEl.Freitext.includes(`IP Kamera`)) ? `IPcamera` :
-							parseInt(txtEl.idxVerweisBitmap);
+						 (txtEl.Freitext.includes(`Zähler anzeigen`)) ? `counter` :
+						 (txtEl.Freitext.includes(`Zähler Archiv`)) ? `counterArchive` :
+						 (txtEl.Freitext.includes(`IP Kamera`)) ? `IPcamera` :
+						 parseInt(txtEl.idxVerweisBitmap);
 			htmlEl.setAttribute(`link`, link);
 			htmlEl.addEventListener(`click`, visuBtnClickEventHandler);
 		}
@@ -988,70 +1010,52 @@ async function asyncSleep(fn, delay, ...args) {
     return fn(...args);
 }
 
-async function openFaceplate() {
-	/*SettingsFromVisualisierung*/
-	//handle for button click and clickable item, same philosophy as bitmap change of non linked element above
-	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
-	matchItem = ClickableElementList.find(el => {
-		const {x, y, radius, bitmapIndex} = el;
-		dx = mx - x;
-		dy = my - y;
-		return (bitmapIndex === bmpIndex && dx * dx + dy * dy < radius * radius);
-	});
-	
-	if (matchItem) {
-		const body = document.querySelector(`body`);
-		body.setAttribute(`cursorStyle`, `progress`);
-		showElemementById('fpBg');
-		hideElemementById('fpContent');
-		//showElemementById('visLoader');
-		clickableElementUrl = ClickableElementUrlList.find(el => el.includes(matchItem.id));
-		try {
-			const test = await fetchData(clickableElementUrl);
-			const adjustmentOptions  = await asyncSleep(fetchData, 800, readParameterOfClickableElementUrl);
-			if (adjustmentOptions.v070.slice(0,5) === clickableElementUrl.slice(-5)) {
-				ClickableElement = [];
-				Object.entries(adjustmentOptions).forEach(([key, value]) => {
-					const originalKeyNo = parseInt(key.match(/\d+/g));
-					let item = {};
-					item.idx = originalKeyNo + 20;
-					item.sectionIndicator = value.substr(59, 1);
-					
-					switch (item.sectionIndicator) {
-						case 'H':
-							item.name = value.substr(0, 24);
-							item.wert = value.substr(24,35)
-							break;
-						case 'S':
-							item.name = value.substr(0, 59);
-							break;
-						default:
-							item.name = value.substr(0, 24);
-							item.wert = value.substr(24,12);
-							item.oberGrenze = value.substr(36,6);
-							item.unterGrenze = value.substr(42,6);
-							item.nachKommaStellen = value.substr(48,2);
-							item.einheit = value.substr(50,9);
-						}
+async function openFaceplate(ev) {
+	document.body.setAttribute(`cursorStyle`, `progress`);
+	try {
+		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate-id`)}`;
+		console.log(faceplateRequestUrl);
+		const test = await fetchData(faceplateRequestUrl);
+		const adjustmentOptions = await asyncSleep(fetchData, 800, FACEPLATE_DATA_URL);
+		if (adjustmentOptions.v070.slice(0,5) === faceplateRequestUrl.slice(-5)) {
+			ClickableElement = [];
+			Object.entries(adjustmentOptions).forEach(([key, value]) => {
+				const originalKeyNo = parseInt(key.match(/\d+/g));
+				let item = {};
+				item.idx = originalKeyNo + 20;
+				item.sectionIndicator = value.substr(59, 1);
+				
+				switch (item.sectionIndicator) {
+					case 'H':
+						item.name = value.substr(0, 24);
+						item.wert = value.substr(24,35)
+						break;
+					case 'S':
+						item.name = value.substr(0, 59);
+						break;
+					default:
+						item.name = value.substr(0, 24);
+						item.wert = value.substr(24,12);
+						item.oberGrenze = value.substr(36,6);
+						item.unterGrenze = value.substr(42,6);
+						item.nachKommaStellen = value.substr(48,2);
+						item.einheit = value.substr(50,9);
+					}
 
-						ClickableElement.push(item);
-				});
-				buildFaceplate();
-				//showFaceplate(matchItem);
-				showElemementById(`fpBg`);
-				showElemementById(`fpContent`);
-			}
-			else {
-				alert(`timeout`);
-				hideElemementById('fpBg');
-				hideElemementById('visLoader');
-			}
-			body.removeAttribute(`cursorStyle`);
+					ClickableElement.push(item);
+			});
+			buildFaceplate();
+			//showFaceplate(matchItem);
+			document.querySelector(`#fpBg`).classList.remove(`hidden`);
 		}
-		catch(err) {
-			console.error(err);
+		else {
+			alert(`timeout`);
 		}
 	}
+	catch(err) {
+		console.error(err);
+	}
+	document.body.removeAttribute(`cursorStyle`);
 }
 
 function convertHexToRGBArray(hex) {
