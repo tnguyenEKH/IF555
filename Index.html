@@ -112,7 +112,7 @@
 
 
 	<div id="visualisierungDisplay" class="tabcontent">
-		<div class="modalBg hidden">
+		<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
 			<div class="modalContent">
 				<div class="modalHeader">
 					<h5>Title</h5>
@@ -121,8 +121,8 @@
 				<div class="modalBody">
 				</div>
 				<div class="modalFooter">
-					<input type="button" class="modalConfirmBtn">OK</button>
-			  		<input type="button" class="modalConfirmBtn">Abbrechen</button>
+					<input type="button" value="OK" class="modalFooterBtn">
+			  		<input type="button" value="Abbrechen" class="modalFooterBtn">
 				</div>
 			</div>
 		</div>
@@ -161,8 +161,8 @@
 			<canvas id="vDynCanvas" class="vcoveringCanvas"></canvas>
 		</div>
 		
-		<div id="vupdateStatus-bar" class="updateStatus-bar">
-			<bdi id="vupdateStatus-info"> </bdi>
+		<div class="connectionStatusBar">
+			<bdi class="connectionStatusTxt"></bdi>
 		</div>
 		
 		

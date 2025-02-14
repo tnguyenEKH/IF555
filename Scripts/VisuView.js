@@ -8,12 +8,8 @@ const COUNTER_URL = `./DATA/zaehl.txt`;
 // Diverse globale Variablen
 // Vorgehensweise analog zu der in VCO_Edit.aspx
 
-
-var requestDrawingFlag = false;
-var hasSymbolsFlag = false;
-
-
 //Einstellungen Visualisierungen
+const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
 var readParameterOfClickableElementUrl = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;   /*SettingsFromVisualisierung*/
@@ -22,50 +18,12 @@ var ClickableElementList = [];	  /*SettingsFromVisualisierung*/
 var ClickableElementUrlList = []; /*SettingsFromVisualisierung*/
 var clickableElementUrl;
 var currentID;
-function copyToClip() {
-	// Create new element
-	var el = document.createElement('textarea');
 
-	// Set value (string to be copied)
-	el.value = document.getElementById("modalZaehler").innerText;
-
-	// Set non-editable to avoid focus and move outside of view
-	el.setAttribute('readonly', '');
-	el.style = { position: 'absolute', left: '-9999px' };
-	document.body.appendChild(el);
-	// Select text inside element
-	el.select();
-	// Copy text to clipboard
-	document.execCommand("copy");
-	// Remove temporary element
-	document.body.removeChild(el);
-}
-
-
-function getOnlinegesamtZaehler()
-{
-	res = readFromTextFile(COUNTER_URL);
-    var resWithoutDate = res.substring(41);//27
-	var index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
-	return resWithoutDate.substr(0, index -1);
-}
-
-
-function closeModalStoerung()
-{
-	var modal = document.getElementById('modalStoerung');
-	var span = document.getElementById("closeModalStoerung");
-	span.onclick = function () {
-		modal.style.display = "none";
-	}
-}
-
-function closeModalZaehler() {
-	var modal = document.getElementById('modalZaehler');
-	var span = document.getElementById("closeModalZaehler");
-	span.onclick = function () {
-		modalZaehler.style.display = "none";
-	}
+function getOnlinegesamtZaehler(url) {
+	const res = readFromTextFile(url);
+    const resWithoutDate = res.substring(41);
+	const index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
+	return resWithoutDate.substr(0, index - 1);
 }
 
 function initVisu() {	
@@ -73,19 +31,13 @@ function initVisu() {
 	vDynCanvas.width = 1400;
 	vDynCanvas.height = 630;
 
-	
-
-	
-	
 	// Laden
 	//Read deployed visufile /visu/visu.txt 
 	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 	
-		
 	/*SettingsFromVisualisierung*/
 	addClickableElementToList(visudata);			
 
-	
 	switchVisuTab(visudata);
 }
 
@@ -145,9 +97,10 @@ function parseProjectId(liveDataRaw) {
 	return result.groups.projectId;
 }
 
-function parseDateTimeObject(liveDataRaw) {
-	const result = liveDataRaw.match(/(?<date>\d+\.\s*\d+\.\d+)\s+(?<time>\d+:\s*\d+:\d+)/);
-	return result.groups;
+function parseDate(liveDataRaw) {
+	const result = liveDataRaw.match(/(?<day>\d+)\.\s*(?<month>\d+)\.(?<year>\d+)\s+(?<hours>\d+):\s*(?<minutes>\d+):(?<seconds>\d+)/).groups;
+	const date = new Date(result.year, parseInt(result.month) - 1, result.day, result.hours, result.minutes, result.seconds);
+	return date;
 }
 
 function parseAlarms(liveDataRaw, alarmTxtLength = 20) {
@@ -212,11 +165,9 @@ Datastructure of Visudownload will be nested array + array of object
 */
 //ehemals createVisudata(sText)
 function parseLiveData(liveDataRaw) {	
-	const dateTimeObject = parseDateTimeObject(liveDataRaw);
 	const liveData = {};
 	liveData.projectId = parseProjectId(liveDataRaw);
-	liveData.date = dateTimeObject.date;
-	liveData.time = dateTimeObject.time;
+	liveData.date = parseDate(liveDataRaw);
 	liveData.alarms = parseAlarms(liveDataRaw);
 	liveData.HKnames = parseHKnames(liveDataRaw);
 	liveData.faceplateBtns = parseFaceplateBtns(liveDataRaw);
@@ -231,37 +182,6 @@ function unitFromInt(int) {
 	const unit = [``, `°C`, `bar`, `V`, `kW`, `m³/h`, `mWS`, `%`, `kWh`, `Bh`, `m³`, `°Cø`, `mV`, `UPM`, `s`, `mbar`, `A`, `Hz`, `l/h`, `l`].at(parseInt(int));
   	return (unit) ? unit : ``;
 }
-
-// Neuzeichnung anfordern (Timer ruft auf)
-function requestDrawing() {
-	requestDrawingFlag = true;
-}
-
-// Timer-Mechanik Darstellung und Animation
-//var TimerVar = setInterval(globalTimer , 1000, window.liveData);
-var TimerToggle = false;
-var TimerToggleCounter = 0;
-var TimerCounter = 0;
-
-function globalTimer(visudata, liveData) {
-	console.log(liveData);
-	if (requestDrawingFlag || hasSymbolsFlag) {
-		TimerCounter++;
-		if (TimerCounter > 10000)
-			TimerCounter = 0;
-
-		// 500ms Toggle (1 Hz)
-		TimerToggleCounter++;
-		if (TimerToggleCounter > 5) {
-			TimerToggleCounter = 0;
-			TimerToggle = !TimerToggle;
-		}
-		DrawVisu(visudata, liveData, requestDrawingFlag);
-		requestDrawingFlag = false;
-	}
-
-}
-
 
 // Diverse Zeichenfunktionen wie im Editor
 function fpButton(ctx, x, y, betrieb) {
@@ -651,20 +571,20 @@ function switchVisuTab(visudata, idx = 0) {
 
 
 // Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
-function DrawVisu(visudata, liveData, redrawStat = false) {
+function DrawVisu(visudata, liveData, drawTxtList = false) {
 	const vDynCanvas = document.querySelector(`#vDynCanvas`);
 	const vDynCtx = vDynCanvas.getContext('2d');
 	vDynCtx.clearRect(0, 0, vDynCanvas.width, vDynCanvas.height);
-	drawPropertyList(visudata, liveData);
+	drawDropList(visudata, liveData);
 	
-	if (redrawStat) {
+	if (drawTxtList) {
 		drawTextList(visudata);
 	}
 	
 }
 
 // Gedroptes zeichen
-function _drawDropList(visudata, liveData) {
+function drawDropList(visudata, liveData) {
 	visudata.DropList.forEach(el => drawVCOItem(el, liveData));
 }
 
@@ -702,10 +622,10 @@ function drawVCOItem(item, liveData) {
 					feuer(vDynCtx, x, y, 1);
 				}
 				else if (Symbol === "BHKW") {
-					BHDreh(vDynCtx, x, y, 1, value * TimerCounter * 30);
+					BHDreh(vDynCtx, x, y, 1, value);
 				}
 				else if (Symbol === "Pumpe") {
-					pmpDreh2(vDynCtx, x, y, 1, value * TimerCounter * 30);
+					pmpDreh2(vDynCtx, x, y, 1, value);
 				}
 				else {					
 					const rotation = (SymbolFeature === "Rechts") ? 180 :
@@ -713,7 +633,7 @@ function drawVCOItem(item, liveData) {
 									 (SymbolFeature === "Unten") ? 270 : 0;
 					
 					if (Symbol === "Luefter") {
-						const angle = (value) ? TimerCounter * 30 : 30;
+						const angle = 30;
 						luefter(vDynCtx, x, y, 1, angle, rotation);
 					}
 					else if (Symbol === "Ventil" && value) {
@@ -741,8 +661,6 @@ function drawVCOItem(item, liveData) {
 							Led(vDynCtx, x, y, 1, color);
 						}
 					}
-					
-					hasSymbolsFlag = true;
 				}
 			}
 			else if (!VCOItem.isBool) {
@@ -779,11 +697,6 @@ function drawVCOItem(item, liveData) {
 }
 
 // Aufruf Funktion
-function drawPropertyList(visudata, liveData) {
-	_drawDropList(visudata, liveData);
-}
-
-// Aufruf Funktion
 function drawTextList(visudata) {
 	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
 	visudata.FreitextList.forEach(txtEl => {
@@ -798,13 +711,18 @@ function drawTextList(visudata) {
 		htmlEl.style.color = txtEl.Color;
 		htmlEl.style.background = txtEl.BgColor;
 
+		const paddingAsPx = (txtEl.isVerweis) ? 6 : 0;
 		const rotation = (txtEl.VerweisAusrichtung == "up") ? -90 : (txtEl.VerweisAusrichtung == "dn") ? 90 : undefined;
 		if (rotation) {
 			//ToDo: translate Calc!
-			htmlEl.style.transform = `rotate(${rotation}deg) translate(0px, 0px)`;
+			const htmlElBox = htmlEl.getBoundingClientRect();
+			console.log(htmlElBox);
+			htmlEl.style.transform = `rotate(${rotation}deg)`;
+			const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
+			console.log(rotatedHtmlElBox);
+			htmlEl.style.transform = `rotate(${rotation}deg) translate(${rotatedHtmlElBox.y - htmlElBox.y}px, ${rotatedHtmlElBox.y - htmlElBox.y}px)`;
 		}
 		
-		const paddingAsPx = (txtEl.isVerweis) ? 6 : 0;
 		htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
 		htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
 		
@@ -832,107 +750,61 @@ function visuBtnClickEventHandler(ev) {
 	if (Number.isNaN(linkBgIdx)) {
 		const modal = document.querySelector(`.modalBg`);
 		modal.classList.remove(`hidden`);
+		modal.querySelector(`.modalFooter`).classList.add(`hidden`);
 
 		const content = modal.querySelector(`.modalContent`);
 		content.classList.toggle(`alarms`, link === `alarms`);
 		
+		const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
+		
 		const h5 = content.querySelector(`h5`);
 		if (link === `alarms`) {
 			h5.innerText = `Aktuelle Störungen:`;
-			const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
 			const alarms = parseAlarms(liveDataRaw);
-			const alarmTxt = (alarms.length) ? `\n` : `keine anstehenden Störungen`;
-			alarms.forEach(alarm => alarmTxt += `${alarm.id}. ${alarm.txt}\n`);
+			let alarmTxt = (alarms.length) ? `\n` : `keine anstehenden Störungen`;
+			alarms.forEach(alarm => alarmTxt += `${alarm.id.padStart(3, `0`)} ${alarm.txt}\n`);
 			content.querySelector(`.modalBody`).innerText = alarmTxt;
 		}
-		else if (link === `counter`) {			
-			var currentdate = new Date();
-			var datetime = "&emsp;&emsp;" + currentdate.getDate() + "."
-							+ (currentdate.getMonth() + 1) + "."
-							+ currentdate.getFullYear() + " : "
-							+ currentdate.getHours() + ":"
-							+ (currentdate.getMinutes() < 10 ? '0' : '') + currentdate.getMinutes();
-							//+ currentdate.getSeconds();
-			
+		else if (link === `counter`) {
+			const date = parseDate(liveDataRaw);
+			h5.innerText = `Zähler: ${projektName}\n${date.toLocaleString(`de-DE`)}`;
 
-			var gesamtZaehler = getOnlinegesamtZaehler()
-			
-			if (gesamtZaehler != "") {
-				document.querySelector(`#modalHeaderZaehler`).innerHTML = '<h5> Zähler: ' + projektName + " " + datetime + '<span id="closeModalZaehler" class="close">&times;</span>';
-				document.querySelector(`#aktuelleZaehler`).innerHTML = "</br> <pre>" + gesamtZaehler + "</pre>";
-		
-				var span = document.querySelector(`#closeModalZaehler`);
-				span.onclick = function () {
-					modalZaehler.style.display = "none";
-				}
-
-			}
-			else {
-				const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
-				const aktuelleZaehler = getOnlineAktuellZaehler(visudata.VCOData.Projektnumer);
-				
-				document.querySelector(`#aktuelleZaehler`).innerHTML = "Keine Zählerdaten verfügbar";
-				closeModalZaehler();
-			}
-
+			const gesamtZaehler = getOnlinegesamtZaehler(COUNTER_URL);
+			content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
 		}
 		else if (link === `counterArchive`) {
-			
 		}
 		else if (link === `IPcamera`) {
-		
 		}
+	}
 	else {		
 		const bgIdx = parseInt(document.querySelector(`#vimgArea`).getAttribute(`bg-idx`));
 		if (bgIdx !== parseInt(link)) {
-			requestDrawing();
 			const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 			switchVisuTab(visudata, parseInt(link));
 		}	
 	}
 }
 
+function modalBgClickEventHandler(ev) {
+	if (ev.target.matches(`.modalBg, .close, .modalFooterBtn`)) {
+		document.querySelector(`.modalBg`).classList.add(`hidden`);
+	}
+}
+
 function ReloadData() {
-	var date = new Date();
-	var rawvisuData = readFromTextFile(LIVE_DATA_URL);
+	const rawvisuData = readFromTextFile(LIVE_DATA_URL);
 	const liveData = parseLiveData(rawvisuData);
 
 	//Read deployed visufile /visu/visu.txt 
 	const visudata = JSON.parse(readFromTextFile(DEPLOYED_VISU_FILE));
 
-	if (rawvisuData != "") {
+	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
+	if (liveData.items) {
 		DrawVisu(visudata, liveData);
-		document.querySelector('#vupdateStatus-bar').style.color = 'black';
-		document.querySelector('#vupdateStatus-info').textContent = 'Letzte Datenaktualisierung: ' + date.toLocaleString("de-DE");
+		connectionStatusTxt.textContent = `Letzte Datenaktualisierung: ${liveData.date.toLocaleString(`de-DE`)}`;
 	}
-	else
-	{
-		document.querySelector('#vupdateStatus-bar').style.color = 'red';
-		if(document.querySelector('#vupdateStatus-info').textContent == " ") document.querySelector('#vupdateStatus-info').textContent = 'Datenaktualisierung fehlgeschlagen!';
-	}
-}
-
-function UpdateLabelMouseOverHandler() {
-	$('#xlabel').css("background-color", "red");
-}
-
-function UpdateLabelMouseOutHandler() {
-	$('#xlabel').css("background-color", "lightgrey");
-
-}
-
-
-/*Ab hier Visu Bedienung:*/
-// When the user clicks anywhere outside of the Modal, close it
-window.onclick = function(event) {
-  var modals = Array.from(document.getElementsByClassName("modalVisuBg"));
-  modals.forEach(function(el) {
-    if (el == event.target) {
-		if (el.id.includes('fp')) closeFaceplate();
-		if (el.id.includes('Pin')) closePinModal();
-		if (el.id.includes('Kalender')) closeModalWochenKalenderImVisu();
-	}
-  });
+	connectionStatusTxt.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 }
 
 function closeFaceplate() {

@@ -122,10 +122,11 @@ function init() {
 	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');                    
 	initCanvas(fernbedienungCanvas, fernbedienungCanvasContext);
 	
+  /*
 	wochenKalenderImVisuCanvas = document.getElementById('settingFromVisuCanvas');    
 	wochenKalenderImVisuCanvasContext = wochenKalenderImVisuCanvas.getContext('2d');                    
 	initCanvas(wochenKalenderImVisuCanvas, wochenKalenderImVisuCanvasContext);
-	
+	*/
   /***********Operating******************/
 	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
     benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
