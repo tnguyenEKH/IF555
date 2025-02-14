@@ -951,55 +951,6 @@ function sendDataToRtos(target) {
 	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
 }
 
-/*
-function showOSK(event) {
-	if (event.target.id.includes('inputWert')) showElemementById('osk');	
-}
-
-/*
-function showFaceplate(matchItem) {
-	const OFFSET_ICON_2_FACEPLATE_PX = 80;
-	const OFFSET_FP_2_OSK = 40;
-	//var faceplateBackground = showElemementById('fpBg');
-	hideElemementById('visLoader');
-	var faceplateContent = showElemementById('fpContent');//document.getElementById('fpContent');
-	var osk = showElemementById('osk');	//osk temporär zu Anordnungsberechnung öffnen; wird am Ende wieder geschlossen!
-	
-	if (matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + faceplateContent.offsetWidth < window.innerWidth) {
-		faceplateContent.style.left = matchItem.x + OFFSET_ICON_2_FACEPLATE_PX + 'px';
-		faceplateContent.offsetLeft + osk.offsetWidth < window.innerWidth ? osk.style.left = faceplateContent.style.left : osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth - osk.offsetWidth + 'px';
-	}
-	else if (matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.offsetWidth > 0) {
-		faceplateContent.style.left = matchItem.x - OFFSET_ICON_2_FACEPLATE_PX - faceplateContent.offsetWidth + 'px';
-		faceplateContent.offsetLeft + osk.offsetWidth < window.innerWidth ? osk.style.left = faceplateContent.style.left : osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth - osk.offsetWidth + 'px';
-	}
-	else {
-		faceplateContent.style.left = '0px';
-		osk.style.left = '0px';
-	}
-	
-	if (faceplateContent.offsetTop + faceplateContent.offsetHeight + OFFSET_FP_2_OSK + osk.offsetHeight < window.innerHeight) {
-		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight + OFFSET_FP_2_OSK + 'px';
-	}
-	else if (faceplateContent.offsetLeft + faceplateContent.offsetWidth + OFFSET_FP_2_OSK + osk.offsetWidth < window.innerWidth) {
-		osk.style.left = faceplateContent.offsetLeft + faceplateContent.offsetWidth + OFFSET_FP_2_OSK + 'px';
-		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight - osk.offsetHeight + 'px';
-	}
-	else {
-		osk.style.left = faceplateContent.offsetLeft - osk.offsetWidth - OFFSET_FP_2_OSK + 'px';
-		osk.style.top = faceplateContent.offsetTop + faceplateContent.offsetHeight - osk.offsetHeight + 'px';
-		if (osk.offsetLeft < 0) {
-			osk.style.left = '0px';
-			faceplateContent.style.left = osk.offsetWidth + 'px';//faceplateContent.offsetLeft + Math.abs(osk.offsetLeft) + 'px';
-			//osk.style.top = osk.offsetTop - OFFSET_FP_2_OSK + 'px';
-		}
-	}
-	hideElemementById('osk'); //Anordnungsberechnung abgeschlossen -> osk ausblenden!
-}
-*/
-
-
-
 
 //ehemals VisuView_Bedienung_gemeinsam.js
 function timeout(delay) {
