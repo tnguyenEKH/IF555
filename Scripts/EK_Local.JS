@@ -72,7 +72,7 @@ $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	//testRequest(`./DATA/vierttx.txt`, 5000);
-  document.body.appendChild(createOSK(``));
+  document.body.appendChild(createOSK(`min`));
 });
 
 /****test****/
@@ -1320,15 +1320,19 @@ function createOSK(layout) {
   osk.setAttribute(`layout`, layout);
   const layoutStr = (layout.match(/num/i)) ?
    `"_7 _8 _9 №"
-    "_4 _5 _6 №"
+    "_4 _5 _6 ⌫"
     "_1 _2 _3 ⏎"
     "_0 ↑ . ⏎"
     "← ↓ → ⏎"`
+  : (layout.match(/min/i)) ?
+   `"ƒ ↑ ⏎"
+    "← ↓ →"`
   :
    `"␛ _1 _2 _3 _4 _5 _6 _7 _8 _9 _0 ß ⌫"
     "↹ q w e r t z u i o p ü ␡"
     "⇫ a s d f g h j k l ö ä ⏎"
-    "⇧ № y x c v b n m . - ␠ ⏎"`;
+    "⇧ y x c v b n m . - __ ↑ ⏎"
+    "№ ƒ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ← ↓ →"`;//*/
   
   
 
@@ -1355,80 +1359,109 @@ function createOSK(layout) {
     }
   });
 
-
-
   osk.addEventListener(`mousedown`, (ev) => {
     ev.preventDefault();
-    const key = ev.target.value;
-    if (key.match(/[↑← ↓ →]/)) {
-      //if (id == "btnHome")	AnchorHandler(1);
-
-      const rtosKeyId = (key === `↑`) ? `11` :
-                        (key === `↓`) ? `10` :
-                        (key === `←`) ? `8` :
-                        (key === `→`) ? `12` :
-                        (key === `⏎`) ? `13` :
-                        undefined;
-      
-      const rtosResponse = getData(`${TastURL}${rtosKeyId}`);
+    const key = ev.target;
+    const keyVal = key.value;
+    const osk = key.closest(`.osk`);
+    const focusedInput = (document.activeElement.matches(`input:not(.osk input)`)) ? document.activeElement : null;
+    //possible MPCinputs
+    if (keyVal.match(/[↑← ↓ →⏎⌂]/)) {
+      if (focusedInput) {
+        if (keyVal === `⏎`) {
+          focusedInput.blur();
+        }
+        else {
+          const {selectionStart, selectionEnd, textLength} = focusedInput;
+          console.log(selectionStart, selectionEnd, textLength);
+          const caretPosition = (keyVal === `↑`) ? textLength :
+                                (keyVal === `↓`) ? 0 :
+                                (keyVal === `←`) ? Math.max(0, selectionStart - 1) :
+                                (keyVal === `→`) ? Math.min(parseInt(textLength), parseInt(selectionStart) + 1) :
+          focusedInput.selectionStart = caretPosition;
+          focusedInput.selectionEnd = caretPosition;
+          //buggy...dunno why...
+        }
+      }
+      else {
+        //send Input to MPC
+        if (keyVal === `⌂`) {
+          AnchorHandler(1);
+        }
+        else {
+          const rtosKeyId = (keyVal === `↑`) ? `11` :
+                            (keyVal === `↓`) ? `10` :
+                            (keyVal === `←`) ? `8` :
+                            (keyVal === `→`) ? `12` :
+                            (keyVal === `⏎`) ? `13` :
+                            undefined;
+          const rtosResponse = getData(`${TastURL}${rtosKeyId}`);
+        }
+      }
     }
-    else if (key === `№`) {
-      const existingOsk = ev.target.closest(`.osk`);
+    else if (keyVal === `␛`) {
+      document.activeElement.blur();
+    }
+    else if (keyVal === `↹`) {
+      document.activeElement.blur();
+    }
+    else if (keyVal === `№`) {
+      const existingOsk = key.closest(`.osk`);
       const oskParent = existingOsk.parentNode;
       existingOsk.remove();
       oskParent.appendChild(createOSK(`${(existingOsk.getAttribute(`layout`).match(/num/i)) ? `` : `num`}`));
     }
-    else if (key.match(/[⇧⇫]/)) {
-      //style checked Shift/CapsLock
-      ev.target.style.backgroundColor = (ev.target.style.backgroundColor === `rgb(208, 208, 215)`) ? `` : `rgb(208, 208, 215)`;
-      ev.target.style.borderStyle = (ev.target.style.borderStyle === `inset`) ? `` : `inset`;
+    else if (keyVal === `⇫`) {
+      const capsLock = osk.toggleAttribute(`caps-lock`);
+      key.style.backgroundColor = (capsLock) ? `rgb(208, 208, 215)` : ``;
+      key.style.borderStyle = (capsLock) ? `inset` : ``;
       
-      ev.target.parentElement.querySelectorAll(`input[type=button]`).forEach(btn => {
-        btn.value = (ev.target.style.borderStyle === `inset` && !btn.matches(`[value=ß]`)) ? btn.value.toUpperCase() : btn.value.toLowerCase();
+      const shift = osk.matches(`[shift]`); 
+      osk.querySelectorAll(`input[type=button]`).forEach(btn => {
+        btn.value = ((capsLock | shift) && !btn.matches(`[value=ß]`)) ? btn.value.toUpperCase() : btn.value.toLowerCase();
       });
     }
-    else if (document.activeElement !== document.body) {
-      const input = document.activeElement;
-      if (key === `␛`) {
-        document.activeElement.blur();
+    else if (keyVal === `⇧`) {
+      const shift = osk.toggleAttribute(`shift`);
+      key.style.backgroundColor = (shift) ? `rgb(208, 208, 215)` : ``;
+      key.style.borderStyle = (shift) ? `inset` : ``;
+
+      const capsLock = osk.matches(`[caps-lock]`); 
+      osk.querySelectorAll(`input[type=button]`).forEach(btn => {
+        btn.value = ((capsLock | shift) && !btn.matches(`[value=ß]`)) ? btn.value.toUpperCase() : btn.value.toLowerCase();
+      });
+    }
+    else if (focusedInput) {
+      const {selectionStart, selectionEnd} = focusedInput;
+      const preSelection = focusedInput.value.slice(0, selectionStart);
+      const selection = focusedInput.value.slice(selectionStart, selectionEnd);
+      const pastSelection = focusedInput.value.slice(selectionEnd);
+      if (keyVal === `⌫`) {
+        focusedInput.value = (selection) ? preSelection.concat(pastSelection) : preSelection.slice(0, -1).concat(pastSelection);
+        focusedInput.selectionStart = (selection) ? selectionStart : Math.max(0, selectionStart - 1);
       }
-      else if (key === `⏎`) {
-        document.activeElement.blur();
-      }
-      else if (key === `↹`) {
-        document.activeElement.blur();
+      else if (keyVal === `␡`) {
+        focusedInput.value = (selection) ? preSelection.concat(pastSelection) : preSelection.concat(pastSelection.slice(1));
+        focusedInput.selectionStart = selectionStart;
       }
       else {
-        const {selectionStart, selectionEnd} = input;
-        const preSelection = input.value.slice(0, selectionStart);
-        const selection = input.value.slice(selectionStart, selectionEnd);
-        const pastSelection = input.value.slice(selectionEnd);
-        if (key.includes(`⌫`)) {
-          input.value = (selection) ? preSelection.concat(pastSelection) : preSelection.slice(0, -1).concat(pastSelection);
-          input.selectionStart = (selection) ? selectionStart : Math.max(0, selectionStart - 1);
-        }
-        else if (key.includes(`␡`)) {
-          input.value = (selection) ? preSelection.concat(pastSelection) : preSelection.concat(pastSelection.slice(1));
-          input.selectionStart = selectionStart;
-        }
-        else {
-          //ordenary character Key; whitespace included
-          input.value = preSelection.concat((key.includes(`␠`)) ? ` ` : key).concat(pastSelection);
-          input.selectionStart = selectionStart + 1;
+        //ordenary character Key; whitespace included
+        //uncheck ShiftKey
+        osk.removeAttribute(`shift`);
+        const shiftKey = osk.querySelector(`input[type=button][value=⇧]`);
+        shiftKey.style.backgroundColor = ``;
+        shiftKey.style.borderStyle = ``;
 
-          //uncheck ShiftKey
-          ev.target.parentElement.querySelectorAll(`input[type=button]`).forEach(btn => {
-            btn.value = btn.value.toLowerCase();
-            if (btn.matches(`[value=⇧]`)) {
-              btn.style.backgroundColor = ``;
-              btn.style.borderStyle = ``;
-            }
-          });
+        //return to lowerCase if not caps-lock
+        if (!osk.matches(`[caps-lock]`)) {
+          osk.querySelectorAll(`input[type=button]`).forEach(btn => btn.value = btn.value.toLowerCase());
         }
-        input.selectionEnd = input.selectionStart;
+        //input to focusedInput
+        focusedInput.value = preSelection.concat((keyVal === `␠`) ? ` ` : keyVal).concat(pastSelection);
+        focusedInput.selectionStart = selectionStart + 1;
       }
+      focusedInput.selectionEnd = focusedInput.selectionStart;
     }
-
   });
 
   return osk;

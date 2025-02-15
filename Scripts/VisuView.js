@@ -179,7 +179,7 @@ function parseLiveData(liveDataRaw) {
 
 //ehemals getVisuItemEinheit(i)
 function unitFromInt(int) {
-	const unit = [``, `°C`, `bar`, `V`, `kW`, `m³/h`, `mWS`, `%`, `kWh`, `Bh`, `m³`, `°Cø`, `mV`, `UPM`, `s`, `mbar`, `A`, `Hz`, `l/h`, `l`].at(parseInt(int));
+	const unit = [``, `℃`, `bar`, `V`, `kW`, `m³/h`, `mWS`, `%`, `kWh`, `Bh`, `m³`, `℃ø`, `mV`, `UPM`, `s`, `mbar`, `A`, `Hz`, `l/h`, `l`].at(parseInt(int));
   	return (unit) ? unit : ``;
 }
 
