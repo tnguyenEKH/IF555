@@ -71,7 +71,8 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	testRequest(`./DATA/vierttx.txt`, 5000);
+	//testRequest(`./DATA/vierttx.txt`, 5000);
+  createOSK(`num`);
 });
 
 /****test****/
@@ -1313,6 +1314,65 @@ $(document).keydown(function (event) {
 
 
 /*************Hilfsfunktionen------------------*/
+function createOSK(layout) {
+  //layout = ``;
+  const osk = document.createElement(`div`);
+  document.body.appendChild(osk);
+  const layoutStr = (layout.match(/num/i)) ?
+   `"_7 _8 _9"
+   "_4 _5 _6"
+   "_1 _2 _3"
+   "_0 . ⏎"`
+  :
+   `"␛ _1 _2 _3 _4 _5 _6 _7 _8 _9 _0 ß ⌫"
+    "↹ q w e r t z u i o p ü ␡"
+    "⇫ a s d f g h j k l ö ä ⏎"
+    "⇧ № y x c v b n m . - ␠ ⏎"`;
+  
+  
+
+  osk.style.position = `absolute`;
+  osk.style.bottom = `0px`;
+  osk.style.width = `100%`;
+  //osk.style.height = `100%`;
+  osk.style.display = `grid`;
+  osk.style.gridTemplateAreas = layoutStr;//`"1 2 3"`;
+  
+  layoutStr.replaceAll(`"`, ``).split(` `).filter(el => !!el).forEach(el => {
+    const oskKey = document.createElement(`input`);
+    oskKey.type = `button`;
+    osk.appendChild(oskKey);
+    oskKey.value = el.replace(`_`, ``);
+    oskKey.style.gridArea = el;
+    oskKey.style.padding = `0`;
+    oskKey.style.fontSize = `250%`;
+  });
+
+
+
+  osk.addEventListener(`mousedown`, (ev) => {
+    ev.preventDefault();
+    if (document.activeElement !== document.body) {
+      const input = document.activeElement;
+      const {target} = ev;
+      if (target === `␛`) {
+        document.activeElement.blur();
+      }
+      else {
+        console.log(input, input.selectionStart);
+        input.value.slice()
+        if (target === `⌫`) {
+        
+        }
+        else {
+
+        }
+      }
+    }
+
+  });
+}
+
 function constrain(_in, _min, _max) {
   const min = Math.min(parseFloat(_min), parseFloat(_max));
   const max = Math.max(parseFloat(_min), parseFloat(_max));
