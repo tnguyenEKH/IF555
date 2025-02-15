@@ -72,7 +72,7 @@ $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	//testRequest(`./DATA/vierttx.txt`, 5000);
-  createOSK(`num`);
+  document.body.appendChild(createOSK(``));
 });
 
 /****test****/
@@ -1315,14 +1315,15 @@ $(document).keydown(function (event) {
 
 /*************Hilfsfunktionen------------------*/
 function createOSK(layout) {
-  //layout = ``;
   const osk = document.createElement(`div`);
-  document.body.appendChild(osk);
+  osk.classList.add(`osk`);
+  osk.setAttribute(`layout`, layout);
   const layoutStr = (layout.match(/num/i)) ?
-   `"_7 _8 _9"
-   "_4 _5 _6"
-   "_1 _2 _3"
-   "_0 . ⏎"`
+   `"_7 _8 _9 №"
+    "_4 _5 _6 №"
+    "_1 _2 _3 ⏎"
+    "_0 ↑ . ⏎"
+    "← ↓ → ⏎"`
   :
    `"␛ _1 _2 _3 _4 _5 _6 _7 _8 _9 _0 ß ⌫"
     "↹ q w e r t z u i o p ü ␡"
@@ -1342,35 +1343,95 @@ function createOSK(layout) {
     const oskKey = document.createElement(`input`);
     oskKey.type = `button`;
     osk.appendChild(oskKey);
-    oskKey.value = el.replace(`_`, ``);
+    oskKey.value = el.replace(`_`, ``).trim();
     oskKey.style.gridArea = el;
     oskKey.style.padding = `0`;
     oskKey.style.fontSize = `250%`;
+
+    //style checked №Key for numpad
+    if (layout.match(/num/i) && oskKey.value === `№`) {
+      oskKey.style.backgroundColor = `rgb(208, 208, 215)`;
+      oskKey.style.borderStyle = `inset`;
+    }
   });
 
 
 
   osk.addEventListener(`mousedown`, (ev) => {
     ev.preventDefault();
-    if (document.activeElement !== document.body) {
+    const key = ev.target.value;
+    if (key.match(/[↑← ↓ →]/)) {
+      //if (id == "btnHome")	AnchorHandler(1);
+
+      const rtosKeyId = (key === `↑`) ? `11` :
+                        (key === `↓`) ? `10` :
+                        (key === `←`) ? `8` :
+                        (key === `→`) ? `12` :
+                        (key === `⏎`) ? `13` :
+                        undefined;
+      
+      const rtosResponse = getData(`${TastURL}${rtosKeyId}`);
+    }
+    else if (key === `№`) {
+      const existingOsk = ev.target.closest(`.osk`);
+      const oskParent = existingOsk.parentNode;
+      existingOsk.remove();
+      oskParent.appendChild(createOSK(`${(existingOsk.getAttribute(`layout`).match(/num/i)) ? `` : `num`}`));
+    }
+    else if (key.match(/[⇧⇫]/)) {
+      //style checked Shift/CapsLock
+      ev.target.style.backgroundColor = (ev.target.style.backgroundColor === `rgb(208, 208, 215)`) ? `` : `rgb(208, 208, 215)`;
+      ev.target.style.borderStyle = (ev.target.style.borderStyle === `inset`) ? `` : `inset`;
+      
+      ev.target.parentElement.querySelectorAll(`input[type=button]`).forEach(btn => {
+        btn.value = (ev.target.style.borderStyle === `inset` && !btn.matches(`[value=ß]`)) ? btn.value.toUpperCase() : btn.value.toLowerCase();
+      });
+    }
+    else if (document.activeElement !== document.body) {
       const input = document.activeElement;
-      const {target} = ev;
-      if (target === `␛`) {
+      if (key === `␛`) {
+        document.activeElement.blur();
+      }
+      else if (key === `⏎`) {
+        document.activeElement.blur();
+      }
+      else if (key === `↹`) {
         document.activeElement.blur();
       }
       else {
-        console.log(input, input.selectionStart);
-        input.value.slice()
-        if (target === `⌫`) {
-        
+        const {selectionStart, selectionEnd} = input;
+        const preSelection = input.value.slice(0, selectionStart);
+        const selection = input.value.slice(selectionStart, selectionEnd);
+        const pastSelection = input.value.slice(selectionEnd);
+        if (key.includes(`⌫`)) {
+          input.value = (selection) ? preSelection.concat(pastSelection) : preSelection.slice(0, -1).concat(pastSelection);
+          input.selectionStart = (selection) ? selectionStart : Math.max(0, selectionStart - 1);
+        }
+        else if (key.includes(`␡`)) {
+          input.value = (selection) ? preSelection.concat(pastSelection) : preSelection.concat(pastSelection.slice(1));
+          input.selectionStart = selectionStart;
         }
         else {
+          //ordenary character Key; whitespace included
+          input.value = preSelection.concat((key.includes(`␠`)) ? ` ` : key).concat(pastSelection);
+          input.selectionStart = selectionStart + 1;
 
+          //uncheck ShiftKey
+          ev.target.parentElement.querySelectorAll(`input[type=button]`).forEach(btn => {
+            btn.value = btn.value.toLowerCase();
+            if (btn.matches(`[value=⇧]`)) {
+              btn.style.backgroundColor = ``;
+              btn.style.borderStyle = ``;
+            }
+          });
         }
+        input.selectionEnd = input.selectionStart;
       }
     }
 
   });
+
+  return osk;
 }
 
 function constrain(_in, _min, _max) {
