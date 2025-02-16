@@ -72,7 +72,7 @@ $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
 	//testRequest(`./DATA/vierttx.txt`, 5000);
-  document.body.appendChild(createOSK(`min`));
+  document.body.appendChild(createOSK(``));
 });
 
 /****test****/
@@ -1314,7 +1314,7 @@ $(document).keydown(function (event) {
 
 
 /*************Hilfsfunktionen------------------*/
-function createOSK(layout) {
+function createOSK(layout, keyDownIntervalMs = 20) {
   const osk = document.createElement(`div`);
   osk.classList.add(`osk`);
   osk.setAttribute(`layout`, layout);
@@ -1359,12 +1359,37 @@ function createOSK(layout) {
     }
   });
 
-  osk.addEventListener(`mousedown`, (ev) => {
+  osk.addEventListener(`mousedown`, oskMousedownEventHandler);
+  osk.addEventListener(`touchstart`, oskMousedownEventHandler);
+  
+  osk.addEventListener(`mouseup`, oskMouseupEventHandler);
+  osk.addEventListener(`mouseout`, oskMouseupEventHandler);
+  osk.addEventListener(`touchend`, oskMouseupEventHandler);
+  osk.addEventListener(`touchcancel`, oskMouseupEventHandler);
+
+  function oskMouseupEventHandler(ev) {
+    const osk = ev.target.closest(`.osk`);
+    clearInterval(osk.timerKeyDown);
+    osk.timerKeyDown = undefined;
+    clearInterval(osk.timerStartKeyDown);
+    osk.timerStartKeyDown = undefined;
+  }
+
+  function oskMousedownEventHandler(ev) {
     ev.preventDefault();
     const key = ev.target;
     const keyVal = key.value;
     const osk = key.closest(`.osk`);
     const focusedInput = (document.activeElement.matches(`input:not(.osk input)`)) ? document.activeElement : null;
+
+    if (osk.timerStartKeyDown) {
+      osk.timerStartKeyDown = undefined;
+      osk.timerKeyDown = setInterval(oskMousedownEventHandler, keyDownIntervalMs, ev);
+    }
+    if (!osk.timerStartKeyDown && !osk.timerKeyDown) {
+      osk.timerStartKeyDown = setTimeout(oskMousedownEventHandler, 500, ev);
+    }
+
     //possible MPCinputs
     if (keyVal.match(/[↑← ↓ →⏎⌂]/)) {
       if (focusedInput) {
@@ -1462,7 +1487,7 @@ function createOSK(layout) {
       }
       focusedInput.selectionEnd = focusedInput.selectionStart;
     }
-  });
+  };
 
   return osk;
 }
