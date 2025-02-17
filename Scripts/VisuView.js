@@ -30,34 +30,41 @@ function getVisuData(deployedVisuFile) {
 		el.msrItem.msr = `${el.msrItem.identifyer}${el.msrItem.idx}`;
 		el.msrItem.decPlace = parseInt(el.VCOItem.NKStellen);
 		el.msrItem.unit = unitFromInt(parseInt(el.VCOItem.iEinheit));
-		el.msrItem.title = el.ToolTip.replace(`<<<`, ``).trim();
+		el.msrItem.title = el.ToolTip.replace(`<<<`, ``).replace(`(grau)`, ``).trim();
 		el.msrItem.faceplate = el.VCOItem.iD.trim();
 		el.msrItem.tabIdx = el.bmpIndex;
 		el.msrItem.xPx = parseInt(el.x);
 		el.msrItem.yPx = parseInt(el.y);
 		el.msrItem.font = el.font;
-		el.msrItem.color = el.Color;
+		el.msrItem.color = (el.Symbol.match(/(absenkung)/i)) ? CYAN_HSL : el.Color;
 		el.msrItem.bgColor = (!el.BgColor.match(/(#BEBEBE)|(#E0E0E0)/)) ? el.BgColor : ``;
 		el.msrItem.icon = el.Symbol;
 		el.msrItem.iconFeature = el.SymbolFeature;
-		el.msrItem.animation = el.SymbolFeature;
+
+		if (el.Symbol.match(/(led)/i)) {
+			const colors = el.SymbolFeature.split(`/`);
+			el.msrItem.trueColor = (colors.at(0).includes(`gruen`)) ? GREEN_HSL :
+								   (colors.at(0).includes(`rot`)) ? MAGENTA_HSL :
+								   ``;
+			el.msrItem.falseColor = (colors.at(1).includes(`gruen`)) ? GREEN_HSL :
+									(colors.at(1).includes(`rot`)) ? MAGENTA_HSL :
+									``;
+		}
+
+		if (el.Symbol.match(/(pumpe)|(bhkw)|(feuer)/i)) {
+			el.msrItem.animation = (el.Symbol.match(/(feuer)/i)) ? `flicker` : `spin`;
+		}
+
+		if (el.Symbol.match(/(absenkung)|(freitext)/i)) {
+			el.msrItem.trueTxt = (el.Symbol.match(/(absenkung)/i)) ? `Nacht` :
+								 (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature;
+			el.msrItem.falseTxt = (el.Symbol.match(/(absenkung)/i)) ? `Tag` :
+								  (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : ``;
+		}
 	});
 
 	return visudata
 }
-
-function initVisu() {	
-	const vDynCanvas = document.querySelector(`#vDynCanvas`);
-	vDynCanvas.width = 1400;
-	vDynCanvas.height = 630;
-
-	// Laden
-	//Read deployed visufile /visu/visu.txt 
-	const visudata = getVisuData(DEPLOYED_VISU_FILE);
-	
-	switchVisuTab(visudata);
-}
-
 
 function startVisu() {
 	const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
@@ -66,7 +73,9 @@ function startVisu() {
 	const visudata = getVisuData(DEPLOYED_VISU_FILE);
 	console.log(visudata);
 	
-	DrawVisu(visudata, liveData);
+	DrawVisu(visudata);
+	switchVisuTab(visudata);
+	updateLiveDataElements(liveData.items);
 }
 
 function parseProjectId(liveDataRaw) {
@@ -97,6 +106,8 @@ function parseHKnames(liveDataRaw) {
 	names.forEach(name => {
 		const object = name.match(/(?<Kanal>\d+)(?<sWert>.+)/).groups;
 		object.Bezeichnung = `HKNA`;
+		object.Kanal = parseInt(object.Kanal);
+		object.msr = `${object.Bezeichnung.trim()}${object.Kanal}`;
 		object.isBool = false;
 		object.BoolVal = false;
 		result.push(object);
@@ -109,10 +120,13 @@ function parseFaceplateBtns(liveDataRaw) {
 	const result = [];
 	data.forEach(dataset => {
 		const object = dataset.match(/(?<Bezeichnung>[A-Z]+)\s*(?<Kanal>\d+),\s*(CLICK)(?<Wert>\d*)/).groups;
+		object.Kanal = parseInt(object.Kanal);
+		object.Wert = parseInt(object.Wert);
+		object.msr = `${object.Bezeichnung.trim()}${object.Kanal}`;
 		object.sWert = `CLICK`;
 		object.isBool = false;
 		object.BoolVal = false;
-		if (object.Wert === undefined) {
+		if (object.Wert === undefined) { //erscheint unlogisch!!! prüfen...
 			object.Wert = 2;
 		}
 		result.push(object);
@@ -125,9 +139,11 @@ function parseMSRdata(liveDataRaw) {
 	const result = [];
 	msrData.forEach(msrDataset => {
 		const msrObject = msrDataset.match(/(?<Bezeichnung>[A-Z]+)\s*(?<Kanal>\d+),(?<Nachkommastellen>\d),(?<iEinheit>[\s\d]{2})\s*(?<Wert>-*\d+\.*\d*)/).groups;
-		msrObject.msr = `${msrObject.Bezeichnung.trim()}${parseInt(msrObject.Kanal)}`;
+		msrObject.Kanal = parseInt(msrObject.Kanal);
+		msrObject.Wert = parseInt(msrObject.Wert);
+		msrObject.msr = `${msrObject.Bezeichnung.trim()}${msrObject.Kanal}`;
 		//ToDo:
-		msrObject.isBool = (msrObject.Bezeichnung.match(/()|()/)) ? true : false;
+		msrObject.isBool = (msrObject.Bezeichnung.match(/(PH)|(KPU)|(KL)|(BPU)|(BL)|(WPP)|(WPL)|(LP)|(SP)|(ZP)|(SG)|(BI)/)) ? true : false;
 		msrObject.BoolVal = (msrObject.isBool) ? !!msrObject.Wert : false;
 		msrObject.EinheitText = unitFromInt(msrObject.iEinheit);
 		result.push(msrObject);
@@ -163,135 +179,6 @@ function unitFromInt(int) {
 }
 
 // Diverse Zeichenfunktionen wie im Editor
-function fpButton(ctx, x, y, betrieb) {
-    var notches = 7,                      // num. of notches
-        radiusO = 12,                    // outer radius
-        radiusI = 9,                    // inner radius
-        radiusH = 5,                    // hole radius
-        taperO = 30,                     // outer taper %
-        taperI = 40,                     // inner taper %
-
-        // pre-calculate values for loop
-        pi2 = 2 * Math.PI,            // cache 2xPI (360deg)
-        angle = pi2 / (notches * 2),    // angle between notches
-        taperAI = angle * taperI * 0.005, // inner taper offset (100% = half notch)
-        taperAO = angle * taperO * 0.005, // outer taper offset
-        a = angle,                  // iterator (angle)
-        toggle = false;                  // notch radius level (i/o)
-
-    ctx.save();
-    ctx.fillStyle = '#000';
-    ctx.lineWidth = 2.5;
-    ctx.strokeStyle = '#000';
-    ctx.beginPath()
-    ctx.moveTo(x + radiusO * Math.cos(taperAO), y + radiusO * Math.sin(taperAO));
-
-    for (; a <= pi2; a += angle) {
-
-        // draw inner to outer line
-        if (toggle) {
-            ctx.lineTo(x + radiusI * Math.cos(a - taperAI),
-                y + radiusI * Math.sin(a - taperAI));
-            ctx.lineTo(x + radiusO * Math.cos(a + taperAO),
-                y + radiusO * Math.sin(a + taperAO));
-        }
-
-        // draw outer to inner line
-        else {
-            ctx.lineTo(x + radiusO * Math.cos(a - taperAO),  // outer line
-                y + radiusO * Math.sin(a - taperAO));
-            ctx.lineTo(x + radiusI * Math.cos(a + taperAI),  // inner line
-                y + radiusI * Math.sin(a + taperAI));
-        }
-
-        // switch level
-        toggle = !toggle;
-    }
-    // close the final line
-    ctx.closePath();
-    ctx.moveTo(x + radiusH, y);
-    ctx.arc(x, y, radiusH, 0, pi2);
-
-    if (betrieb == '0') {
-
-    }
-    else {
-        //ctx.font = "12px Arial";
-        //ctx.fillText("Handbetrieb", x - 20, y + 24);
-        ctx.translate(x,y)
-        ctx.moveTo(40, 27);
-        ctx.lineTo(40, 10);
-        ctx.arc(38, 8, 2, 2 * Math.PI, 1 * Math.PI, true);
-        ctx.lineTo(36, 16);
-        ctx.arc(34, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        ctx.lineTo(32, 15);
-        ctx.arc(30, 5.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        ctx.lineTo(28, 15);
-        ctx.arc(26, 6.5, 2, 2 * Math.PI, 1 * Math.PI, true);
-        ctx.lineTo(24, 20);
-        ctx.lineTo(20, 16);
-        ctx.arc(19, 17.8, 2, 1.8 * Math.PI, 0.8 * Math.PI, true);
-        ctx.lineTo(26, 27);
-        ctx.lineTo(40, 27);
-        ctx.fillStyle = 'yellow';
-        ctx.scale(1, 1)
-        ctx.fill();
-        //ctx.stroke();
-    }
-    ctx.stroke();
-    ctx.restore();
-}
-
-
-
-function Absenkung(ctx, x, y, scale, active) {
-	ctx.save();
-	ctx.moveTo(0 - 10 * scale, 0);
-	ctx.font = '10pt Arial';
-	ctx.fillStyle = 'blue';
-
-	ctx.translate(x, y);
-
-	if (active == 1)
-		ctx.fillText('Nacht', 0, 0);
-	else
-		ctx.fillText('Tag', 1, 0);
-
-	ctx.restore();
-}
-
-
-function BHDreh(ctx, x, y, scale, rotation) {
-	ctx.save();
-	ctx.lineWidth = 1 * scale;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rotation);
-	ctx.strokeStyle = "steelblue";
-	ctx.beginPath();
-	ctx.arc(0, 0, 13 * scale, 0, Math.PI * 2, true);
-
-	ctx.moveTo(0 + 10 * scale, 0);
-	ctx.arc(0, 0, 10 * scale, 0, -Math.PI / 4, true);
-	ctx.moveTo(0 + 10 * scale, 0);
-	ctx.arc(0, 0, 10 * scale, 0, Math.PI / 4, false);
-
-	ctx.moveTo(0 - 10 * scale, 0);
-	ctx.arc(0, 0, 10 * scale, Math.PI, -3 * Math.PI / 4, false);
-	ctx.moveTo(0 - 10 * scale, 0);
-	ctx.arc(0, 0, 10 * scale, Math.PI, 3 * Math.PI / 4, true);
-	ctx.stroke();
-
-	ctx.lineWidth = 3 * scale;
-
-	ctx.beginPath();
-	ctx.moveTo(0 - 10 * scale, 0);
-	ctx.lineTo(0 + 10 * scale, 0);
-
-	ctx.stroke();
-	ctx.restore();
-}
-
-
 function feuer(ctx, x, y, scale) {
 	// 30x48
 	var rd1 = (Math.random() - 0.5) * 3;
@@ -326,34 +213,98 @@ function feuer(ctx, x, y, scale) {
 	ctx.restore();
 }
 
-function pmpDreh2(ctx, x, y, scale, rot) {
-	// 12x12
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "black";
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rot);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-	ctx.arc(0, 0, 11, 0, Math.PI * 2, true);
-	ctx.stroke();
-	ctx.closePath();
-	ctx.beginPath();
-	ctx.lineWidth = 1, 5;
-	ctx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	ctx.fillStyle = 'black';
-	ctx.fill();
-	ctx.closePath();
-	ctx.beginPath();
-	ctx.arc(0, 0, 6, 1.1 * Math.PI, 1.9 * Math.PI, true);
-	ctx.lineTo(0, 0);
-	ctx.fillStyle = 'white';
-	ctx.fill();
-	ctx.closePath();
+function createIcon(msrItem) {
+	const htmlElType = (msrItem.icon.match(/(led)|(feuer)/i)) ? `div` : `canvas`;
 
-	ctx.stroke();
-	ctx.restore();
+	const htmlEl = document.createElement(htmlElType);
+	htmlEl.classList.add(`visuElement`);
+	htmlEl.setAttribute(`msr`, msrItem.msr);
+	if (msrItem.animation) {
+		htmlEl.setAttribute(`animation`, msrItem.animation);
+	}
+	htmlEl.setAttribute(`faceplate`, msrItem.faceplate);
+	htmlEl.setAttribute(`tab-idx`, msrItem.tabIdx);
+	htmlEl.title = msrItem.title;
+
+	const ctx = (htmlElType === `canvas`) ? htmlEl.getContext(`2d`) : undefined;
+	if (msrItem.icon === `Pumpe`) {
+		const outerRadius = 11;
+		const innerRadius = 6;
+		ctx.lineWidth = 1;
+
+		htmlEl.width = 2 * (outerRadius + ctx.lineWidth);
+		htmlEl.height = htmlEl.width;
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = `black`;
+		ctx.beginPath();
+		ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.stroke();
+
+		ctx.fillStyle = `white`;
+		ctx.beginPath();
+		ctx.arc(0, 0, innerRadius, 0, Math.PI * 2);
+		ctx.closePath();
+		ctx.fill();
+		ctx.stroke();
+
+		ctx.fillStyle = `black`;
+		ctx.beginPath();
+		ctx.arc(0, 0, innerRadius, 1.1 * Math.PI, 1.9 * Math.PI);
+		ctx.lineTo(0, 0);
+		ctx.closePath();
+		ctx.fill();
+		ctx.stroke();
+	}
+	else if (msrItem.icon === `BHKW`) {
+		const outerRadius = 13;
+		const innerRadius = 10;
+		ctx.lineWidth = 1;
+
+		htmlEl.width = 2 * (outerRadius + ctx.lineWidth);
+		htmlEl.height = htmlEl.width;
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = CYAN_HSL;
+		ctx.beginPath();
+		ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+		ctx.moveTo(innerRadius, 0);
+		ctx.arc(0, 0, innerRadius, 0, -Math.PI / 4, true);
+		ctx.moveTo(innerRadius, 0);
+		ctx.arc(0, 0, innerRadius, 0, Math.PI / 4, false);
+		ctx.moveTo(-innerRadius, 0);
+		ctx.arc(0, 0, innerRadius, Math.PI, -3 * Math.PI / 4, false);
+		ctx.moveTo(-innerRadius, 0);
+		ctx.arc(0, 0, innerRadius, Math.PI, 3 * Math.PI / 4, true);
+		ctx.stroke();
+
+		ctx.lineWidth = 3;
+		ctx.beginPath();
+		ctx.moveTo(-innerRadius, 0);
+		ctx.lineTo(innerRadius, 0);
+
+		ctx.stroke();
+	}
+	else if (msrItem.icon === `Led`) {
+		htmlEl.classList.add(`led`);
+		htmlEl.setAttribute(`true-color`, msrItem.trueColor);
+		htmlEl.setAttribute(`false-color`, msrItem.falseColor);
+
+		const led = document.createElement(`div`);
+		htmlEl.appendChild(led);
+		led.classList.add(`led`);
+	}
+	else {
+		return null;
+	}
+
+	const offsetX = (htmlElType === `canvas`) ? htmlEl.width/2 : 0;
+	const offsetY = (htmlElType === `canvas`) ? htmlEl.height/2 : 0;
+	htmlEl.style.left = `${msrItem.xPx - offsetX}px`;
+	htmlEl.style.top = `${msrItem.yPx - offsetY}px`;
+
+	return htmlEl;
 }
 
 function drawEllipse(ctx, x, y, w, h) {
@@ -513,32 +464,6 @@ function schalter(ctx, x, y, scale, val, rotation) {
 	ctx.restore();
 }
 
-function freitext(ctx, x, y, scale, font, color, txt, bgHeight, bgColor, active) {
-    if (txt.startsWith('!')) {  //führendes '!' in SymbolFeature als Invertierungsindikator!
-        txt = txt.replace('!','');
-        active = !active;
-    }
-    if (!active) return;
-    
-    ctx.save();
-    ctx.moveTo(0 - 10 * scale, 0);
-
-    var w = ctx.measureText(txt).width;
-    ctx.font = font;
-    if (bgColor) {
-        ctx.fillStyle = bgColor;
-        ctx.fillRect(x - 1, y - bgHeight - 1, w + 2, bgHeight + 3);
-    }
-    
-    ctx.translate(x, y);
-    
-    ctx.fillStyle = color;
-    ctx.fillText(txt, 0, 0);
-
-    ctx.restore();
-}
-
-// Bitmap setzen
 function switchVisuTab(visudata, targetTabIdx = 0) {
 	const vimgArea = document.querySelector(`#vimgArea`);
 	vimgArea.setAttribute(`tab-idx`, targetTabIdx)
@@ -546,154 +471,138 @@ function switchVisuTab(visudata, targetTabIdx = 0) {
 	document.querySelectorAll(`[tab-idx]`).forEach(el => el.classList.toggle(`hidden`, parseInt(el.getAttribute(`tab-idx`)) != targetTabIdx));
 }
 
-
-
-
-// Zeichen-Hauptfunktion. Wird bei Bedarf von Timer aufgerufen
-function DrawVisu(visudata, liveData) {
-	const vDynCanvas = document.querySelector(`#vDynCanvas`);
-	const vDynCtx = vDynCanvas.getContext('2d');
-	vDynCtx.clearRect(0, 0, vDynCanvas.width, vDynCanvas.height);
-	drawDropList(visudata, liveData);
-	
+function DrawVisu(visudata) {
+	drawDropList(visudata);
 	drawTextList(visudata);
 }
 
-// Gedroptes zeichen
-function drawDropList(visudata, liveData) {
-	visudata.DropList.forEach(el => drawVCOItem(el.msrItem, el, liveData));
+function drawDropList(visudata) {
+	visudata.DropList.forEach(el => drawVCOItem(el.msrItem));
 }
 
-
-// Properties zeichnen incl. Symbole
-function drawVCOItem(msrItem, item, liveData) {
+function drawVCOItem(msrItem) {
 	const vimgArea = document.querySelector(`#vimgArea`);
-	const bmpIndex = parseInt(vimgArea.getAttribute(`tab-idx`));
-	if (liveData.items) {
-		const {VCOItem, x, y, SymbolFeature, Symbol} = item;
-		
-		const foundItem = liveData.items.find(el => el.Bezeichnung.trim() === VCOItem.Bez.trim() && parseInt(el.Kanal) === parseInt(VCOItem.Kanal));
-		if (foundItem) {
-			const value = parseFloat(foundItem.Wert);
-			
-			if (foundItem.Bezeichnung.trim() === `GA`) {
-				const warnGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
-				const stoerGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
-				if (warnGrenze || stoerGrenze) {
-					item.bgColor = 	(value > stoerGrenze) ? `#fc1803` :
-									(value < stoerGrenze && value > warnGrenze) ? `#fcdf03` :
-									(value < warnGrenze) ? `#42f545` : item.bgColor;
-				}
-			}
 
-			const msr = `${VCOItem.Bez.trim()}${parseInt(VCOItem.Kanal)}`;
-			
-			if (VCOItem.isBool && item.bmpIndex === bmpIndex) {
-				const vDynCanvas = document.querySelector(`#vDynCanvas`);
-				const vDynCtx = vDynCanvas.getContext('2d');
-				if (Symbol.match(/(fpButton)|(Heizkreis)/)) {
-					const existingBtn = document.querySelector(`[msr = ${msr}]`);
-					if (existingBtn) {
-						existingBtn.classList.toggle(`btnHand`, !!value);
-						existingBtn.classList.toggle(`btnAuto`, !value);
-					}
-					else {
-						const htmlEl = document.createElement(`input`);
-						htmlEl.type = `button`;
-						vimgArea.appendChild(htmlEl);
-						htmlEl.classList.add(`visuElement`, `faceplateBtn`, msr);
-						htmlEl.classList.toggle(`btnHand`, !!value);
-						htmlEl.classList.toggle(`btnAuto`, !value);
-						htmlEl.classList.toggle(`hidden`, parseInt(item.bmpIndex) != bmpIndex);
-						htmlEl.setAttribute(`msr`, msr);
-						htmlEl.setAttribute(`faceplate-id`, VCOItem.iD.trim());
-						htmlEl.setAttribute(`tab-idx`, item.bmpIndex);
-						htmlEl.title = item.ToolTip.replace(`<<<`, ``).trim();
-						htmlEl.style.left = `${item.x}px`;
-						htmlEl.style.top = `${item.y - parseInt(item.font)}px`;
-						htmlEl.addEventListener(`click`, openFaceplate);
-					}
-					
-					//fpButton(vDynCtx, x, y, value);
-				}
-				else if (Symbol === "Absenkung") {
-					Absenkung(vDynCtx, x, y, 1, value);
-				}
-				else if (Symbol === "Feuer" && value) {
-					feuer(vDynCtx, x, y, 1);
-				}
-				else if (Symbol === "BHKW") {
-					BHDreh(vDynCtx, x, y, 1, value);
-				}
-				else if (Symbol === "Pumpe") {
-					pmpDreh2(vDynCtx, x, y, 1, value);
-				}
-				else {					
-					const rotation = (SymbolFeature === "Rechts") ? 180 :
-									 (SymbolFeature === "Oben") ? 90 :
-									 (SymbolFeature === "Unten") ? 270 : 0;
-					
-					if (Symbol === "Luefter") {
-						const angle = 30;
-						luefter(vDynCtx, x, y, 1, angle, rotation);
-					}
-					else if (Symbol === "Ventil" && value) {
-						ventil(vDynCtx, x, y, 1, rotation);
-					}
-					else if (Symbol === "VentilFilled" && value) {
-						ventilFilled(vDynCtx, x, y, 1, rotation);
-					}					
-					else if (Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
-						const val = (value === 1) ? 100 : value;
-						lueftungsklappe(vDynCtx, x, y, 1, val, rotation);                            
-					}
-					else if (Symbol === "Schalter") {
-						schalter(vDynCtx, x, y, 1, value, rotation);
-					}
-					else if (Symbol === "Freitext") {
-						freitext(vDynCtx, x, y, 1, item.font, item.Color, SymbolFeature, item.BgHeight, item.BgColor, value);
-					}
-					else if (Symbol === "Led") {
-						const color = 	(SymbolFeature.match(/(\/rot)/) && value) ? `red` :
-										(SymbolFeature.match(/(rot\/)/) && !value) ? `red` :
-										(SymbolFeature.match(/(\/gruen)/) && value) ? `green` :
-										(SymbolFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
-						if (color && (!SymbolFeature.match(/(blinkend)/) || (SymbolFeature.match(/(blinkend)/) && TimerToggle))) {
-							Led(vDynCtx, x, y, 1, color);
-						}
-					}
-				}
+	if (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) {
+		const faceplateBtn = document.createElement(`input`);
+		faceplateBtn.type = `button`;
+		vimgArea.appendChild(faceplateBtn);
+		faceplateBtn.classList.add(`visuElement`, `faceplateBtn`);
+		faceplateBtn.setAttribute(`msr`, msrItem.msr);
+		faceplateBtn.setAttribute(`faceplate`, msrItem.faceplate);
+		faceplateBtn.setAttribute(`tab-idx`, msrItem.tabIdx);
+		faceplateBtn.title = msrItem.title;
+		faceplateBtn.style.left = `${msrItem.xPx}px`;
+		faceplateBtn.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
+		faceplateBtn.addEventListener(`click`, openFaceplate);
+	}
+	else {
+		const icon = createIcon(msrItem);
+		if (icon) {
+			vimgArea.appendChild(icon);
+		}
+		else {
+			const msrLbl = document.createElement(`label`);
+			vimgArea.appendChild(msrLbl);
+			msrLbl.classList.add(`visuElement`);
+			msrLbl.setAttribute(`msr`, msrItem.msr);
+			msrLbl.setAttribute(`unit`, msrItem.unit);
+			msrLbl.setAttribute(`dec-place`, msrItem.decPlace);
+			msrLbl.setAttribute(`tab-idx`, msrItem.tabIdx);
+			msrLbl.setAttribute(`faceplate`, msrItem.faceplate);
+			if (msrItem.trueTxt !== undefined) {
+				msrLbl.setAttribute(`true-txt`, msrItem.trueTxt);
 			}
-			else if (!msrItem.icon) {
-				const msrLbl = document.createElement(`label`);
-				vimgArea.appendChild(msrLbl);
-				msrLbl.classList.add(`visuElement`);
-				msrLbl.classList.toggle(`hidden`, msrItem.tabIdx != bmpIndex);
-				msrLbl.setAttribute(`msr`, msrItem.msr);
-				msrLbl.setAttribute(`unit`, msrItem.unit);
-				msrLbl.setAttribute(`dec-place`, msrItem.decPlace);
-				msrLbl.setAttribute(`tab-idx`, msrItem.tabIdx);
-				msrLbl.setAttribute(`faceplate`, msrItem.faceplate);
-				msrLbl.style.font = msrItem.font;
-				msrLbl.style.color = msrItem.color;
-				msrLbl.style.backgroundColor = msrItem.bgColor;
-				msrLbl.title = msrItem.title;
-				msrLbl.style.left = `${msrItem.xPx}px`;
-				msrLbl.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
+			if (msrItem.falseTxt !== undefined) {
+				msrLbl.setAttribute(`false-txt`, msrItem.falseTxt);
+			}
+			msrLbl.style.font = msrItem.font;
+			msrLbl.style.color = msrItem.color;
+			msrLbl.style.backgroundColor = msrItem.bgColor;
+			msrLbl.title = msrItem.title;
+			msrLbl.style.left = `${msrItem.xPx}px`;
+			msrLbl.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
+		}
+	}
+	/*
+	else if (msrItem.icon === "Feuer") {
+		feuer(vDynCtx, msrItem.xPx, msrItem.yPx, 1);
+	}
+	/*
+	else {					
+		const rotation = (msrItem.iconFeature === "Rechts") ? 180 :
+							(msrItem.iconFeature === "Oben") ? 90 :
+							(msrItem.iconFeature === "Unten") ? 270 : 0;
+		
+		if (msrItem.icon === "Luefter") {
+			const angle = 30;
+			luefter(vDynCtx, msrItem.xPx, msrItem.yPx, 1, angle, rotation);
+		}
+		else if (msrItem.icon === "Ventil" && value) {
+			ventil(vDynCtx, msrItem.xPx, msrItem.yPx, 1, rotation);
+		}
+		else if (msrItem.icon === "VentilFilled" && value) {
+			ventilFilled(vDynCtx, msrItem.xPx, msrItem.yPx, 1, rotation);
+		}					
+		else if (msrItem.icon.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
+			const val = (value === 1) ? 100 : value;
+			lueftungsklappe(vDynCtx, msrItem.xPx, msrItem.yPx, 1, val, rotation);                            
+		}
+		else if (msrItem.icon === "Schalter") {
+			schalter(vDynCtx, msrItem.xPx, msrItem.yPx, 1, value, rotation);
+		}
+		else if (msrItem.icon === "Led") {
+			const color = 	(msrItem.iconFeature.match(/(\/rot)/) && value) ? `red` :
+							(msrItem.iconFeature.match(/(rot\/)/) && !value) ? `red` :
+							(msrItem.iconFeature.match(/(\/gruen)/) && value) ? `green` :
+							(msrItem.iconFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
+			if (color && (!msrItem.iconFeature.match(/(blinkend)/) || (msrItem.iconFeature.match(/(blinkend)/) && TimerToggle))) {
+				Led(vDynCtx, msrItem.xPx, msrItem.yPx, 1, color);
 			}
 		}
 	}
+	
+	*/
 }
 
 function updateLiveDataElements(liveDataItems) {
 	liveDataItems.forEach(item => {
-		//console.log(item.msr);
+		//console.log(item);
 		const htmlElements = document.querySelectorAll(`[msr = ${item.msr}]`);
 		if (htmlElements) {
 			htmlElements.forEach(el => {
 				//console.log(el);
-				if (el.matches([`animation`])) {
 
+				/*
+				if (foundItem.Bezeichnung.trim() === `GA`) {
+					const warnGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
+					const stoerGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
+					if (warnGrenze || stoerGrenze) {
+						item.bgColor = 	(item.Wert > stoerGrenze) ? `#fc1803` :
+										(item.Wert < stoerGrenze && item.Wert > warnGrenze) ? `#fcdf03` :
+										(item.Wert < warnGrenze) ? `#42f545` : item.bgColor;
+					}
+				}
+					*/
+
+				if (el.matches(`.faceplateBtn`)) {
+					el.classList.toggle(`btnHand`, !!item.Wert);
+					el.classList.toggle(`btnAuto`, !item.Wert);
+				}
+				else if (el.matches(`[animation]`)) {
+					el.classList.toggle(`animate`, !!item.Wert);					
+				}
+				else if (!!item.Wert && el.matches(`[true-txt]`)) {
+					el.innerText = el.getAttribute(`true-txt`);					
+				}
+				else if (!item.Wert && el.matches(`[false-txt]`)) {
+					el.innerText = el.getAttribute(`false-txt`);					
+				}
+				else if (!!item.Wert && el.matches(`[true-color]`)) {
+					el.querySelector(`.led`).style.backgroundColor = el.getAttribute(`true-color`);
+				}
+				else if (!item.Wert && el.matches(`[false-color]`)) {
+					el.querySelector(`.led`).style.backgroundColor = el.getAttribute(`false-color`);					
 				}
 				else {
 					const unit = el.getAttribute(`unit`);
@@ -809,7 +718,6 @@ function ReloadData() {
 
 	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
 	if (liveData.items) {
-		//DrawVisu(visudata, liveData);
 		updateLiveDataElements(liveData.items);
 		connectionStatusTxt.textContent = `Letzte Datenaktualisierung: ${liveData.date.toLocaleString(`de-DE`)}`;
 	}
@@ -956,7 +864,7 @@ async function openFaceplate(ev) {
 	document.body.setAttribute(`cursorStyle`, `progress`);
 	ev.target.setAttribute(`cursorStyle`, `progress`);
 	try {
-		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate-id`)}`;
+		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
 		const test = await fetchData(faceplateRequestUrl);
 		console.log(test);
 		const adjustmentOptions = await asyncSleep(fetchData, 800, FACEPLATE_DATA_URL);

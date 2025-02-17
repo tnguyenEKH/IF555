@@ -1,5 +1,25 @@
 const LOAD_QH_DATA = false;
 
+/********************* COLORS *********************/
+//Colors here in rgb, because style.color will return rgb-format
+const MAGENTA_HSL = `hsl(334, 74%, 44%)`;
+const MAGENTA_HEX = `#c31d65`;
+const MAGENTA_RGB = `rgb(195, 29, 101)`;
+const CYAN_HSL = `hsl(194, 74%, 44%)`;
+const CYAN_HEX = `#1d9cc3`;
+const CYAN_RGB = `rgb(29, 156, 195)`;
+const PURPLE_HSL = `hsl(264, 74%, 44%)`;
+const PURPLE_HEX = `#601dc3`;
+const PURPLE_RGB = `rgb(96, 29, 195)`;
+const YELLOW_HSL = `hsl(50, 74%, 44%)`;
+const YELLOW_HEX = `#c3a81d`;
+const YELLOW_RGB = `rgb(195, 168, 29)`;
+const GREEN_HSL = `hsl(120, 74%, 44%)`;
+const GREEN_HEX = `#1dc31d`;
+const GREEN_RGB = `rgb(29, 195, 29)`;
+const COLORS_HEX = [MAGENTA_HEX, CYAN_HEX, PURPLE_HEX, YELLOW_HEX, GREEN_HEX];
+
+
 /********************* URL SETTINGS *********************/
 const mpcJsonAddUrl = `http://172.16.0.102/JSONADD/`;
 const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
@@ -133,7 +153,6 @@ function init() {
     benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
 	
   /**********Visualization*/
-	initVisu();
 	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
 	handleConfirmBtn(locked);		//Visubedienung verriegeln
    
