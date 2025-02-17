@@ -91,7 +91,7 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
 	}
 	
-	.btnToggleLock {
+	.btnLockVisu {
 		font-size: 3vh;
 		position: absolute;
 		top: 10vh;
@@ -104,33 +104,6 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 		border-radius: 3px;
 		background-color: var(--whiteGrey); /*rgb(241, 241, 241); white gray*/
 		box-shadow: 2px 2px #666 /*rgb(102, 102, 102); dark gray*/;
-	}
-	
-	#btnUnlock {
-		color: var(--magenta);
-	}
-	
-	#btnLock {
-		display: none;
-		color: var(--cyan);
-	}
-	
-	#btnUnlock:hover,
-	#btnUnlock:active	{
-		color: var(--whiteGrey);
-		background-color: var(--magenta);
-	}	
-	
-	#btnLock:hover,
-	#btnLock:active	{
-		color: var(--whiteGrey);
-		background-color: var(--cyan);
-	}
-	
-	#btnUnlock:active,
-	#btnLock:active	{
-		box-shadow: 4px 4px hsl(0, 0%, 40%);
-		transform: translateY(2px);
 	}
 	
 	#lblPin {
@@ -368,11 +341,11 @@ h6 {				/*Für Sektorüberschriften Faceplate*/
 			width: auto;
 			background-color: #E0E0E0;
 		}
-			
-		
+			/*
 			.modalVisuContent button:hover {
 				cursor: pointer;
 			}
+			*/
 
 			.modalVisuContent button:disabled {
 				cursor: default;

@@ -71,8 +71,8 @@ var statmouseweek = new Boolean("false");             // Maus befindet sich im W
 $(document).ready(function () {
 	//console.log({QHHeaderFile});
 	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	//testRequest(`./DATA/vierttx.txt`, 5000);
-  document.body.appendChild(createOSK(``));
+	testRequest(`./DATA/vierttx.txt`, 5000);
+  //document.body.appendChild(createOSK(``));
 });
 
 /****test****/
