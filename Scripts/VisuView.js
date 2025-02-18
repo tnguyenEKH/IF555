@@ -17,6 +17,21 @@ const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
 
+function ReloadData() {
+	const rawvisuData = readFromTextFile(LIVE_DATA_URL);
+	const liveData = parseLiveData(rawvisuData);
+
+	//Read deployed visufile /visu/visu.txt 
+	const visudata = getVisuData(DEPLOYED_VISU_FILE);
+
+	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
+	if (liveData.items) {
+		updateLiveDataElements(liveData.items);
+		connectionStatusTxt.textContent = `Letzte Datenaktualisierung: ${liveData.date.toLocaleString(`de-DE`)}`;
+	}
+	connectionStatusTxt.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
+}
+
 function getOnlinegesamtZaehler(url) {
 	const res = readFromTextFile(url);
     const resWithoutDate = res.substring(41);
@@ -26,6 +41,7 @@ function getOnlinegesamtZaehler(url) {
 
 function getVisuData(deployedVisuFile) {
 	const visudata = JSON.parse(readFromTextFile(deployedVisuFile));
+
 	visudata.DropList.forEach(el => {
 		el.msrItem = {};
 		el.msrItem.identifyer = el.VCOItem.Bez.trim();
@@ -44,6 +60,14 @@ function getVisuData(deployedVisuFile) {
 		el.msrItem.icon = el.Symbol;
 		el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
 		
+		if (el.msrItem.identifyer === `GA`) {
+			el.msrItem.alarms.H.msr = `GR2`;
+			el.msrItem.alarms.HH.msr = `GR3`;
+		}
+		else if (el.msrItem.msr === `AI32`) {
+			el.msrItem.alarms.L.msr = `GR1`;
+		}
+
 		if (el.Symbol.match(/(Rechts)|(Oben)|(Unten)/i)) {
 			el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
 								  (el.SymbolFeature.match(/(Oben)/i)) ? 90 :
@@ -152,13 +176,6 @@ function parseMSRdata(liveDataRaw) {
 	return result;
 }
 
-/*This function was written in C# as WebService and called per ajax
-Source can be found at Visutool.cs VisuObject class
-Rawdata was read from RD02 folder and will be processed to return Visudownload, no more changed need to be made.
-
-There is no List data structure in Javascript so nested array will be use instead. 
-Datastructure of Visudownload will be nested array + array of object
-*/
 //ehemals createVisudata(sText)
 function parseLiveData(liveDataRaw) {	
 	const liveData = {};
@@ -177,41 +194,6 @@ function parseLiveData(liveDataRaw) {
 function unitFromInt(int) {
 	const unit = [``, `°C`, `bar`, `V`, `kW`, `m³/h`, `mWS`, `%`, `kWh`, `Bh`, `m³`, `°Cø`, `mV`, `UPM`, `s`, `mbar`, `A`, `Hz`, `l/h`, `l`].at(parseInt(int));
   	return (unit) ? unit : ``;
-}
-
-// Diverse Zeichenfunktionen wie im Editor
-function feuer(ctx, x, y, scale) {
-	// 30x48
-	var rd1 = (Math.random() - 0.5) * 3;
-	var rd2 = (Math.random() - 0.5) * 3;
-	var rd3 = (Math.random() - 0.5) * 3;
-	var rd4 = (Math.random() - 0.5) * 3;
-	var rd5 = (Math.random() - 0.5) * 3;
-	var rd6 = (Math.random() - 0.5) * 3;
-	ctx.save();
-
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.scale(scale, scale);
-	ctx.strokeStyle = "red";
-	ctx.fillStyle = "yellow";
-	ctx.beginPath();
-	ctx.moveTo(0 + rd1, -20);
-	ctx.lineTo(-5 + rd2, -10);
-	ctx.lineTo(-8 + rd3, -5);
-	ctx.lineTo(-7 + rd4, 5);
-	ctx.lineTo(-2 + rd5, 10);
-
-	ctx.lineTo(2 + rd5, 10);
-	ctx.lineTo(4 + rd4, 5);
-	ctx.lineTo(6 + rd6, -5);
-	ctx.lineTo(5 + rd2, -10);
-	ctx.lineTo(0 + rd1, -20);
-	ctx.fill();
-	ctx.stroke();
-
-	//ctx.closePath();
-	ctx.restore();
 }
 
 function createIcon(msrItem) {
@@ -509,6 +491,11 @@ function drawVCOItem(msrItem) {
 		if (msrItem.falseTxt !== undefined) {
 			msrLbl.setAttribute(`false-txt`, msrItem.falseTxt);
 		}
+		if (msrItem.alarms) {
+			Object.entries(alarms).forEach(([alarmType, val]) => {
+				msrLbl.setAttribute(val.msr.toLowerCase(), alarmType);
+			});
+		}
 		msrLbl.style.font = msrItem.font;
 		msrLbl.style.color = msrItem.color;
 		msrLbl.style.backgroundColor = msrItem.bgColor;
@@ -520,23 +507,10 @@ function drawVCOItem(msrItem) {
 
 function updateLiveDataElements(liveDataItems) {
 	liveDataItems.forEach(item => {
-		//console.log(item);
 		const htmlElements = document.querySelectorAll(`[msr = ${item.msr}]`);
 		if (htmlElements) {
 			htmlElements.forEach(el => {
 				//console.log(el);
-
-				/*
-				if (foundItem.Bezeichnung.trim() === `GA`) {
-					const warnGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 2).Wert);
-					const stoerGrenze = parseFloat(liveData.items.find(el => el.Bezeichnung.trim() === `GR` && parseInt(el.Kanal) === 3).Wert);
-					if (warnGrenze || stoerGrenze) {
-						item.bgColor = 	(item.Wert > stoerGrenze) ? `#fc1803` :
-										(item.Wert < stoerGrenze && item.Wert > warnGrenze) ? `#fcdf03` :
-										(item.Wert < warnGrenze) ? `#42f545` : item.bgColor;
-					}
-				}
-					*/
 				if (el.matches(`.led, .switch`)) {
 					el.firstElementChild.classList.toggle(`displayNone`, !!item.Wert);
 					el.lastElementChild.classList.toggle(`displayNone`, !item.Wert);
@@ -558,11 +532,23 @@ function updateLiveDataElements(liveDataItems) {
 				else {
 					const unit = el.getAttribute(`unit`);
 					const decPlace = parseInt(el.getAttribute(`dec-place`));
-					const txt = (item.Bezeichnung.trim() === `HKNA`) ? item.sWert : parseFloat(item.Wert).toFixed(decPlace);
+					const txt = (item.Bezeichnung.trim() === `HKNA`) ? item.sWert : item.Wert.toFixed(decPlace);
 					el.innerText = `${txt} ${unit}`;
 				}
 			});
 		}
+	});
+
+	//Check for Alarms and highlight
+	const grenzwerte = liveDataItems.filter(el => el.Bezeichnung.trim() === `GR`);
+	grenzwerte.forEach(grenzwert => {
+		const grenzwertMSR = grenzwert.toLowerCase();
+		document.querySelectorAll(`[${grenzwertMSR}]`).forEach(htmlEl => {
+			htmlEl.classList.toggle(`HHalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = HH]`) && parseFloat(htmlEl.innerText) > grenzwert.Wert));
+			htmlEl.classList.toggle(`HalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = H]`) && parseFloat(htmlEl.innerText) > grenzwert.Wert));
+			htmlEl.classList.toggle(`LalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = L]`) && parseFloat(htmlEl.innerText) < grenzwert.Wert));
+			htmlEl.classList.toggle(`LLalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = LL]`) && parseFloat(htmlEl.innerText) < grenzwert.Wert));
+		});
 	});
 }
 
@@ -658,21 +644,6 @@ function modalBgClickEventHandler(ev) {
 	if (ev.target.matches(`.modalBg, .close, .modalFooterBtn`)) {
 		document.querySelector(`.modalBg`).classList.add(`hidden`);
 	}
-}
-
-function ReloadData() {
-	const rawvisuData = readFromTextFile(LIVE_DATA_URL);
-	const liveData = parseLiveData(rawvisuData);
-
-	//Read deployed visufile /visu/visu.txt 
-	const visudata = getVisuData(DEPLOYED_VISU_FILE);
-
-	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
-	if (liveData.items) {
-		updateLiveDataElements(liveData.items);
-		connectionStatusTxt.textContent = `Letzte Datenaktualisierung: ${liveData.date.toLocaleString(`de-DE`)}`;
-	}
-	connectionStatusTxt.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 }
 
 function closeFaceplate() {

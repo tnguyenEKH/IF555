@@ -38,6 +38,14 @@ input[type = "button"].visuElement {
 .errorHighlighter {
 	color: var(--magenta);
 }
+.HHalarmHighlighter,
+.LLalarmHighlighter {
+	background-color: red;
+}
+.HalarmHighlighter:not(.HHalarmHighlighter),
+.LalarmHighlighter:not(.LLalarmHighlighter) {
+	background-color: gold;
+}
 .led,
 .switch {
 	display: grid;
