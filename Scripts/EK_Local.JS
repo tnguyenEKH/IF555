@@ -175,16 +175,109 @@ function init() {
 
 
 /***********************Kommunikation*************************************/
-async function fetchData(url) {
+function fetchLiveData(projectNo) {
+  const url = `WebServiceEK.asmx/getVisuDataRaw`;
+  const options = {};
+  options.method = `POST`;
+  options.headers = {};
+  options.headers[`Content-Type`] = `application/json; charset=utf-8`;
+  options.body = `{Projektnummer: '${projectNo}'}`;
+  
+  return fetchJSON(url, options);
+}
+
+function fetchVisuServerFile(projectNo) {
+  const url = `WebServiceEK.asmx/loadVisuFile`;
+  const options = {};
+  options.method = `POST`;
+  options.headers = {};
+  options.headers[`Content-Type`] = `application/json; charset=utf-8`;
+  options.body = `{fname: '${projectNo}'}`;
+  
+  return fetchJSON(url, options);
+}
+
+function isAdmin() {
+  if (window.DEBUG) {
+      return true;
+  }
+  const url = `WebServiceEK.asmx/isAdmin`;
+  const options = {};
+  options.method = `POST`;
+  options.headers = {};
+  options.headers[`Content-Type`] = `application/json; charset=utf-8`;
+  options.body = `{}`;
+
+  return fetchJSON(url, options);
+}
+
+async function fetchJSON(url, options) {
   try {
-    const res = await fetch(url);
-    //console.log(res.ok);
-    const data = await res.json();
-    return data;
+    const res = await fetch(url, options);
+    if (res.ok) {
+      const data = await res.json();
+      return (data.d) ? data.d : data;
+    }
+    else {
+      console.error(`ServerErrorStatus: ${res.status}`);
+    }
   }
   catch(err) {
     console.error(err);
   }
+}
+
+function fetchLiveDataLocal() {
+  const url = LIVE_DATA_URL;
+  const options = {};
+  options.method = `GET`;
+  options.headers = {};
+  options.headers[`Content-Type`] = `text/plain; charset=Windows-1252`;
+  //options.body = `{Projektnummer: '${projectNo}'}`;
+  
+  return fetchTxt(url, options);
+}
+
+async function fetchTxt(url, options) {
+  try {
+    const res = await fetch(url, options);
+    if (res.ok) {
+      const data = await res.text();
+      return data;
+    }
+    else {
+      console.error(`ServerErrorStatus: ${res.status}`);
+    }
+  }
+  catch(err) {
+    console.error(err);
+  }
+}
+
+/***********************syncTrash*************************************/
+/*Read Textfile aus dem Ordner */
+function readFromTextFile(fileName) {
+	var res;
+	var xhr = new XMLHttpRequest();
+	xhr.overrideMimeType('text/plain; charset=Windows-1252')
+	xhr.open("GET", fileName, false);
+	if (fileName != QHSettingFile)
+	{
+		xhr.setRequestHeader('Cache-Control', 'no-cache');
+	}
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+					res = xhr.responseText;
+				}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
 }
 
 function getData(url) {
@@ -233,30 +326,7 @@ function sendData(url) {
 	return res;
 }
 
-/*Read Textfile aus dem Ordner */
-function readFromTextFile(fileName) {
-	var res;
-	var xhr = new XMLHttpRequest();
-	xhr.overrideMimeType('text/plain; charset=Windows-1252')
-	xhr.open("GET", fileName, false);
-	if (fileName != QHSettingFile)
-	{
-		xhr.setRequestHeader('Cache-Control', 'no-cache');
-	}
-	xhr.onreadystatechange = function(event){
-		if (xhr.readyState == 4){
-			var status = xhr.status;
-			if(status === 0 || (status >=200 && status < 400)){
-					res = xhr.responseText;
-				}
-			}
-		else{
-			res = "";
-		}
-	};
-	xhr.send();
-	return res;
-}
+
 /*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
 */
  function readQHFromFile(fileName) {

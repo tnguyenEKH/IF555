@@ -17,12 +17,9 @@ const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
 
-function ReloadData() {
-	const rawvisuData = readFromTextFile(LIVE_DATA_URL);
+async function ReloadData() {
+	const rawvisuData = await fetchLiveDataLocal();
 	const liveData = parseLiveData(rawvisuData);
-
-	//Read deployed visufile /visu/visu.txt 
-	const visudata = getVisuData(DEPLOYED_VISU_FILE);
 
 	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
 	if (liveData.items) {
@@ -32,16 +29,16 @@ function ReloadData() {
 	connectionStatusTxt.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 }
 
-function getOnlinegesamtZaehler(url) {
-	const res = readFromTextFile(url);
+async function getOnlinegesamtZaehler(url) {
+	const res = await fetchTxt(url);
     const resWithoutDate = res.substring(41);
 	const index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
 	return resWithoutDate.substr(0, index - 1);
 }
 
-function getVisuData(deployedVisuFile) {
-	const visudata = JSON.parse(readFromTextFile(deployedVisuFile));
-
+async function getVisuData(deployedVisuFile) {
+	const visudata = await fetchJSON(deployedVisuFile);
+	
 	visudata.DropList.forEach(el => {
 		el.msrItem = {};
 		el.msrItem.identifyer = el.VCOItem.Bez.trim();
@@ -91,15 +88,13 @@ function getVisuData(deployedVisuFile) {
 	return visudata
 }
 
-function startVisu() {
-	const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
-	const liveData = parseLiveData(liveDataRaw);
-	
-	const visudata = getVisuData(DEPLOYED_VISU_FILE);
-	//console.log(visudata);
-	
+async function startVisu() {
+	const visudata = await getVisuData(DEPLOYED_VISU_FILE);
 	DrawVisu(visudata);
 	switchVisuTab(visudata);
+
+	const liveDataRaw = await fetchLiveDataLocal();
+	const liveData = parseLiveData(liveDataRaw);
 	updateLiveDataElements(liveData.items);
 }
 
@@ -542,7 +537,7 @@ function updateLiveDataElements(liveDataItems) {
 	//Check for Alarms and highlight
 	const grenzwerte = liveDataItems.filter(el => el.Bezeichnung.trim() === `GR`);
 	grenzwerte.forEach(grenzwert => {
-		const grenzwertMSR = grenzwert.toLowerCase();
+		const grenzwertMSR = grenzwert.msr.toLowerCase();
 		document.querySelectorAll(`[${grenzwertMSR}]`).forEach(htmlEl => {
 			htmlEl.classList.toggle(`HHalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = HH]`) && parseFloat(htmlEl.innerText) > grenzwert.Wert));
 			htmlEl.classList.toggle(`HalarmHighlighter`, (htmlEl.matches(`[${grenzwertMSR} = H]`) && parseFloat(htmlEl.innerText) > grenzwert.Wert));
@@ -598,7 +593,7 @@ function drawTextList(visudata) {
 	});
 }
 
-function visuBtnClickEventHandler(ev) {
+async function visuBtnClickEventHandler(ev) {
 	const link = ev.target.getAttribute(`link`);
 	const linkBgIdx = parseInt(link);
 	if (Number.isNaN(linkBgIdx)) {
@@ -609,7 +604,7 @@ function visuBtnClickEventHandler(ev) {
 		const content = modal.querySelector(`.modalContent`);
 		content.classList.toggle(`alarms`, link === `alarms`);
 		
-		const liveDataRaw = readFromTextFile(LIVE_DATA_URL);
+		const liveDataRaw = await fetchLiveDataLocal();
 		
 		const h5 = content.querySelector(`h5`);
 		if (link === `alarms`) {
@@ -710,9 +705,9 @@ function handlePinVisibility(checked) {
   checked ? txtPin.type = "password" : txtPin.type = "text";
 }
 
-function checkPin() {
+async function checkPin() {
   var txtPin = document.getElementById("txtPin");
-  let hash = readFromTextFile(HASH_FILE);
+  let hash = await fetchTxt(HASH_FILE);
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");
@@ -787,9 +782,9 @@ async function openFaceplate(ev) {
 	ev.target.setAttribute(`cursorStyle`, `progress`);
 	try {
 		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
-		const test = await fetchData(faceplateRequestUrl);
+		const test = await fetchJSON(faceplateRequestUrl);
 		console.log(test);
-		const adjustmentOptions = await asyncSleep(fetchData, 800, FACEPLATE_DATA_URL);
+		const adjustmentOptions = await asyncSleep(fetchJSON, 800, FACEPLATE_DATA_URL);
 		if (adjustmentOptions.v070.slice(0,5) === faceplateRequestUrl.slice(-5)) {
 			ClickableElement = [];
 			Object.entries(adjustmentOptions).forEach(([key, value]) => {
