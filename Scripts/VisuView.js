@@ -2,6 +2,9 @@ const DEVMODE = false; //no Lock/AutoLock
 const DEBUG = false;
 const FORCE_ANALOGMISCHER = false;
 
+
+const ICON_SIZE_PX = 40;
+
 const DEPLOYED_VISU_FILE = `./Visu/Visu.txt`;
 const LIVE_DATA_URL = `./DATA/visdat.txt`;
 const COUNTER_URL = `./DATA/zaehl.txt`;
@@ -36,29 +39,27 @@ function getVisuData(deployedVisuFile) {
 		el.msrItem.xPx = parseInt(el.x);
 		el.msrItem.yPx = parseInt(el.y);
 		el.msrItem.font = el.font;
-		el.msrItem.color = (el.Symbol.match(/(absenkung)/i)) ? CYAN_HSL : el.Color;
+		el.msrItem.color = (el.Symbol.match(/(Absenkung)/i)) ? CYAN_HSL : el.Color;
 		el.msrItem.bgColor = (!el.BgColor.match(/(#BEBEBE)|(#E0E0E0)/)) ? el.BgColor : ``;
 		el.msrItem.icon = el.Symbol;
-		el.msrItem.iconFeature = el.SymbolFeature;
-
-		if (el.Symbol.match(/(led)/i)) {
-			const colors = el.SymbolFeature.split(`/`);
-			el.msrItem.trueColor = (colors.at(0).includes(`gruen`)) ? GREEN_HSL :
-								   (colors.at(0).includes(`rot`)) ? MAGENTA_HSL :
-								   ``;
-			el.msrItem.falseColor = (colors.at(1).includes(`gruen`)) ? GREEN_HSL :
-									(colors.at(1).includes(`rot`)) ? MAGENTA_HSL :
-									``;
+		el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
+		
+		if (el.Symbol.match(/(Rechts)|(Oben)|(Unten)/i)) {
+			el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
+								  (el.SymbolFeature.match(/(Oben)/i)) ? 90 :
+								  (el.SymbolFeature.match(/(Unten)/i)) ? 270 :
+								  0;
+		}		
+		if (el.SymbolFeature.includes(`blinkend`) || el.Symbol.match(/(Pumpe)|(BHKW)|(Feuer)|(Lueftungsklappe)|(Abluftklappe)/i)) {
+			el.msrItem.animation = (el.SymbolFeature.includes(`blinkend`)) ? `blink` :
+								   (el.Symbol.match(/(Feuer)/i)) ? `flicker` :
+								   (el.Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/i)) ? `rotate` :
+								   `spin`;
 		}
-
-		if (el.Symbol.match(/(pumpe)|(bhkw)|(feuer)/i)) {
-			el.msrItem.animation = (el.Symbol.match(/(feuer)/i)) ? `flicker` : `spin`;
-		}
-
-		if (el.Symbol.match(/(absenkung)|(freitext)/i)) {
-			el.msrItem.trueTxt = (el.Symbol.match(/(absenkung)/i)) ? `Nacht` :
+		if (el.Symbol.match(/(Absenkung)|(Freitext)/i)) {
+			el.msrItem.trueTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Nacht` :
 								 (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature;
-			el.msrItem.falseTxt = (el.Symbol.match(/(absenkung)/i)) ? `Tag` :
+			el.msrItem.falseTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Tag` :
 								  (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : ``;
 		}
 	});
@@ -71,7 +72,7 @@ function startVisu() {
 	const liveData = parseLiveData(liveDataRaw);
 	
 	const visudata = getVisuData(DEPLOYED_VISU_FILE);
-	console.log(visudata);
+	//console.log(visudata);
 	
 	DrawVisu(visudata);
 	switchVisuTab(visudata);
@@ -214,8 +215,9 @@ function feuer(ctx, x, y, scale) {
 }
 
 function createIcon(msrItem) {
-	const htmlElType = (msrItem.icon.match(/(led)|(feuer)/i)) ? `div` : `canvas`;
-
+	const htmlElType = (msrItem.icon.match(/(led)|(feuer)|(schalter)/i)) ? `div` :
+					   (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) ? `input` :
+					   `canvas`;
 	const htmlEl = document.createElement(htmlElType);
 	htmlEl.classList.add(`visuElement`);
 	htmlEl.setAttribute(`msr`, msrItem.msr);
@@ -257,6 +259,52 @@ function createIcon(msrItem) {
 		ctx.fill();
 		ctx.stroke();
 	}
+	else if (msrItem.icon === "Luefter") {
+		const outerRadius = 24;
+		ctx.lineWidth = 1;
+
+		htmlEl.width = 2 * (outerRadius + ctx.lineWidth);
+		htmlEl.height = htmlEl.width;
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = `black`;
+		ctx.fillStyle = "grey";
+		//LüfterIcon
+		/*
+		ctx.beginPath();
+		ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+		ctx.moveTo(0, -outerRadius);
+		ctx.lineTo(-outerRadius, -5);
+		ctx.moveTo(0, outerRadius);
+		ctx.lineTo(-outerRadius, 5);
+		ctx.stroke();
+		ctx.closePath();
+		*/
+
+		//rotor
+		ctx.beginPath();
+		ctx.rotate(Math.PI / 180 * 30);
+		drawEllipse(ctx, 0, -5, 22, 10);
+		drawEllipse(ctx, -22, -5, 22, 10);
+		ctx.fill();
+
+		function drawEllipse(ctx, x, y, w, h) {
+			const kappa = .5522848,
+					 ox = (w / 2) * kappa, // control point offset horizontal
+					 oy = (h / 2) * kappa, // control point offset vertical
+					 xe = x + w,           // x-end
+					 ye = y + h,           // y-end
+					 xm = x + w / 2,       // x-middle
+					 ym = y + h / 2;       // y-middle
+		
+			ctx.moveTo(x, ym);
+			ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
+			ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
+			ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
+			ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
+			ctx.stroke();
+		}
+	}
 	else if (msrItem.icon === `BHKW`) {
 		const outerRadius = 13;
 		const innerRadius = 10;
@@ -286,182 +334,141 @@ function createIcon(msrItem) {
 
 		ctx.stroke();
 	}
+	else if (msrItem.icon.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
+		const outerRadius = 20;
+		ctx.lineWidth = 1;
+
+		htmlEl.width = 2 * (outerRadius + ctx.lineWidth);
+		htmlEl.height = htmlEl.width;
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = "black";
+		ctx.fillStyle = 'black';
+		
+		ctx.beginPath();
+		ctx.arc(0, 0, 3, 0, 2 * Math.PI);
+		ctx.fill();
+
+		ctx.moveTo(-20, 0);
+		ctx.lineTo(20, 0);
+
+		ctx.stroke();
+	}
+	else if (msrItem.icon === `VentilFilled`) {
+		ctx.lineWidth = 1;
+		htmlEl.width = 2 * (8 + ctx.lineWidth);
+		htmlEl.height = htmlEl.width;
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = "black";
+		ctx.fillStyle = "black";
+		ctx.beginPath();
+		ctx.moveTo(-8, -8);
+		ctx.lineTo(-8, 8);
+		ctx.lineTo(8, 0);
+		ctx.lineTo(-8, -8);
+		ctx.fill();
+	}
+	else if (msrItem.icon === `Ventil`) {
+		ctx.lineWidth = 1;
+		htmlEl.width = 1.5 + 11 + 2 + 2 * ctx.lineWidth;
+		htmlEl.height = 2 * (2 + ctx.lineWidth);
+
+		ctx.translate(htmlEl.width/2, htmlEl.height/2);
+		ctx.strokeStyle = "black";
+		ctx.fillStyle = "black";
+		
+		ctx.beginPath();
+		ctx.fillRect(-1.5, -1, 1.5, 2);
+		ctx.moveTo(0, 2);
+		ctx.lineTo(2, 0);
+		ctx.lineTo(0, -2);
+		ctx.fill();
+		
+		ctx.translate(11, 0);
+		ctx.fillRect(-1.5, -1, 1.5, 2);
+		ctx.moveTo(0, 2);
+		ctx.lineTo(2, 0);
+		ctx.lineTo(0, -2);
+		ctx.fill();
+	}
+	else if (msrItem.icon === `Schalter`) {
+		htmlEl.classList.add(`switch`);
+		[-15, -3].forEach(y => {
+			const canvas = document.createElement(`canvas`);
+			htmlEl.appendChild(canvas);
+			const ctx = canvas.getContext(`2d`);
+			ctx.lineWidth = 2;
+			htmlEl.width = 40 + 2 * ctx.lineWidth;
+			htmlEl.height = htmlEl.width;
+
+			ctx.translate(htmlEl.width/2, htmlEl.height/2);
+			ctx.strokeStyle = "black";
+			ctx.beginPath();
+			ctx.moveTo(-20, 0);
+			ctx.lineTo(-10, 0);
+			ctx.lineTo(13, y);
+
+			ctx.moveTo(10, -5);
+			ctx.lineTo(10, 0);
+			ctx.lineTo(20, 0);
+			ctx.stroke();
+		});		
+	}
 	else if (msrItem.icon === `Led`) {
 		htmlEl.classList.add(`led`);
-		htmlEl.setAttribute(`true-color`, msrItem.trueColor);
-		htmlEl.setAttribute(`false-color`, msrItem.falseColor);
+		const colors = msrItem.iconFeature.split(`/`);
+		//console.log(colors);
+		colors.forEach(color => {
+			if (color) {
+				const canvas = document.createElement(`canvas`);
+				htmlEl.appendChild(canvas);
+				const ctx = canvas.getContext(`2d`);
 
-		const led = document.createElement(`div`);
-		htmlEl.appendChild(led);
-		led.classList.add(`led`);
+				const outerRadius = 6;
+				const innerRadius = 4;
+				ctx.lineWidth = 1;
+
+				canvas.width = 2 * (outerRadius + ctx.lineWidth);
+				canvas.height = canvas.width;
+
+				ctx.translate(canvas.width/2, canvas.height/2);
+				ctx.strokeStyle = "black";
+				ctx.beginPath();
+				ctx.arc(0, 0, outerRadius, 0, Math.PI * 2);
+				ctx.stroke();
+				ctx.closePath();			
+				ctx.beginPath();
+				ctx.arc(0, 0, innerRadius, 0, Math.PI * 2);
+				ctx.fillStyle = color;
+				ctx.fill();
+			}
+		});
+	}
+	else if (msrItem.icon === `Feuer`) {
+		[`red`, `orange`, `yellow`, `white`, `blue`].forEach(color => {        
+			const flameLayer = document.createElement(`div`);
+			flameLayer.classList.add(`flameLayer`);
+			flameLayer.setAttribute(`color`, color);
+			htmlEl.appendChild(flameLayer);
+    	});
+  	}
+	else if (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) {
+		htmlEl.type = `button`;
+		htmlEl.classList.add(`faceplateBtn`);		
+		htmlEl.addEventListener(`click`, openFaceplate);
 	}
 	else {
 		return null;
 	}
 
-	const offsetX = (htmlElType === `canvas`) ? htmlEl.width/2 : 0;
-	const offsetY = (htmlElType === `canvas`) ? htmlEl.height/2 : 0;
+
+	const offsetX = (htmlElType === `canvas`) ? htmlEl.width/2 : ICON_SIZE_PX/2;
+	const offsetY = (htmlElType === `canvas`) ? htmlEl.height/2 : ICON_SIZE_PX/2;
 	htmlEl.style.left = `${msrItem.xPx - offsetX}px`;
 	htmlEl.style.top = `${msrItem.yPx - offsetY}px`;
 
 	return htmlEl;
-}
-
-function drawEllipse(ctx, x, y, w, h) {
-	var kappa = .5522848,
-		ox = (w / 2) * kappa, // control point offset horizontal
-		oy = (h / 2) * kappa, // control point offset vertical
-		xe = x + w,           // x-end
-		ye = y + h,           // y-end
-		xm = x + w / 2,       // x-middle
-		ym = y + h / 2;       // y-middle
-
-
-	ctx.moveTo(x, ym);
-	ctx.bezierCurveTo(x, ym - oy, xm - ox, y, xm, y);
-	ctx.bezierCurveTo(xm + ox, y, xe, ym - oy, xe, ym);
-	ctx.bezierCurveTo(xe, ym + oy, xm + ox, ye, xm, ye);
-	ctx.bezierCurveTo(xm - ox, ye, x, ym + oy, x, ym);
-	//ctx.closePath(); // not used correctly, see comments (use to close off open path)
-	ctx.stroke();
-}
-
-function luefter(ctx, x, y, scale, rotL, rotDir) {
-	// 51x51
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "grey";
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rotDir);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-	ctx.arc(0, 0, 24, 0, Math.PI * 2, true);
-	ctx.moveTo(0, -24);
-	ctx.lineTo(-23, -5);
-	ctx.moveTo(0, 24);
-	ctx.lineTo(-23, 5);
-	ctx.stroke();
-	ctx.closePath();
-	ctx.beginPath();
-	ctx.rotate(Math.PI / 180 * rotL);
-	drawEllipse(ctx, 0, -5, 22, 10);
-	drawEllipse(ctx, -22, -5, 22, 10);
-	ctx.fill();
-
-	ctx.restore();
-}
-
-function ventil(ctx, x, y, scale, rot) {
-	// 6x6
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "black";
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rot);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-	ctx.fillRect(-1.5, -1, 1.5, 2);
-	ctx.moveTo(0, 2);
-	ctx.lineTo(2, 0);
-	ctx.lineTo(0, -2);
-	ctx.fill();
-	//patch 22.11.2022: doppelte Pfeile
-	ctx.translate(11, 0);
-	ctx.fillRect(-1.5, -1, 1.5, 2);
-	ctx.moveTo(0, 2);
-	ctx.lineTo(2, 0);
-	ctx.lineTo(0, -2);
-	ctx.fill();
-
-	ctx.restore();
-}
-function ventilFilled(ctx, x, y, scale, rot) {
-	// 6x6
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "black";
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rot);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-	
-	ctx.moveTo(-8, -8);
-	ctx.lineTo(-8, 8);
-	ctx.lineTo(8, 0);
-	ctx.lineTo(-8, -8);
-
-	ctx.fill();
-
-	ctx.restore();
-}
-
-function lueftungsklappe(ctx, x, y, scale, val, rotation, isNC = true) {
-	if (!val) val = 0;
-	if (isNC) val = 100 - val;
-    rotation -= val/100 * 75;
-    
-    ctx.save();
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 1;
-    ctx.translate(x, y);
-    ctx.scale(scale, scale);
-    ctx.beginPath();
-    //Kreis zeichnen
-    ctx.arc(0, 0, 3, 0, 2 * Math.PI);
-    ctx.fillStyle = 'black';
-    ctx.fill();
-
-    
-    ctx.rotate(rotation * Math.PI / 180);
-    ctx.moveTo(-20, 0);
-    ctx.lineTo(20, 0);
-
-    ctx.stroke();
-    ctx.restore();
-}
-
-function Led(ctx, x, y, scale, col) {
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.fillStyle = "#aaa";
-	ctx.lineWidth = 1;
-	ctx.translate(x, y);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-
-	ctx.arc(0, 0, 6, 0, Math.PI * 2, true);
-	ctx.stroke();
-	ctx.fill();
-	ctx.closePath();
-	ctx.beginPath();
-	ctx.arc(0, 0, 4, 0, Math.PI * 2, true);
-	ctx.fillStyle = col;
-	ctx.fill();
-	ctx.restore();
-}
-
-function schalter(ctx, x, y, scale, val, rotation) {                        
-	ctx.save();
-	ctx.strokeStyle = "black";
-	ctx.lineWidth = 2;
-	ctx.translate(x, y);
-	ctx.rotate(Math.PI / 180 * rotation);
-	ctx.scale(scale, scale);
-	ctx.beginPath();
-	
-	ctx.moveTo(-20, 0);
-	ctx.lineTo(-10, 0);
-	ctx.lineTo(13, (val) ? -3 : -15);
-
-	ctx.moveTo(10, -5);
-	ctx.lineTo(10, 0);
-	ctx.lineTo(20, 0);
-
-	ctx.stroke();
-	ctx.restore();
 }
 
 function switchVisuTab(visudata, targetTabIdx = 0) {
@@ -483,86 +490,32 @@ function drawDropList(visudata) {
 function drawVCOItem(msrItem) {
 	const vimgArea = document.querySelector(`#vimgArea`);
 
-	if (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) {
-		const faceplateBtn = document.createElement(`input`);
-		faceplateBtn.type = `button`;
-		vimgArea.appendChild(faceplateBtn);
-		faceplateBtn.classList.add(`visuElement`, `faceplateBtn`);
-		faceplateBtn.setAttribute(`msr`, msrItem.msr);
-		faceplateBtn.setAttribute(`faceplate`, msrItem.faceplate);
-		faceplateBtn.setAttribute(`tab-idx`, msrItem.tabIdx);
-		faceplateBtn.title = msrItem.title;
-		faceplateBtn.style.left = `${msrItem.xPx}px`;
-		faceplateBtn.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
-		faceplateBtn.addEventListener(`click`, openFaceplate);
+	const icon = createIcon(msrItem);
+	if (icon) {
+		vimgArea.appendChild(icon);
 	}
 	else {
-		const icon = createIcon(msrItem);
-		if (icon) {
-			vimgArea.appendChild(icon);
+		const msrLbl = document.createElement(`label`);
+		vimgArea.appendChild(msrLbl);
+		msrLbl.classList.add(`visuElement`);
+		msrLbl.setAttribute(`msr`, msrItem.msr);
+		msrLbl.setAttribute(`unit`, msrItem.unit);
+		msrLbl.setAttribute(`dec-place`, msrItem.decPlace);
+		msrLbl.setAttribute(`tab-idx`, msrItem.tabIdx);
+		msrLbl.setAttribute(`faceplate`, msrItem.faceplate);
+		if (msrItem.trueTxt !== undefined) {
+			msrLbl.setAttribute(`true-txt`, msrItem.trueTxt);
 		}
-		else {
-			const msrLbl = document.createElement(`label`);
-			vimgArea.appendChild(msrLbl);
-			msrLbl.classList.add(`visuElement`);
-			msrLbl.setAttribute(`msr`, msrItem.msr);
-			msrLbl.setAttribute(`unit`, msrItem.unit);
-			msrLbl.setAttribute(`dec-place`, msrItem.decPlace);
-			msrLbl.setAttribute(`tab-idx`, msrItem.tabIdx);
-			msrLbl.setAttribute(`faceplate`, msrItem.faceplate);
-			if (msrItem.trueTxt !== undefined) {
-				msrLbl.setAttribute(`true-txt`, msrItem.trueTxt);
-			}
-			if (msrItem.falseTxt !== undefined) {
-				msrLbl.setAttribute(`false-txt`, msrItem.falseTxt);
-			}
-			msrLbl.style.font = msrItem.font;
-			msrLbl.style.color = msrItem.color;
-			msrLbl.style.backgroundColor = msrItem.bgColor;
-			msrLbl.title = msrItem.title;
-			msrLbl.style.left = `${msrItem.xPx}px`;
-			msrLbl.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
+		if (msrItem.falseTxt !== undefined) {
+			msrLbl.setAttribute(`false-txt`, msrItem.falseTxt);
 		}
+		msrLbl.style.font = msrItem.font;
+		msrLbl.style.color = msrItem.color;
+		msrLbl.style.backgroundColor = msrItem.bgColor;
+		msrLbl.title = msrItem.title;
+		msrLbl.style.left = `${msrItem.xPx}px`;
+		msrLbl.style.top = `${msrItem.yPx - parseInt(msrItem.font)}px`;
 	}
-	/*
-	else if (msrItem.icon === "Feuer") {
-		feuer(vDynCtx, msrItem.xPx, msrItem.yPx, 1);
-	}
-	/*
-	else {					
-		const rotation = (msrItem.iconFeature === "Rechts") ? 180 :
-							(msrItem.iconFeature === "Oben") ? 90 :
-							(msrItem.iconFeature === "Unten") ? 270 : 0;
-		
-		if (msrItem.icon === "Luefter") {
-			const angle = 30;
-			luefter(vDynCtx, msrItem.xPx, msrItem.yPx, 1, angle, rotation);
-		}
-		else if (msrItem.icon === "Ventil" && value) {
-			ventil(vDynCtx, msrItem.xPx, msrItem.yPx, 1, rotation);
-		}
-		else if (msrItem.icon === "VentilFilled" && value) {
-			ventilFilled(vDynCtx, msrItem.xPx, msrItem.yPx, 1, rotation);
-		}					
-		else if (msrItem.icon.match(/(Lueftungsklappe)|(Abluftklappe)/)) {
-			const val = (value === 1) ? 100 : value;
-			lueftungsklappe(vDynCtx, msrItem.xPx, msrItem.yPx, 1, val, rotation);                            
-		}
-		else if (msrItem.icon === "Schalter") {
-			schalter(vDynCtx, msrItem.xPx, msrItem.yPx, 1, value, rotation);
-		}
-		else if (msrItem.icon === "Led") {
-			const color = 	(msrItem.iconFeature.match(/(\/rot)/) && value) ? `red` :
-							(msrItem.iconFeature.match(/(rot\/)/) && !value) ? `red` :
-							(msrItem.iconFeature.match(/(\/gruen)/) && value) ? `green` :
-							(msrItem.iconFeature.match(/(gruen\/)/) && !value) ? `green` : undefined;
-			if (color && (!msrItem.iconFeature.match(/(blinkend)/) || (msrItem.iconFeature.match(/(blinkend)/) && TimerToggle))) {
-				Led(vDynCtx, msrItem.xPx, msrItem.yPx, 1, color);
-			}
-		}
-	}
-	
-	*/
 }
 
 function updateLiveDataElements(liveDataItems) {
@@ -584,25 +537,23 @@ function updateLiveDataElements(liveDataItems) {
 					}
 				}
 					*/
-
-				if (el.matches(`.faceplateBtn`)) {
+				if (el.matches(`.led, .switch`)) {
+					el.firstElementChild.classList.toggle(`displayNone`, !!item.Wert);
+					el.lastElementChild.classList.toggle(`displayNone`, !item.Wert);
+					el.classList.toggle(`animate`, el.matches(`[animation]`) && !!item.Wert);
+				}
+				else if (el.matches(`[animation]`)) {
+					el.classList.toggle(`animate`, !!item.Wert);
+				}
+				else if (el.matches(`.faceplateBtn`)) {
 					el.classList.toggle(`btnHand`, !!item.Wert);
 					el.classList.toggle(`btnAuto`, !item.Wert);
 				}
-				else if (el.matches(`[animation]`)) {
-					el.classList.toggle(`animate`, !!item.Wert);					
-				}
 				else if (!!item.Wert && el.matches(`[true-txt]`)) {
-					el.innerText = el.getAttribute(`true-txt`);					
+					el.innerText = el.getAttribute(`true-txt`);
 				}
 				else if (!item.Wert && el.matches(`[false-txt]`)) {
-					el.innerText = el.getAttribute(`false-txt`);					
-				}
-				else if (!!item.Wert && el.matches(`[true-color]`)) {
-					el.querySelector(`.led`).style.backgroundColor = el.getAttribute(`true-color`);
-				}
-				else if (!item.Wert && el.matches(`[false-color]`)) {
-					el.querySelector(`.led`).style.backgroundColor = el.getAttribute(`false-color`);					
+					el.innerText = el.getAttribute(`false-txt`);
 				}
 				else {
 					const unit = el.getAttribute(`unit`);

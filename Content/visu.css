@@ -16,44 +16,116 @@
 	--whiteGrey: hsl(0, 0%, 95%);
 	/*
 	*/
+	--iconSize: 40px;
   }
 .visuElement {
 	position: absolute;
 }
-input[type = "button"].visuElement {
-	padding: 6px;
-}
-.visuElement.led {
-	height: 2%;
-	display: grid;
-	justify-items: center;
-	align-items: center;
-}
-.led {
-	border: 1px solid black;
-	border-radius: 100%;
-	height: 70%;
+div.visuElement,
+.faceplateBtn {
+	width: var(--iconSize);
 	aspect-ratio: 1;
 }
-.faceplateBtn {
-	width: 30px;
-	height: 30px;
+input[type = "button"].visuElement {
+	padding: 6px;
 }
 .hidden {
 	visibility: hidden;
 }
+.displayNone {
+	display: none;
+}
 .errorHighlighter {
 	color: var(--magenta);
 }
-
+.led,
+.switch {
+	display: grid;
+	align-items: center;
+	justify-items: center;
+}
+[rotation = "90"]:not([type = "button"]) {
+	rotate: 90deg;
+}
+[rotation = "180"]:not([type = "button"]) {
+	rotate: 180deg;
+}
+[rotation = "270"]:not([type = "button"]) {
+	rotate: 270deg;
+}
+/*********************Animations*********************/
+.animate[animation = "rotate"] {
+	rotate: 90deg;
+}
 .animate[animation = "spin"] {
 	animation: spin 2s linear infinite;
 }
-
 @keyframes spin {
 	to {transform: rotate(1turn);}
 }
-  
+.animate[animation = "blink"] {
+	animation: blink 2s steps(4, start) infinite;
+}
+@keyframes blink {
+	to {visibility: hidden;}
+}
+[animation = "flicker"]:not(.animate){
+	display: none;
+}
+.animate[animation = "flicker"] {
+	animation: flicker 3ms ease-in 200ms infinite alternate;
+}
+@keyframes flicker {
+	0%   {transform: rotate(-1deg) scale(.75,.8);}
+	20%  {transform: rotate(1deg) scale(.8,.8);}
+	40%  {transform: rotate(-1deg) scale(.75,.8);}
+	60%  {transform: rotate(1deg) scale(.8,.95);}
+	80%  {transform: rotate(-2deg) scale(.75,.75);}
+	100% {transform: rotate(1deg) scale(.8,.8);}
+}
+/*********************FlameStyle*********************/
+.flameLayer {
+	aspect-ratio: 1;
+	bottom: 15%;
+	position: absolute;
+	border-bottom-right-radius: 50%;
+	border-bottom-left-radius: 50%;
+	border-top-left-radius: 50%;
+	transform:rotate(-45deg);
+}
+.flameLayer[color="red"] {
+	left: 15%;
+	width: 70%;
+	background:OrangeRed;
+	box-shadow: 0 0 calc(.07*var(--iconSize)) calc(.06*var(--iconSize)) OrangeRed;    /*box-shadow akzeptiert keine [%] => umständliche berechnung!*/
+}
+.flameLayer[color="orange"] {
+	left: 22%; 
+	width: 56%;
+	background:orange;
+	box-shadow: 0 0 calc(.13*var(--iconSize)) calc(.06*var(--iconSize)) orange;   /*box-shadow akzeptiert keine [%] => umständliche berechnung!*/
+}
+.flameLayer[color="yellow"] {
+	left: 29%; 
+	width: 42%;
+	background:gold;
+	box-shadow: 0 0 calc(.13*var(--iconSize)) calc(.06*var(--iconSize)) gold;   /*box-shadow akzeptiert keine [%] => umständliche berechnung!*/
+}
+.flameLayer[color="white"] {
+	left: 29%; 
+	bottom: 10%;
+	width: 42%;
+	background:white;
+	box-shadow: 0 0 calc(.13*var(--iconSize)) calc(.06*var(--iconSize)) white;   /*box-shadow akzeptiert keine [%] => umständliche berechnung!*/
+}
+.flameLayer[color="blue"] {
+	left: 46%; 
+	bottom: 10%;
+	width: 4%;
+	background:SlateBlue;
+	opacity: 0.7;
+	box-shadow: 0 0 calc(.13*var(--iconSize)) calc(.06*var(--iconSize)) SlateBlue;   /*box-shadow akzeptiert keine [%] => umständliche berechnung!*/
+}  
 /*******************24016 JW: cursor appearance start*******************/
 [cursorStyle = "progress"] {
     cursor: progress;
