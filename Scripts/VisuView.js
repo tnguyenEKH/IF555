@@ -607,6 +607,47 @@ function drawTextList(visudata) {
 		}
 	});
 }
+/*
+function drawTextList() {
+	var FreitextList = visudata.FreitextList;
+	var n = FreitextList.length;
+	LinkButtonList = [];	//LinkButtonList leeren -> wird nachfolgend neu erzeugt
+	for (i = 0; i < n; i++) {
+		var item = FreitextList[i];
+		if (FreitextList[i].bmpIndex == bmpIndex) {
+			var x = item.x;
+			var y = item.y;
+			var txt = item.Freitext;
+			vStatCtx.font = item.font;
+			vStatCtx.fillStyle = item.BgColor;
+			var w = vStatCtx.measureText(txt).width;
+
+			if (item.isVerweis) {
+				vStatCtx.save();
+				vStatCtx.translate(x, y);
+				if (item.VerweisAusrichtung == "up")
+					vStatCtx.rotate(-Math.PI / 2);
+				if (item.VerweisAusrichtung == "dn")
+					vStatCtx.rotate(Math.PI / 2);
+				if (item.BgColor) vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
+				vStatCtx.strokeStyle = "black";
+				vStatCtx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
+				vStatCtx.fillStyle = item.Color;
+				vStatCtx.fillText(txt, 0, 0);
+				vStatCtx.restore();
+				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap, txt);
+			}
+			else {
+				if (item.BgColor) vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
+				vStatCtx.fillStyle = item.Color;
+				vStatCtx.fillText(txt, x, y);
+			}
+		}
+	}
+}
+*/
+
+
 
 async function visuBtnClickEventHandler(ev) {
 	const link = ev.target.getAttribute(`link`);
