@@ -46,32 +46,50 @@ input[type = "button"].visuElement {
 .LalarmHighlighter:not(.LLalarmHighlighter) {
 	background-color: gold;
 }
-.led,
-.switch {
+.led:not(.displayNone),
+.switch:not(.displayNone) {
 	display: grid;
 	align-items: center;
 	justify-items: center;
 }
 [rotation = "90"]:not([type = "button"]) {
-	rotate: 90deg;
+	transform: rotate(90deg);
 }
 [rotation = "180"]:not([type = "button"]) {
-	rotate: 180deg;
+	transform: rotate(180deg);
 }
 [rotation = "270"]:not([type = "button"]) {
-	rotate: 270deg;
+	transform: rotate(270deg);
 }
 /*********************Animations*********************/
-.animate[animation = "rotate"] {
-	rotate: 90deg;
+.animate[animation ~= "rotate"]:not([rotation]) {
+	transform: rotate(90deg);
 }
-.animate[animation = "spin"] {
+.animate[animation ~= "rotate"][rotation = "90"] {
+	transform: rotate(180deg);
+}
+.animate[animation ~= "rotate"][rotation = "180"] {
+	transform: rotate(270deg);
+}
+.animate[animation ~= "rotate"][rotation = "270"] {
+	transform: rotate(0deg);
+}
+[animation ~= "show"]:not(.animate):not(.hidden) {
+	visibility: hidden;
+}
+.animate[animation ~= "toggleIcon"] > .falseIcon {
+	display: none;
+}
+[animation ~= "toggleIcon"]:not(.animate) > .trueIcon {
+	display: none;
+}
+.animate[animation ~= "spin"] {
 	animation: spin 2s linear infinite;
 }
 @keyframes spin {
 	to {transform: rotate(1turn);}
 }
-.animate[animation = "blink"] {
+.animate[animation ~= "blink"] {
 	animation: blink 2s steps(4, start) infinite;
 }
 @keyframes blink {
@@ -80,7 +98,7 @@ input[type = "button"].visuElement {
 [animation = "flicker"]:not(.animate){
 	display: none;
 }
-.animate[animation = "flicker"] {
+.animate[animation ~= "flicker"] {
 	animation: flicker 3ms ease-in 200ms infinite alternate;
 }
 @keyframes flicker {

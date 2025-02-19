@@ -17,6 +17,16 @@ const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
 
+async function initVisu() {
+	const visudata = await getVisuData(DEPLOYED_VISU_FILE);
+	DrawVisu(visudata);
+	switchVisuTab(visudata);
+
+	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
+	const liveData = parseLiveData(liveDataRaw);
+	updateLiveDataElements(liveData.items);
+}
+
 async function ReloadData() {
 	const rawvisuData = await fetchTxt(LIVE_DATA_URL);
 	const liveData = parseLiveData(rawvisuData);
@@ -58,46 +68,38 @@ async function getVisuData(deployedVisuFile) {
 		el.msrItem.bgColor = (!el.BgColor.match(/(#BEBEBE)|(#E0E0E0)/)) ? el.BgColor : ``;
 		el.msrItem.icon = el.Symbol;
 		el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
+		el.msrItem.animation = (el.Symbol.match(/(Feuer)/)) ? `flicker` :
+							   (el.Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) ? `rotate` :
+							   (el.Symbol.match(/(Led)|(Schalter)/)) ? `toggleIcon` :
+							   (el.Symbol.match(/(Pumpe)|(BHKW)|(Luefter)/)) ? `spin` :
+							   (!el.Symbol.match(/(fpButton)|(Heizkreis)/)) ? `show` :
+							   undefined;
+		el.msrItem.animation = (el.SymbolFeature.includes(`blinkend`)) ? `${el.msrItem.animation} blink` : el.msrItem.animation;
 		
-		if (el.msrItem.identifyer === `GA`) {
-			el.msrItem.alarms.H.msr = `GR2`;
-			el.msrItem.alarms.HH.msr = `GR3`;
-		}
-		else if (el.msrItem.msr === `AI32`) {
-			el.msrItem.alarms.L.msr = `GR1`;
-		}
-
-		if (el.Symbol.match(/(Rechts)|(Oben)|(Unten)/i)) {
-			el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
-								  (el.SymbolFeature.match(/(Oben)/i)) ? 90 :
-								  (el.SymbolFeature.match(/(Unten)/i)) ? 270 :
-								  0;
-		}		
-		if (el.SymbolFeature.includes(`blinkend`) || el.Symbol.match(/(Pumpe)|(BHKW)|(Feuer)|(Lueftungsklappe)|(Abluftklappe)/i)) {
-			el.msrItem.animation = (el.SymbolFeature.includes(`blinkend`)) ? `blink` :
-								   (el.Symbol.match(/(Feuer)/i)) ? `flicker` :
-								   (el.Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/i)) ? `rotate` :
-								   `spin`;
-		}
-		if (el.Symbol.match(/(Absenkung)|(Freitext)/i)) {
-			el.msrItem.trueTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Nacht` :
-								 (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature;
-			el.msrItem.falseTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Tag` :
-								  (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : ``;
-		}
+		el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
+							  (el.SymbolFeature.match(/(Oben)/i)) ? 90 :
+							  (el.SymbolFeature.match(/(Unten)/i)) ? 270 :
+							  0;
+		
+		el.msrItem.trueTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Nacht` :
+							 (el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature :
+							 undefined;
+		el.msrItem.falseTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Tag` :
+							  (el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : `` :
+							  undefined;
+		
+		el.msrItem.alarms = {};
+		el.msrItem.alarms.H = {};
+		el.msrItem.alarms.HH = {};
+		el.msrItem.alarms.L = {};
+		el.msrItem.alarms.LL = {};
+		el.msrItem.alarms.H.msr = (el.msrItem.identifyer === `GA`) ? `GR2` : undefined;
+		el.msrItem.alarms.HH.msr = (el.msrItem.identifyer === `GA`) ? `GR3` : undefined;
+		el.msrItem.alarms.L.msr = (el.msrItem.msr === `AI32`) ? `GR1` : undefined;
 	});
 
+	//console.log(visudata);
 	return visudata
-}
-
-async function startVisu() {
-	const visudata = await getVisuData(DEPLOYED_VISU_FILE);
-	DrawVisu(visudata);
-	switchVisuTab(visudata);
-
-	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
-	const liveData = parseLiveData(liveDataRaw);
-	updateLiveDataElements(liveData.items);
 }
 
 function parseProjectId(liveDataRaw) {
@@ -194,7 +196,7 @@ function unitFromInt(int) {
 }
 
 function createIcon(msrItem) {
-	const htmlElType = (msrItem.icon.match(/(led)|(feuer)|(schalter)/i)) ? `div` :
+	const htmlElType = (msrItem.icon.match(/(Led)|(Feuer)|(Schalter)/)) ? `div` :
 					   (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) ? `input` :
 					   `canvas`;
 	const htmlEl = document.createElement(htmlElType);
@@ -203,10 +205,14 @@ function createIcon(msrItem) {
 	if (msrItem.animation) {
 		htmlEl.setAttribute(`animation`, msrItem.animation);
 	}
+	if (msrItem.rotation) {
+		htmlEl.setAttribute(`rotation`, msrItem.rotation);
+	}
 	htmlEl.setAttribute(`faceplate`, msrItem.faceplate);
 	htmlEl.setAttribute(`tab-idx`, msrItem.tabIdx);
 	htmlEl.title = msrItem.title;
 
+	//console.log(msrItem.icon, {htmlElType});
 	const ctx = (htmlElType === `canvas`) ? htmlEl.getContext(`2d`) : undefined;
 	if (msrItem.icon === `Pumpe`) {
 		const outerRadius = 11;
@@ -349,33 +355,35 @@ function createIcon(msrItem) {
 		ctx.fill();
 	}
 	else if (msrItem.icon === `Ventil`) {
-		ctx.lineWidth = 1;
-		htmlEl.width = 1.5 + 11 + 2 + 2 * ctx.lineWidth;
-		htmlEl.height = 2 * (2 + ctx.lineWidth);
+		ctx.lineWidth = 2;
+		htmlEl.width = 3 + 4 + 2 * ctx.lineWidth;
+		htmlEl.height = 2 * (4 + ctx.lineWidth);
 
 		ctx.translate(htmlEl.width/2, htmlEl.height/2);
 		ctx.strokeStyle = "black";
 		ctx.fillStyle = "black";
 		
 		ctx.beginPath();
-		ctx.fillRect(-1.5, -1, 1.5, 2);
-		ctx.moveTo(0, 2);
-		ctx.lineTo(2, 0);
-		ctx.lineTo(0, -2);
+		ctx.fillRect(0, -2, 3, 4);
+		ctx.moveTo(0, 4);
+		ctx.lineTo(-4, 0);
+		ctx.lineTo(0, -4);
 		ctx.fill();
-		
-		ctx.translate(11, 0);
-		ctx.fillRect(-1.5, -1, 1.5, 2);
-		ctx.moveTo(0, 2);
-		ctx.lineTo(2, 0);
-		ctx.lineTo(0, -2);
+		/*
+		ctx.translate(-22, 0);
+		ctx.fillRect(0, -2, 3, 4);
+		ctx.moveTo(0, 4);
+		ctx.lineTo(-4, 0);
+		ctx.lineTo(0, -4);
 		ctx.fill();
+		*/
 	}
 	else if (msrItem.icon === `Schalter`) {
 		htmlEl.classList.add(`switch`);
-		[-15, -3].forEach(y => {
+		[`falseIcon`, `trueIcon`].forEach(className => {
 			const canvas = document.createElement(`canvas`);
 			htmlEl.appendChild(canvas);
+			canvas.classList.add(className);
 			const ctx = canvas.getContext(`2d`);
 			ctx.lineWidth = 2;
 			htmlEl.width = 40 + 2 * ctx.lineWidth;
@@ -386,6 +394,7 @@ function createIcon(msrItem) {
 			ctx.beginPath();
 			ctx.moveTo(-20, 0);
 			ctx.lineTo(-10, 0);
+			const y = (className === `trueIcon`) ? -3 : -15;
 			ctx.lineTo(13, y);
 
 			ctx.moveTo(10, -5);
@@ -398,19 +407,20 @@ function createIcon(msrItem) {
 		htmlEl.classList.add(`led`);
 		const colors = msrItem.iconFeature.split(`/`);
 		//console.log(colors);
-		colors.forEach(color => {
+		colors.forEach((color, idx) => {
 			if (color) {
 				const canvas = document.createElement(`canvas`);
 				htmlEl.appendChild(canvas);
+				canvas.classList.add(`${(idx) ? `trueIcon` : `falseIcon`}`);
 				const ctx = canvas.getContext(`2d`);
-
+				
 				const outerRadius = 6;
 				const innerRadius = 4;
 				ctx.lineWidth = 1;
-
+				
 				canvas.width = 2 * (outerRadius + ctx.lineWidth);
 				canvas.height = canvas.width;
-
+			
 				ctx.translate(canvas.width/2, canvas.height/2);
 				ctx.strokeStyle = "black";
 				ctx.beginPath();
@@ -452,9 +462,10 @@ function createIcon(msrItem) {
 
 function switchVisuTab(visudata, targetTabIdx = 0) {
 	const vimgArea = document.querySelector(`#vimgArea`);
-	vimgArea.setAttribute(`tab-idx`, targetTabIdx)
+	vimgArea.setAttribute(`tab-idx`, targetTabIdx);
+	//console.log(visudata);
 	vimgArea.style.background = `no-repeat url(${visudata.VCOData.Bitmaps[targetTabIdx].URL})`;
-	document.querySelectorAll(`[tab-idx]`).forEach(el => el.classList.toggle(`hidden`, parseInt(el.getAttribute(`tab-idx`)) != targetTabIdx));
+	document.querySelectorAll(`[tab-idx]`).forEach(el => el.classList.toggle(`displayNone`, parseInt(el.getAttribute(`tab-idx`)) != targetTabIdx));
 }
 
 function DrawVisu(visudata) {
@@ -489,8 +500,10 @@ function drawVCOItem(msrItem) {
 			msrLbl.setAttribute(`false-txt`, msrItem.falseTxt);
 		}
 		if (msrItem.alarms) {
-			Object.entries(alarms).forEach(([alarmType, val]) => {
-				msrLbl.setAttribute(val.msr.toLowerCase(), alarmType);
+			Object.entries(msrItem.alarms).forEach(([alarmType, val]) => {
+				if (val.msr) {
+					msrLbl.setAttribute(val.msr.toLowerCase(), alarmType);
+				}
 			});
 		}
 		msrLbl.style.font = msrItem.font;
@@ -508,13 +521,15 @@ function updateLiveDataElements(liveDataItems) {
 		if (htmlElements) {
 			htmlElements.forEach(el => {
 				//console.log(el);
-				if (el.matches(`.led, .switch`)) {
-					el.firstElementChild.classList.toggle(`displayNone`, !!item.Wert);
-					el.lastElementChild.classList.toggle(`displayNone`, !item.Wert);
-					el.classList.toggle(`animate`, el.matches(`[animation]`) && !!item.Wert);
-				}
-				else if (el.matches(`[animation]`)) {
+				if (el.matches(`[animation]`)) {
+					//console.log(item);
 					el.classList.toggle(`animate`, !!item.Wert);
+					/*
+					if (el.matches(`[animation = toggleIcon]`)) {
+						el.firstElementChild.classList.toggle(`displayNone`, !!item.Wert);
+						el.lastElementChild.classList.toggle(`displayNone`, !item.Wert);
+					}
+					*/
 				}
 				else if (el.matches(`.faceplateBtn`)) {
 					el.classList.toggle(`btnHand`, !!item.Wert);
@@ -551,14 +566,12 @@ function updateLiveDataElements(liveDataItems) {
 
 // Aufruf Funktion
 function drawTextList(visudata) {
-	const bmpIndex = parseInt(document.querySelector(`#vimgArea`).getAttribute(`tab-idx`));
 	visudata.FreitextList.forEach(txtEl => {
 		//htmlElements
 		const vimgArea = document.querySelector(`#vimgArea`);
 		const htmlEl = document.createElement(`${(txtEl.isVerweis) ? 'input' : 'label'}`);
 		vimgArea.appendChild(htmlEl);
 		htmlEl.classList.add(`visuElement`);
-		htmlEl.classList.toggle(`hidden`, parseInt(txtEl.bmpIndex) != bmpIndex);
 		htmlEl.setAttribute(`tab-idx`, txtEl.bmpIndex);
 		htmlEl.style.font = txtEl.font;
 		htmlEl.style.color = txtEl.Color;
@@ -631,7 +644,7 @@ async function visuBtnClickEventHandler(ev) {
 	else {		
 		const bgIdx = parseInt(document.querySelector(`#vimgArea`).getAttribute(`tab-idx`));
 		if (bgIdx !== parseInt(link)) {
-			const visudata = getVisuData(DEPLOYED_VISU_FILE);
+			const visudata = await getVisuData(DEPLOYED_VISU_FILE);
 			switchVisuTab(visudata, parseInt(link));
 		}	
 	}
@@ -663,11 +676,11 @@ function closePinModal() {
 }
 
 function toggleBtnsPinLock(id) {
-  var btn = document.getElementById(id);
-  var relatedBtns = Array.from(document.getElementsByClassName(btn.className));
-  
-  relatedBtns.forEach(el => el.style.display = "inline-block");
-  btn.style.display = "none";
+	var btn = document.getElementById(id);
+	var relatedBtns = Array.from(document.getElementsByClassName(btn.className));
+	
+	relatedBtns.forEach(el => el.style.display = "inline-block");
+	btn.style.display = "none";
 }
 
 function pinLock(id) {
@@ -785,7 +798,7 @@ async function openFaceplate(ev) {
 	try {
 		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
 		const test = await fetchJSON(faceplateRequestUrl);
-		console.log(test);
+		//console.log(test);
 		const adjustmentOptions = await asyncSleep(fetchJSON, 800, FACEPLATE_DATA_URL);
 		if (adjustmentOptions.v070.slice(0,5) === faceplateRequestUrl.slice(-5)) {
 			ClickableElement = [];

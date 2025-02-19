@@ -93,6 +93,7 @@ window.addEventListener('load', function () {
 
 
 async function init() {
+  initVisu();
   document.querySelector(`.loaderIcon`).classList.remove(`loader`);
 	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
 	/*Initialize layout, static variable....*/	
@@ -121,8 +122,8 @@ async function init() {
   benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
 	
   /**********Visualization*/
-	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
-	handleConfirmBtn(locked);		//Visubedienung verriegeln
+	//locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
+	//handleConfirmBtn(locked);		//Visubedienung verriegeln
    
   /*********Data evaluation********/
   //jw startQH();
@@ -1227,7 +1228,7 @@ function tabIdHanlder(evt, id)
   
     if (id == "visualisierung") {
 		//setNumlock();							//osk-layout auf Numpad wechseln
-        startVisu();
+        //startVisu();
 		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
 		clearInterval(benachrichtigungAutoReload);
