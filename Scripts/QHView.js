@@ -1,4 +1,77 @@
-	var QHHeaderFile = "./DATA/vierttx.txt";
+/***********************syncTrash*************************************/
+/*Read Textfile aus dem Ordner */
+function readFromTextFile(fileName) {
+	var res;
+	var xhr = new XMLHttpRequest();
+	xhr.overrideMimeType('text/plain; charset=Windows-1252')
+	xhr.open("GET", fileName, false);
+	if (fileName != QHSettingFile)
+	{
+		xhr.setRequestHeader('Cache-Control', 'no-cache');
+	}
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+					res = xhr.responseText;
+				}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
+}
+
+function getData(url) {
+	var res;
+    var xhr = new XMLHttpRequest();
+    xhr.overrideMimeType('text/plain; charset=Windows-1252');
+    xhr.open("GET", url, false); 
+	xhr.onreadystatechange = function(event){
+		if (xhr.readyState == 4){
+			var status = xhr.status;
+			if(status === 0 || (status >=200 && status < 400)){
+				if (xhr.response == "{\"result\":\"OK\"}\r\n"){
+					xhr.open("GET", dataUrl, false);
+					xhr.send();
+					res = xhr.response
+				}
+				else {
+					res = xhr.response;
+				}
+			}
+			}
+		else{
+			res = "";
+		}
+	};
+	xhr.send();
+	return res;
+}
+
+function writeToTextFile(data) {
+  var formData = new FormData();
+  formData.append("formData", data);
+  var xhr = new XMLHttpRequest();
+  //xhr.overrideMimeType('text/plain; charset=utf-8')
+  xhr.open("POST", uploadSkriptUrl, true);
+  xhr.send(formData);
+  return xhr.responseText;
+}	
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    var QHHeaderFile = "./DATA/vierttx.txt";
 	var QHUpdateFile = "./DATA/viertdat.txt";
 	var QHUpdateURL = "http://172.16.0.102/JSONADD/PUT?V007=Q2";
 	var FBviertdatURL = "http://172.16.0.102/JSONADD/GET?p=1&Var=sel&V012";

@@ -465,7 +465,7 @@ function switchVisuTab(visudata, targetTabIdx = 0) {
 	vimgArea.setAttribute(`tab-idx`, targetTabIdx);
 	//console.log(visudata);
 	vimgArea.style.background = `no-repeat url(${visudata.VCOData.Bitmaps[targetTabIdx].URL})`;
-	document.querySelectorAll(`[tab-idx]`).forEach(el => el.classList.toggle(`displayNone`, parseInt(el.getAttribute(`tab-idx`)) != targetTabIdx));
+	document.querySelectorAll(`[tab-idx]`).forEach(el => el.classList.toggle(`hidden`, parseInt(el.getAttribute(`tab-idx`)) != targetTabIdx));
 }
 
 function DrawVisu(visudata) {
@@ -522,14 +522,7 @@ function updateLiveDataElements(liveDataItems) {
 			htmlElements.forEach(el => {
 				//console.log(el);
 				if (el.matches(`[animation]`)) {
-					//console.log(item);
 					el.classList.toggle(`animate`, !!item.Wert);
-					/*
-					if (el.matches(`[animation = toggleIcon]`)) {
-						el.firstElementChild.classList.toggle(`displayNone`, !!item.Wert);
-						el.lastElementChild.classList.toggle(`displayNone`, !item.Wert);
-					}
-					*/
 				}
 				else if (el.matches(`.faceplateBtn`)) {
 					el.classList.toggle(`btnHand`, !!item.Wert);
@@ -581,10 +574,11 @@ function drawTextList(visudata) {
 		const rotation = (txtEl.VerweisAusrichtung == "up") ? -90 : (txtEl.VerweisAusrichtung == "dn") ? 90 : undefined;
 		if (rotation) {
 			//ToDo: translate Calc!
-			const htmlElBox = htmlEl.getBoundingClientRect();
-			htmlEl.style.transform = `rotate(${rotation}deg)`;
-			const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
-			htmlEl.style.transform = `rotate(${rotation}deg) translate(${(rotatedHtmlElBox.left - htmlElBox.left)/2 - paddingAsPx}px, ${(rotatedHtmlElBox.top - htmlElBox.top + paddingAsPx)/2}px)`;
+			//const htmlElBox = htmlEl.getBoundingClientRect();
+			console.log(htmlEl.clientWidth);
+			htmlEl.style.transform = `translate(${-htmlEl.clientWidth/2}px,0) rotate(${0}deg)`;
+			//const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
+			//htmlEl.style.transform = `rotate(${rotation}deg) translate(${(rotatedHtmlElBox.left - htmlElBox.left)/2 - paddingAsPx}px, ${(rotatedHtmlElBox.top - htmlElBox.top + paddingAsPx)/2}px)`;
 		}
 		
 		htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
@@ -815,9 +809,7 @@ function sendDataToRtos(target) {
 	ClickableElement.forEach(el => {
 		const rtosVar = `"${el.name}${el.wert}${el.oberGrenze}${el.unterGrenze}${el.nachKommaStellen}${el.einheit}${el.sectionIndicator}"`;
 		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
-		const ans = sendData(url);
-		if (!ans.includes('OK'))
-			console.error(ans);
+		const responsePromise = fetchJSON(url);
 	}); 
 	
 	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();

@@ -94,8 +94,6 @@ window.addEventListener('load', function () {
 
 async function init() {
   initVisu();
-  document.querySelector(`.loaderIcon`).classList.remove(`loader`);
-	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
 	/*Initialize layout, static variable....*/	
   let fetchedData = await fetchTxt(QHHeaderFile);
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
@@ -226,79 +224,8 @@ async function fetchTxt(url, charset, options) {
   }
 }
 
+
 /***********************syncTrash*************************************/
-/*Read Textfile aus dem Ordner */
-function readFromTextFile(fileName) {
-	var res;
-	var xhr = new XMLHttpRequest();
-	xhr.overrideMimeType('text/plain; charset=Windows-1252')
-	xhr.open("GET", fileName, false);
-	if (fileName != QHSettingFile)
-	{
-		xhr.setRequestHeader('Cache-Control', 'no-cache');
-	}
-	xhr.onreadystatechange = function(event){
-		if (xhr.readyState == 4){
-			var status = xhr.status;
-			if(status === 0 || (status >=200 && status < 400)){
-					res = xhr.responseText;
-				}
-			}
-		else{
-			res = "";
-		}
-	};
-	xhr.send();
-	return res;
-}
-
-function getData(url) {
-	var res;
-    var xhr = new XMLHttpRequest();
-    xhr.overrideMimeType('text/plain; charset=Windows-1252');
-    xhr.open("GET", url, false); 
-	xhr.onreadystatechange = function(event){
-		if (xhr.readyState == 4){
-			var status = xhr.status;
-			if(status === 0 || (status >=200 && status < 400)){
-				if (xhr.response == "{\"result\":\"OK\"}\r\n"){
-					xhr.open("GET", dataUrl, false);
-					xhr.send();
-					res = xhr.response
-				}
-				else {
-					res = xhr.response;
-				}
-			}
-			}
-		else{
-			res = "";
-		}
-	};
-	xhr.send();
-	return res;
-}
-
-function sendData(url) {
-	var res;
-	var xhr = new XMLHttpRequest();
-	xhr.open("GET", url, false); 
-	xhr.onreadystatechange = function(event){
-		if (xhr.readyState == 4){
-			var status = xhr.status;
-			if(status === 0 || (status >=200 && status < 400)){
-					res = xhr.response;
-				}
-			}
-		else{
-			res = "";
-		}
-	};
-	xhr.send();
-	return res;
-}
-
-
 /*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
 */
  function readQHFromFile(fileName) {
@@ -340,15 +267,7 @@ function sendData(url) {
   }
 } 
 
-function writeToTextFile(data) {
-  var formData = new FormData();
-  formData.append("formData", data);
-  var xhr = new XMLHttpRequest();
-  //xhr.overrideMimeType('text/plain; charset=utf-8')
-  xhr.open("POST", uploadSkriptUrl, true);
-  xhr.send(formData);
-  return xhr.responseText;
-}
+
 
 
 /********************************Operating**************************************************************************/
@@ -372,7 +291,7 @@ function initCanvas(canvasName, canvasContext){
             var xpos = Math.round((x - 50) / 5);
             var maus = Math.round(4001 + ypos * 144 + xpos)
             var TastURLId = TastURL + maus;
-            var data = sendData(TastURLId);
+            const responsePromise = fetchJSON(TastURLId);
         }
         else {
 
@@ -483,14 +402,14 @@ function initCanvas(canvasName, canvasContext){
 		}
 	  }
 	  if (stat1 == '1') {
-	    $('#DisplayCanvas').css('cursor', 'default');
+	    //$('#DisplayCanvas').css('cursor', 'default');
 		var x = evt.clientX - rect.left;
 		var y = 8 + evt.clientY - rect.top;
 		var xr = Math.round(x / 16)   //   /16 Zeichenbreite (spalte column)
 		var yr = Math.round(y / 30)   //   /30 Zeilenhoehe (zeile row)
 		for (var i = 0; i < ASCII127PositionCurrentPage.length; i++) {
 				if ((yr == ASCII127PositionCurrentPage[i].row) && (x < 530)) {
-					$('#DisplayCanvas').css('cursor', 'pointer');
+					//$('#DisplayCanvas').css('cursor', 'pointer');
 				}
 			}
 		}
@@ -519,7 +438,6 @@ function timeweek (canvasContext) {
 
 
 async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
-	var jsonData;
 	var ctx = canvasContext;
 	var Displaycanvas = canvasName;
 	DisplayCanvas = canvas
@@ -604,8 +522,6 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
 		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		  
         zykzaehler=zyklus;
-        //jsonData = getData(kalenderUrl);
-        //data = JSON.parse(jsonData);
         data = await fetchJSON(kalenderUrl);
         ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
@@ -1118,8 +1034,6 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
 
             //status 3:  grosser Bildschirm
             if (stat3 == '1') {
-              //jsonData = getData(kalenderUrl);
-              //data = JSON.parse(jsonData);
               data = await fetchJSON(kalenderUrl);
               x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
               y = data['v062']+37;    /*Zeile, wo die Texte rot markiert werden muss*/
@@ -1192,41 +1106,25 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
 /*****************Hanler für Menulink Click******************/
 async function AnchorHandler(id) {
   var menuLinkId = menuLink + id;
-  //var data = getData(menuLinkId);
   const data = await fetchJSON(menuLinkId);
   refreshTextAreaWithoutParameterLocal(fernbedienungCanvasContext, fernbedienungCanvas, data);  
 }
 
-function tabIdHanlder(evt, id)
-{
-    var i, tabcontent, tablinks, divBenachrichtigung;
-	activeTabID = id;
-    // Get all elements with class="tabcontent" and hide them
-    tabcontent = document.getElementsByClassName("tabcontent");
-    for (i = 0; i < tabcontent.length; i++) { 
-        tabcontent[i].style.display = "none";
-    }
-     // Get all elements with class="tablinks" and remove the class "active"
-    tablinks = document.getElementsByClassName("tablink");
-    for (i = 0; i < tablinks.length; i++) {
-        tablinks[i].className = tablinks[i].className.replace(" active", "");
-    }
-    // Show the current tab, and add an "active" class to the button that opened the tab
-    var neutabID = id + "Display";
-    document.getElementById(neutabID).style.display = "block";
-    evt.currentTarget.className += " active";
-
-	if (id == "fernbedienung") {
+function tabIdHanlder(ev) {
+	activeTabID = ev.target.id;
+  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`hidden`, el !== document.querySelector(`#${ev.target.id}Display`)));
+  document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === ev.target));
+    
+	if (ev.target.id == "fernbedienung") {
 		//resetNumlock();							//osk-Numpad-layout zurücksetzen
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
 		clearInterval(wochenKalenderImVisuAutoReload);
-		showElemementById("benachrichtigung");
-		
+		showElemementById("benachrichtigung");		
 	}
   
-    if (id == "visualisierung") {
+    if (ev.target.id == "visualisierung") {
 		//setNumlock();							//osk-layout auf Numpad wechseln
         //startVisu();
 		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
@@ -1236,7 +1134,7 @@ function tabIdHanlder(evt, id)
 		hideElemementById("benachrichtigung");
     }
 
-    if (id == "datenauswertung") {
+    if (ev.target.id == "datenauswertung") {
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
 		//setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
@@ -1247,12 +1145,12 @@ function tabIdHanlder(evt, id)
 		hideElemementById("benachrichtigung");
     }
 	
-  if (id == "bedienungsAnleitung") {
+  if (ev.target.id == "bedienungsAnleitung") {
 
 	//callReader(bedien_pdf);//'../SD_DATA/Bedien.pdf', 'bedien');
   }
 
-  if (id == "verdrahtungsplan") {
+  if (ev.target.id == "verdrahtungsplan") {
 
 	//callReader(slp_pdf);
   }
@@ -1261,8 +1159,6 @@ function tabIdHanlder(evt, id)
 
 async function updateBenachrichtigung (){
 	const benachrichtigungText = document.querySelector(`#benachrichtigungText`);
-	//var jsonData = getData(benachrichtigungsUrl);
-	//var data =  JSON.parse(jsonData);
   const data = await fetchJSON(benachrichtigungsUrl);
 	benachrichtigungText.innerText = `Heizzentrale ${projektName}.  Fernbedienung aktiv durch: ${data.V064.trim()}`;
 }
@@ -1309,6 +1205,7 @@ function EthernetButtonHanlder(id) {      /* <<< */
 }
 
 /**********Keyboard stroke********/
+/*
 $(document).keydown(function (event) {
 
 	//Fernbedienung aktiv	
@@ -1321,7 +1218,7 @@ $(document).keydown(function (event) {
 		tastkey = event.key;
 		tastkeylength = tastkey.length;
 		tastcode = event.keyCode;
-		if (tastkeylength < 2) {         /* ein einzelnes Zeichen  */
+		if (tastkeylength < 2) {         // ein einzelnes Zeichen
 			tastascii=tastkey.charCodeAt(0);
 		}
 		else {
@@ -1375,7 +1272,7 @@ $(document).keydown(function (event) {
 	}
 
 });
-
+*/
 
 /*************Hilfsfunktionen------------------*/
 function createOSK(layout, keyDownIntervalMs = 20) {

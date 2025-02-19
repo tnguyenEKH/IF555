@@ -1,27 +1,51 @@
-//Allgemeine Styles (hauptsächlich für Kopfzeile [Tab-Auswahl] & Fernbedienungstab)
-//Visu- QH- & pdfReader-Tabs haben eigene .css
-
 html {
     scroll-behavior: smooth;
 }
 :root {
     box-sizing: border-box;
-    
 }
 
 *,
 ::before,
 ::after {
     box-sizing: inherit;
-
 }
 
 body {
     background-color: #E0E0E0; /*rgb(224, 224, 224);*/
     /* font-family: Helvetica, Arial, sans-serif; */
-    font-family:monospace, 'Courier New';
+    font-family: monospace, 'Courier New';
     overflow:auto;
 	margin: 1vh;
+	display: grid;
+	grid-template-areas:
+	'header'
+	'main'
+	'footer';
+}
+
+.header {
+	grid-area: header;
+}
+.content {
+	grid-area: main;
+	display: grid;
+	justify-items: center;
+	align-items: center;
+	grid-template-areas: 'tabContent';
+}
+.footer {
+	grid-area: footer;
+}
+.connectionStatusBar {
+	height: 2rem;
+	background-color: rgb(192, 192, 192);
+	border-radius: .5em;
+	/*border: 1px solid green;*/
+	padding: 0.5rem;
+	color: black;
+	font-size: 1.8vh;
+	font-family: Arial;
 }
 
 [type="text"]:focus,
@@ -56,7 +80,7 @@ button:disabled,
 /* Kopfzeile: Tab-Auswahl */
 .tab {
     overflow: hidden;
-    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+    border: 1px solid #C0C0C0;
     background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
     border-radius: 1vh;
 	height: 7vh;
@@ -102,7 +126,7 @@ button:disabled,
 #benachrichtigung {
 	width: 100%;
 	height: 1.7em;
-    border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+    border: 1px solid #C0C0C0;
     border-radius: .5em;
     background-color: #F1F1F1; /*rgb(241, 241, 241); white gray*/
 	margin-top: 0.2em;
@@ -123,18 +147,11 @@ button:disabled,
 
 /* Style the tab content */
 .tabcontent {
-    display: none;
-    /*border: 1px solid #C0C0C0; /*rgb(192, 192, 192);*/
+	grid-area: tabContent;
+	width: 100%;
+	height: 100%;
+	background-color: #C0C0C0;
     border-radius: .5em;
-	/*font-size: 3vh;									<<<AUSKOMMENTIERT JW*/ 
-	width: 99.95%;
-	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
-	height: 90vh;
-	/*min-height: 84.5vh;*/
-}
-
-#fernbedienungDisplay {
-	height: 85.6vh;
 }
 
 .container {
@@ -142,7 +159,7 @@ button:disabled,
 	border-radius: inherit;
 	height: inherit;
 	width: inherit;
-	background-color: #C0C0C0; /*rgb(192, 192, 192);*/
+	background-color: #C0C0C0;
 	/*height: 100%;*/
 }
 	
