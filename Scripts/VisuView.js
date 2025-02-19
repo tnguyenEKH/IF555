@@ -18,7 +18,7 @@ const AUTOLOCK_TIMEOUT = 1200000; //20min
 var locked = !DEVMODE;
 
 async function ReloadData() {
-	const rawvisuData = await fetchLiveDataLocal();
+	const rawvisuData = await fetchTxt(LIVE_DATA_URL);
 	const liveData = parseLiveData(rawvisuData);
 
 	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
@@ -38,6 +38,8 @@ async function getOnlinegesamtZaehler(url) {
 
 async function getVisuData(deployedVisuFile) {
 	const visudata = await fetchJSON(deployedVisuFile);
+	//const visudataRaw = await fetchTxt(deployedVisuFile);
+	//const visudata = JSON.parse(visudataRaw);
 	
 	visudata.DropList.forEach(el => {
 		el.msrItem = {};
@@ -93,7 +95,7 @@ async function startVisu() {
 	DrawVisu(visudata);
 	switchVisuTab(visudata);
 
-	const liveDataRaw = await fetchLiveDataLocal();
+	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
 	const liveData = parseLiveData(liveDataRaw);
 	updateLiveDataElements(liveData.items);
 }
@@ -604,7 +606,7 @@ async function visuBtnClickEventHandler(ev) {
 		const content = modal.querySelector(`.modalContent`);
 		content.classList.toggle(`alarms`, link === `alarms`);
 		
-		const liveDataRaw = await fetchLiveDataLocal();
+		const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
 		
 		const h5 = content.querySelector(`h5`);
 		if (link === `alarms`) {

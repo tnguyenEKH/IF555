@@ -86,61 +86,29 @@ var wochenKalenderImVisuCanvasContext;
 var toclipboard = new Boolean("false");               // Communikation Klick->Clipboard
 var statmouseweek = new Boolean("false");             // Maus befindet sich im Wochenkalenderfenster 
 
+/*********************VanillaDocReady*********************/
+window.addEventListener('load', function () {
+  init();
+}, false);
 
 
-$(document).ready(function () {
-	//console.log({QHHeaderFile});
-	document.querySelector(`.loaderText`).innerHTML = `trying to connect to MPC	since ${new Date(Date.now()).toLocaleTimeString(`de-DE`)}`;
-	testRequest(`./DATA/vierttx.txt`, 5000);
-  //document.body.appendChild(createOSK(``));
-});
-
-/****test****/
-function testRequest(_url, timeoutOnError) {
-  //console.log({_url});
-  const url = (_url) ? _url : `./DATA/vierttx.txt`; //QHHeaderFile, cuz this causes the error
-	const xhr = new XMLHttpRequest();
-	const method = "GET";
-	
-	xhr.overrideMimeType('text/plain; charset=Windows-1252');
-	//console.log(`open`);
-	xhr.open(method, url, true); //async
-	
-	xhr.onreadystatechange = () => {
-	  // In local files, status is 0 upon success in Mozilla Firefox
-	  if (xhr.readyState === XMLHttpRequest.DONE) {
-		const status = xhr.status;
-		if (status === 0 || (status >= 200 && status < 400)) {
-		  // The request has been completed successfully
-		  //console.log(xhr.responseText);
-		  init();
-		} else {
-		  // Oh no! There has been an error with the request!
-      if (timeoutOnError > 0)
-        setTimeout(testRequest, timeoutOnError, url, timeoutOnError);
-		}
-		//console.log(`done: ${status}`);
-	  }
-	};
-	//console.log(`send`);
-	xhr.send();
-}
-
-function init() {
+async function init() {
   document.querySelector(`.loaderIcon`).classList.remove(`loader`);
 	document.querySelector(`.connectingToMPCcontainer`).style.display = `none`;
 	/*Initialize layout, static variable....*/	
-	projektNummer = readFromTextFile(QHHeaderFile).substr(0,5);
-	projektName = JSON.parse(getData(getSteuerungNameUrl).trim())['V065'];
-	const QHDataFile = `${piDataUrl}${projektNummer.substr(1)}.bin`;
+  let fetchedData = await fetchTxt(QHHeaderFile);
+  projektNummer = fetchedData.match(/P\s*\d+/).at(0);
+  fetchedData = await fetchJSON(getSteuerungNameUrl);
+  projektName = fetchedData.V065.trim();
+	const QHDataFile = `${piDataUrl}${projektNummer.match(/\d+/).at(0)}.bin`;
 
 	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
 	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
 	var dynamicSLP = '../SD_DATA/SLP.pdf' + '?' + Date.now();
 	const slp_pdf = new PDF_file(dynamicSLP, 'slp');
 	
-	fernbedienungCanvas = document.getElementById('DisplayCanvas');    
-	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');                    
+	fernbedienungCanvas = document.getElementById('DisplayCanvas');
+	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');
 	initCanvas(fernbedienungCanvas, fernbedienungCanvasContext);
 	
   /*
@@ -150,7 +118,7 @@ function init() {
 	*/
   /***********Operating******************/
 	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-    benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
+  benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
 	
   /**********Visualization*/
 	locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
@@ -229,20 +197,23 @@ async function fetchJSON(url, options) {
 
 function fetchLiveDataLocal() {
   const url = LIVE_DATA_URL;
+  const charset = `windows-1252`;
   const options = {};
   options.method = `GET`;
   options.headers = {};
-  options.headers[`Content-Type`] = `text/plain; charset=Windows-1252`;
+  options.headers[`Content-Type`] = `text/plain; charset=${charset}`;
   //options.body = `{Projektnummer: '${projectNo}'}`;
   
-  return fetchTxt(url, options);
+  return fetchTxt(url, charset, options);
 }
 
-async function fetchTxt(url, options) {
+async function fetchTxt(url, charset, options) {
   try {
     const res = await fetch(url, options);
     if (res.ok) {
-      const data = await res.text();
+      const buffer = await res.arrayBuffer();
+      const decoder = new TextDecoder(charset);
+      const data = decoder.decode(buffer);
       return data;
     }
     else {
@@ -475,7 +446,7 @@ function initCanvas(canvasName, canvasContext){
 			
 		var maus = Math.round(1000+yr*100+xr) 
 		var TastURLId = TastURL + maus;
-		var data = getData(TastURLId);
+		const responsePromise = fetchJSON(TastURLId);
 	  }
 
 	  if (zykzaehler > einmalholen) {
@@ -546,7 +517,7 @@ function timeweek (canvasContext) {
 }
 
 
-function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
+async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 	var jsonData;
 	var ctx = canvasContext;
 	var Displaycanvas = canvasName;
@@ -573,8 +544,8 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
         tastzaehler=0;
       } 
 	  if(data == undefined){
-		  jsonData = getData(dataUrl);
-		  data = JSON.parse(jsonData);
+		  data = await fetchJSON(dataUrl);
+		  //data = JSON.parse(jsonData);
 	  }
 	  else{
 		  data = data;
@@ -632,8 +603,9 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 		ASCII127PositionCurrentPage.push(coordinateOfClickButton);
 		  
         zykzaehler=zyklus;
-        jsonData = getData(kalenderUrl);
-        data = JSON.parse(jsonData);
+        //jsonData = getData(kalenderUrl);
+        //data = JSON.parse(jsonData);
+        data = await fetchJSON(kalenderUrl);
         ctx.fillStyle = "#E0E0E0";
         ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
         ctx.fillStyle = "#000000";  
@@ -1145,8 +1117,9 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 
             //status 3:  grosser Bildschirm
             if (stat3 == '1') {
-              jsonData = getData(kalenderUrl);
-              data = JSON.parse(jsonData);
+              //jsonData = getData(kalenderUrl);
+              //data = JSON.parse(jsonData);
+              data = await fetchJSON(kalenderUrl);
               x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
               y = data['v062']+37;    /*Zeile, wo die Texte rot markiert werden muss*/
               z = data['v063'];   /*Anzahl der Zeichen, die rot markiert werden soll*/
@@ -1216,9 +1189,10 @@ function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
 
 
 /*****************Hanler für Menulink Click******************/
-function AnchorHandler(id) {
+async function AnchorHandler(id) {
   var menuLinkId = menuLink + id;
-  var data = getData(menuLinkId);
+  //var data = getData(menuLinkId);
+  const data = await fetchJSON(menuLinkId);
   refreshTextAreaWithoutParameterLocal(fernbedienungCanvasContext, fernbedienungCanvas, data);  
 }
 
@@ -1242,7 +1216,7 @@ function tabIdHanlder(evt, id)
     evt.currentTarget.className += " active";
 
 	if (id == "fernbedienung") {
-		resetNumlock();							//osk-Numpad-layout zurücksetzen
+		//resetNumlock();							//osk-Numpad-layout zurücksetzen
 		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
 		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
 		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
@@ -1252,7 +1226,7 @@ function tabIdHanlder(evt, id)
 	}
   
     if (id == "visualisierung") {
-		setNumlock();							//osk-layout auf Numpad wechseln
+		//setNumlock();							//osk-layout auf Numpad wechseln
         startVisu();
 		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
@@ -1263,7 +1237,7 @@ function tabIdHanlder(evt, id)
 
     if (id == "datenauswertung") {
 		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
-		setNumlock();							//osk-layout auf Numpad wechseln
+		//setNumlock();							//osk-layout auf Numpad wechseln
 		startQH();								//Daten in Diagramm ausrichten
 		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
 		clearInterval(benachrichtigungAutoReload);
@@ -1284,12 +1258,12 @@ function tabIdHanlder(evt, id)
 
 }
 
-function updateBenachrichtigung (){
-	var displayElement = document.getElementById('benachrichtigungText');
-	var jsonData = getData(benachrichtigungsUrl);
-	var data =  JSON.parse(jsonData);
-	var message = 'Heizzentrale ' + projektName + '.	Fernbedienung aktiv durch: ' + '<span style="color:#C31D64">' + data['V064'].trim() + '</span>';
-	displayElement.innerHTML = message;
+async function updateBenachrichtigung (){
+	const benachrichtigungText = document.querySelector(`#benachrichtigungText`);
+	//var jsonData = getData(benachrichtigungsUrl);
+	//var data =  JSON.parse(jsonData);
+  const data = await fetchJSON(benachrichtigungsUrl);
+	benachrichtigungText.innerText = `Heizzentrale ${projektName}.  Fernbedienung aktiv durch: ${data.V064.trim()}`;
 }
 
 /*****************Hanler für Button Click ******************/
@@ -1319,7 +1293,7 @@ function EthernetButtonHanlder(id) {      /* <<< */
   
 
   var TastURLId = TastURL + Tast;
-  var data = getData(TastURLId);
+  const responsePromise = fetchJSON(TastURLId);
   if (zykzaehler > einmalholen) {
     zykzaehler=einmalholen;
     tastzaehler=0;
@@ -1380,7 +1354,7 @@ $(document).keydown(function (event) {
 
 		if (tastascii > 0) {
 			var TastURLId = TastURL + tastascii;
-			var data = getData(TastURLId);
+			const responsePromise = fetchJSON(TastURLId);
 		}
 		
 		if (zykzaehler > einmalholen) {
@@ -1509,7 +1483,7 @@ function createOSK(layout, keyDownIntervalMs = 20) {
                             (keyVal === `→`) ? `12` :
                             (keyVal === `⏎`) ? `13` :
                             undefined;
-          const rtosResponse = getData(`${TastURL}${rtosKeyId}`);
+          const responsePromise = fetchJSON(`${TastURL}${rtosKeyId}`);
         }
       }
     }
