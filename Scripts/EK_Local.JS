@@ -41,15 +41,10 @@ const MANUAL_URL = `${MPC_H0_URL}Bedien.pdf`;
 const SLP_URL = `${MPC_H0_URL}SLP.pdf`;
 
 /********************* Projekt SETTINGS *********************/
-var projektName = '';
 var projektNummer ="";
 var numberOfDataTrack;
 var allQHDataRecords  = [];
 
-/********************* Autoreload SETTINGS *********************/
-var fernbedienungAutoReload;
-var benachrichtigungAutoReload;
-var visuAutoReload;
 var wochenKalenderImVisuAutoReload;
 
 /********************* Operating SETTINGS *********************/
@@ -77,10 +72,6 @@ var statmouseweek;
 var currentDataSet;
 var ASCII127PositionCurrentPage = [];  
 
-//Canvas für die Darstellung auf "Ferbedienung" Reiter
-var fernbedienungCanvas;
-var fernbedienungCanvasContext;
-
 //Canvas für die Darstellung der WochenKalender auf "Visualisierung" Reiter
 var wochenKalenderImVisuCanvas;
 var wochenKalenderImVisuCanvasContext;
@@ -99,17 +90,12 @@ async function init() {
 	/*Initialize layout, static variable....*/	
   let fetchedData = await fetchTxt(QHHeaderFile);
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
-  fetchedData = await fetchJSON(getSteuerungNameUrl);
-  projektName = fetchedData.V065.trim();
+  updateProjectName(getSteuerungNameUrl);
 	
-	fernbedienungCanvas = document.getElementById('DisplayCanvas');
-	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');
-	initCanvas(fernbedienungCanvas, fernbedienungCanvasContext);
+	initCanvas(document.querySelector(`#DisplayCanvas`));
 	
   /*
-	wochenKalenderImVisuCanvas = document.getElementById('settingFromVisuCanvas');    
-	wochenKalenderImVisuCanvasContext = wochenKalenderImVisuCanvas.getContext('2d');                    
-	initCanvas(wochenKalenderImVisuCanvas, wochenKalenderImVisuCanvasContext);
+	initCanvas(document.querySelector(`#settingFromVisuCanvas`));
 	*/
   /***********Operating******************/
   /**********Visualization*/
@@ -124,7 +110,9 @@ async function init() {
   const bedien_pdf = new PDF_file(MANUAL_URL, 'bedien');
 	const slp_pdf = new PDF_file(SLP_URL, 'slp');
   callReader(bedien_pdf);
-	callReader(slp_pdf);	
+	callReader(slp_pdf);
+
+  tabSwitchHandler(document.querySelector(`#visualisierung`));
 }
 
 
@@ -214,7 +202,8 @@ async function fetchTxt(url, charset, options) {
 
 /********************************Operating**************************************************************************/
 
-function initCanvas(canvasName, canvasContext){
+function initCanvas(canvasName) {
+  const canvasContext = canvasName.getContext(`2d`);
 	var parent = canvasName.parentNode;
 	canvasName.width = parent.width;
 	parent.offsetWidth > 0 ? canvasName.width = parent.offsetWidth : canvasName.width = 960;
@@ -379,17 +368,9 @@ function timeweek (canvasContext) {
 }
 
 
-async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, data) {
-	var ctx = canvasContext;
-	var Displaycanvas = canvasName;
-	DisplayCanvas = canvas
-
-
- // ctx.fillStyle = "#E0E0E0";              // Testausgabe fuers Timing
- // ctx.fillRect(900, 20, 60, 40);
- // ctx.fillStyle = "#000000";
- // ctx.fillText(zykzaehler, 910, 40); 
-
+async function reloadFernbedienung(canvas, data) {
+	const ctx = canvas.getContext(`2d`);
+	const Displaycanvas = canvas;
 
     if (tastzaehler > 0) {                  // <<< 
       tastzaehler=tastzaehler-1;
@@ -465,8 +446,7 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
 		  
         zykzaehler=zyklus;
         data = await fetchJSON(kalenderUrl);
-        ctx.fillStyle = "#E0E0E0";
-        ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);
+        ctx.clearRect(0, 0, Displaycanvas.width, Displaycanvas.height);
         ctx.fillStyle = "#000000";  
         ctx.font = "20px Arial";
         xpos= 5;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
@@ -829,8 +809,7 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
         //status 1:  normales Menue(46 Spalten, 18 Zeilen) ab POS(x,y) z Zeichen rot
 		if (stat1 == '1') {
 			ASCII127PositionCurrentPage = [];
-			ctx.fillStyle = "#D0D0D0";
-			ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+			ctx.clearRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
 			zykzaehler = zyklus;
 			xpos = 1;
 			ypos = 1;
@@ -917,8 +896,7 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
         else {
           //status 2:  Anzeigemenue rechte Displayhaelfte rot (ab POS(x>18))
           if (stat2 == '1'){
-          	ctx.fillStyle = "#D0D0D0";
-            ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);          // damit wird der CANVAS-Inhalt geloescht
+            ctx.clearRect(0, 0, Displaycanvas.width, Displaycanvas.height);          // damit wird der CANVAS-Inhalt geloescht
             zykzaehler=zyklus;
             xpos= 1;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
             ypos=-5;    //  Positionsvariable auf dem CANVAS  y (Pixel)
@@ -980,8 +958,7 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
               x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
               y = data['v062']+37;    /*Zeile, wo die Texte rot markiert werden muss*/
               z = data['v063'];   /*Anzahl der Zeichen, die rot markiert werden soll*/
-            	ctx.fillStyle = "#D0D0D0";
-              ctx.fillRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
+              ctx.clearRect(0, 0, Displaycanvas.width, Displaycanvas.height);            // damit wird der CANVAS-Inhalt geloescht
               zykzaehler=zyklus;
               xpos= 1;   
               ypos= 1;   
@@ -1047,81 +1024,76 @@ async function refreshTextAreaWithoutParameterLocal(canvasContext, canvasName, d
 
 /*****************Hanler für Menulink Click******************/
 async function AnchorHandler(id) {
-  var menuLinkId = menuLink + id;
-  const data = await fetchJSON(menuLinkId);
-  refreshTextAreaWithoutParameterLocal(fernbedienungCanvasContext, fernbedienungCanvas, data);  
+  const data = await fetchJSON(`${menuLink}${id}`);
+  reloadFernbedienung(document.querySelector(`#DisplayCanvas`), data);  
 }
 
-function tabIdHanlder(ev) {
-	activeTabID = ev.target.id;
-  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`hidden`, el !== document.querySelector(`#${ev.target.id}Display`)));
-  document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === ev.target));
-    
-	if (ev.target.id == "fernbedienung") {
-		//resetNumlock();							//osk-Numpad-layout zurücksetzen
-		fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-		benachrichtigungAutoReload = setInterval (updateBenachrichtigung, 5000);		// Aktivieren der paralellen Fernbedienung
-		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 
-		clearInterval(wochenKalenderImVisuAutoReload);
-		showElemementById("benachrichtigung");		
+function tabSwitchClickEventHandler(ev) {
+  tabSwitchHandler(ev.target);
+}
+function tabSwitchHandler(target) {
+	activeTabID = target.id;
+  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`hidden`, el !== document.querySelector(`#${target.id}Display`)));
+  document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === target));
+  document.querySelector(`.connectedUsers`).classList.toggle(`displayNone`, target.id !== `fernbedienung`);
+  document.querySelector(`.mpcTimeStamp`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
+
+	if (target.id == "fernbedienung") {
+    document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, document.querySelector(`#DisplayCanvas`));
+		updateConnectedUsers();
+    document.body.timerConnectedUsers = setInterval (updateConnectedUsers, 5000);
 	}
+  else {
+    clearInterval(document.body.timerFernbedienung);
+    clearInterval(document.body.timerConnectedUsers);
+  }
   
-    if (ev.target.id == "visualisierung") {
-		//setNumlock();							//osk-layout auf Numpad wechseln
-        //startVisu();
-		visuAutoReload = setInterval(ReloadData, 2000); //Lade Visudaten alle 2 Sekunden
-		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
-		clearInterval(benachrichtigungAutoReload);
-		clearInterval(wochenKalenderImVisuAutoReload);
-		hideElemementById("benachrichtigung");
-    }
+  if (target.id == "visualisierung") {
+    reloadVisuLiveData();
+    document.body.timerVisu = setInterval(reloadVisuLiveData, 2000);
+  }
+  else {
+    clearInterval(document.body.timerVisu);
+  }
 
-    if (ev.target.id == "datenauswertung") {
-		location.href = '#';					//sicherstellen dass YScaleModal geschlossen ist
-		//setNumlock();							//osk-layout auf Numpad wechseln
-		startQH();								//Daten in Diagramm ausrichten
-		clearInterval(fernbedienungAutoReload); // Deaktivieren  der Datenabholung der Fernbedienung 
-		clearInterval(benachrichtigungAutoReload);
-		clearInterval(visuAutoReload); // Deaktivieren der Abholung der Visudaten 		
-		clearInterval(wochenKalenderImVisuAutoReload);
-		hideElemementById("benachrichtigung");
-    }
-	
-  if (ev.target.id == "bedienungsAnleitung") {
-
+  if (target.id == "datenauswertung") {
+    startQH();
+  }
+  else if (target.id == "bedienungsAnleitung") {
 	//callReader(bedien_pdf);//'../SD_DATA/Bedien.pdf', 'bedien');
   }
-
-  if (ev.target.id == "verdrahtungsplan") {
-
+  else if (target.id == "verdrahtungsplan") {
 	//callReader(slp_pdf);
   }
-
 }
 
-async function updateBenachrichtigung (){
-	const benachrichtigungText = document.querySelector(`#benachrichtigungText`);
+async function updateConnectedUsers() {
   const data = await fetchJSON(benachrichtigungsUrl);
-	benachrichtigungText.innerText = `Heizzentrale ${projektName}.  Fernbedienung aktiv durch: ${data.V064.trim()}`;
+  updateConnectionStatus(!!data);
+  if (!!data) {
+    const connectedUsers = document.querySelector(`.connectedUsers`);
+    connectedUsers.innerText = `connected users: ${data.V064.trim()}`;
+  }
+}
+
+async function updateProjectName(url) {
+  const data = await fetchJSON(url);
+  updateConnectionStatus(!!data);
+  if (!!data) {
+    const projectName = document.querySelector(`.projectName`);
+    projectName.innerText = data.V065.trim();
+    return data.V065.trim();
+  }
+}
+
+function updateConnectionStatus(status) {
+  const connectionStatus = document.querySelector(`.connectionStatus`);
+	connectionStatus.innerText = (!!status) ? `connected` : `disconnected`;
+  connectionStatus.classList.toggle(`errorHighlighter`, !status);
 }
 
 /*****************Hanler für Button Click ******************/
-function EthernetButtonHanlder(id) {      /* <<< */
-  
-  if (id.includes("btnVirtualKeyboard")) {
-	  var osk = document.getElementById("osk");
-	  if (osk.style.display == "none") {
-		  showElemementById('osk');
-		  osk.style.top = '';
-		  osk.style.left = '';
-		  osk.style.bottom = '220px';
-		  osk.style.right = '1.5vh';
-	  }
-	  else {
-		  hideElemementById("osk");		  
-	  }
-  }
-  
+function EthernetButtonHanlder(id) {      /* <<< */  
   if (id == "btnHome")	AnchorHandler(1);
 
   if ((id == "btnUp") || (id == "btnUpVisu")) 	var Tast='11';
@@ -1151,11 +1123,7 @@ function EthernetButtonHanlder(id) {      /* <<< */
 $(document).keydown(function (event) {
 
 	//Fernbedienung aktiv	
-	if (activeTabID.match(/(fernbedienung)|(visuWochenkalender)/)) {
-		//set focus on "#displayPanel" when a key was pressed. This prevent scroll effect, when the sidebar overflow
-		var displayPanel = document.getElementById('displayPanel');
-		displayPanel.focus();
-		
+	if (activeTabID.match(/(fernbedienung)|(visuWochenkalender)/)) {		
 		tastascii=0;
 		tastkey = event.key;
 		tastkeylength = tastkey.length;

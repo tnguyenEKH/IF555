@@ -10,60 +10,52 @@
 	<link href="Content/main.css" rel="stylesheet" />
 	<!--<link href="Content/sidebar.css" rel="stylesheet" />-->
 	<!--<link href="Content/bootstrap.min.css" rel="stylesheet" />-->
-	<link href="Content/visu.css" rel="stylesheet" />
+	<!--<link href="Content/visu.css" rel="stylesheet" />-->
 	<!--<link href="Content/QHView.css" rel="stylesheet" />-->
 	<!--<link href="Content/pdfReader.css" rel="stylesheet" />-->	
 </head>
 
 <body lang="en">
 	<div class="header">
-		<div class="tab">
-			<ul>
-				<li id="visualisierung" class="tablink active" onclick="tabIdHanlder(event)">
-					Visualisierung
-				</li>
-				<li id="fernbedienung" class="tablink" onclick="tabIdHanlder(event)">
-					Fernbedienung
-				</li>
-				<li id="datenauswertung" class="tablink" onclick="tabIdHanlder(event)">
-					1/4h Datenauswertung
-				</li>
-				<li id="bedienungsAnleitung" class="tablink" onclick="tabIdHanlder(event)">
-					Bedienungsanleitung
-				</li>
-				<li id="verdrahtungsplan" class="tablink" onclick="tabIdHanlder(event)">
-					Verdrahtungsplan
-				</li>
-				<li id="notes" class="tablink" onclick="tabIdHanlder(event)">
-					Notizen
-				</li>
-				<li id="hilfe" class="tablink" onclick="tabIdHanlder(event)">
-					Hilfe
-				</li>
-			</ul>
-		</div>
+		<ul>
+			<li id="visualisierung" class="tablink active" onclick="tabSwitchClickEventHandler(event)">Visualisierung</li>
+			<li id="fernbedienung" class="tablink" onclick="tabSwitchClickEventHandler(event)">Fernbedienung</li>
+			<li id="datenauswertung" class="tablink" onclick="tabSwitchClickEventHandler(event)">1/4h Datenauswertung</li>
+			<li id="bedienungsAnleitung" class="tablink" onclick="tabSwitchClickEventHandler(event)">Bedienungsanleitung</li>
+			<li id="verdrahtungsplan" class="tablink" onclick="tabSwitchClickEventHandler(event)">Verdrahtungsplan</li>
+			<li id="notes" class="tablink" onclick="tabSwitchClickEventHandler(event)">Notizen</li>
+			<li id="hilfe" class="tablink" onclick="tabSwitchClickEventHandler(event)">Hilfe</li>
+		</ul>
 	</div>
 		
 	<div class="content">
-		<div id="visualisierungDisplay" class="tabcontent">
-			<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
-				<div class="modalContent">
-					<div class="modalHeader">
-						<h5>Title</h5>
-						<span class="close">×</span>
-					</div>
-					<div class="modalBody">
-					</div>
-					<div class="modalFooter">
-						<input type="button" value="OK" class="modalFooterBtn">
-						<input type="button" value="Abbrechen" class="modalFooterBtn">
-					</div>
+		<!--
+		<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
+			<div class="modalContent">
+				<div class="modalHeader">
+					<h5>Title</h5>
+					<span class="close">×</span>
+				</div>
+				<div class="modalBody">
+				</div>
+				<div class="modalFooter">
+					<input type="button" value="OK" class="modalFooterBtn">
+					<input type="button" value="Abbrechen" class="modalFooterBtn">
 				</div>
 			</div>
+		</div>
+		-->
 
+		<div id="visualisierungDisplay" class="tabcontent">
+			<div id="vimgArea" class="container"></div>
+
+
+			
+
+			<!--
 			<input type="button" value="🔒🔓" class="btnLockVisu" onclick="btnLockVisuEventHandler(event)">
 			
-			<!-- Lock modal 
+			Lock modal 
 			<div id="modalPinBg" class="modalBg">
 			<div id="Pin-content" class="modalVisuContent">
 				<div class="modalVisuHeader">
@@ -88,14 +80,14 @@
 			</div>
 			-->
 
-			<div id="vimgArea" class="vinsideWrapper"></div>
+			
 			
 			
 			
 			
 		
 		<!-- Modal für Einstellwerte-->
-			<div id="fpBg" class="modalBg hidden">
+			<div id="fpBg" class="modalBg hidden displayNone">
 			<div id="fpContent" class="modalVisuContent">
 				<div id="fpHeader" class="modalVisuHeader">
 				<span class="close" onclick="closeFaceplate()">&times;</span>
@@ -140,35 +132,11 @@
 
 		<div id="fernbedienungDisplay" class="tabcontent hidden">
 			<div class="container">
-				<div id="sidebar" class="sidebar sidebar-item sidebar-menu"></div>
-
-				<div class="hauptDisplay">
-					<!-- Hauptmenü -->
-					<div class="panelContent" id="displayPanel">
-						<canvas id="DisplayCanvas"></canvas>
-					</div>
-
-					<!-- Button Group -->
-					<div id="buttonGroup">
-						<button id="btnUp" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-						<button id="btnDown" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-						<button id="btnLeft" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-						<button id="btnRight" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-						<button id="btnEnter" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					</div>
-					
-					<div id="toolBtnGroup">
-					<!-- Button Home/Hauptmenue -->
-						<button id="btnHome" class="btn" onclick="EthernetButtonHanlder(id)">Hauptmenü</button>
-					
-					<!-- Button show/hide OSK -->
-						<button id="btnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>
-					</div>				
-				</div>
+				<canvas id="DisplayCanvas"></canvas>
 			</div>
 		</div>
 
-		<div id="datenauswertungDisplay" class="tabcontent hidden">
+		<div id="datenauswertungDisplay" class="tabcontent hidden displayNone">
 			<!--<div id="qimage"> style="height: 90vh">600px">-->
 				<div id="qoutsideWrapper" class="qoutsideWrapper">
 					<!--<button id="qbtnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>-->
@@ -371,19 +339,16 @@
 			</div>
 		</div>
 
-		<div id="notesDisplay" class="tabcontent hidden"></div>
-		<div id="hilfeDisplay" class="tabcontent hidden"></div>
+		<div id="notesDisplay" class="tabcontent hidden displayNone"></div>
+		<div id="hilfeDisplay" class="tabcontent hidden displayNone"></div>
 	</div>
 
 
 	<div class="footer">
-		<div class="connectionStatusBar">
-			<bdi class="connectionStatusTxt"></bdi>
-		</div>
-		<div id="benachrichtigung">
-			<div id= "benachrichtigungText">
-			</div>
-		</div>
+		<div class="connectionStatus"></div>
+		<div class="mpcTimeStamp"></div>
+		<div class="connectedUsers"></div>
+		<div class="projectName"></div>
 	</div>
 
 

@@ -23,24 +23,27 @@ async function initVisu() {
 	switchVisuTab(visudata);
 
 	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
+	updateConnectionStatus(!!liveDataRaw);
 	const liveData = parseLiveData(liveDataRaw);
 	updateLiveDataElements(liveData.items);
 }
 
-async function ReloadData() {
+async function reloadVisuLiveData() {
 	const rawvisuData = await fetchTxt(LIVE_DATA_URL);
+	updateConnectionStatus(!!rawvisuData)
 	const liveData = parseLiveData(rawvisuData);
 
-	const connectionStatusTxt = document.querySelector('.connectionStatusTxt');
-	if (liveData.items) {
+	const mpcTimeStamp = document.querySelector(`.mpcTimeStamp`);
+	if (!!liveData) {
 		updateLiveDataElements(liveData.items);
-		connectionStatusTxt.textContent = `Letzte Datenaktualisierung: ${liveData.date.toLocaleString(`de-DE`)}`;
+		mpcTimeStamp.innerText = liveData.date.toLocaleString(`de-DE`);
 	}
-	connectionStatusTxt.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
+	mpcTimeStamp.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 }
 
 async function getOnlinegesamtZaehler(url) {
 	const res = await fetchTxt(url);
+	updateConnectionStatus(!!res);
     const resWithoutDate = res.substring(41);
 	const index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
 	return resWithoutDate.substr(0, index - 1);
@@ -48,8 +51,11 @@ async function getOnlinegesamtZaehler(url) {
 
 async function getVisuData(deployedVisuFile) {
 	const visudata = await fetchJSON(deployedVisuFile);
-	//const visudataRaw = await fetchTxt(deployedVisuFile);
-	//const visudata = JSON.parse(visudataRaw);
+	updateConnectionStatus(!!visudata);
+
+	visudata.FreitextList.forEach(el => {
+		el.BgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
+	});
 	
 	visudata.DropList.forEach(el => {
 		el.msrItem = {};
@@ -65,7 +71,7 @@ async function getVisuData(deployedVisuFile) {
 		el.msrItem.yPx = parseInt(el.y);
 		el.msrItem.font = el.font;
 		el.msrItem.color = (el.Symbol.match(/(Absenkung)/i)) ? CYAN_HSL : el.Color;
-		el.msrItem.bgColor = (!el.BgColor.match(/(#BEBEBE)|(#E0E0E0)/)) ? el.BgColor : ``;
+		el.msrItem.bgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
 		el.msrItem.icon = el.Symbol;
 		el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
 		el.msrItem.animation = (el.Symbol.match(/(Feuer)/)) ? `flicker` :
@@ -655,6 +661,7 @@ async function visuBtnClickEventHandler(ev) {
 		content.classList.toggle(`alarms`, link === `alarms`);
 		
 		const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
+		updateConnectionStatus(!!liveDataRaw);
 		
 		const h5 = content.querySelector(`h5`);
 		if (link === `alarms`) {
@@ -666,7 +673,7 @@ async function visuBtnClickEventHandler(ev) {
 		}
 		else if (link === `counter`) {
 			const date = parseDate(liveDataRaw);
-			h5.innerText = `Zähler: ${projektName}\n${date.toLocaleString(`de-DE`)}`;
+			h5.innerText = `Zähler: ${updateProjectName(getSteuerungNameUrl)}\n${date.toLocaleString(`de-DE`)}`;
 
 			const gesamtZaehler = getOnlinegesamtZaehler(COUNTER_URL);
 			content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
@@ -741,9 +748,6 @@ function pinUnlock(id) {
   var txtPin = document.getElementById("txtPin");
   txtPin.value = "";  
   txtPin.focus();
-  showElemementById('osk');
-  osk.style.top = modal.offsetTop + modal.offsetHeight + OFFSET_MODAL_2_OSK + 'px';
-  osk.style.left = modal.offsetLeft + modal.offsetWidth - osk.offsetWidth + 'px';  
 }
 
 function switchPinFocus(value) {
@@ -757,7 +761,8 @@ function handlePinVisibility(checked) {
 
 async function checkPin() {
   var txtPin = document.getElementById("txtPin");
-  let hash = await fetchTxt(HASH_FILE_URL);
+  const hash = await fetchTxt(HASH_FILE_URL);
+  updateConnectionStatus(!!hash);
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");
@@ -830,8 +835,9 @@ async function openFaceplate(ev) {
 	ev.target.setAttribute(`cursorStyle`, `progress`);
 	try {
 		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
-		const test = await fetchJSON(faceplateRequestUrl);
-		//console.log(test);
+		const response = await fetchJSON(faceplateRequestUrl);
+		updateConnectionStatus(!!response);
+		//console.log(response);
 		const adjustmentOptions = await asyncSleep(fetchJSON, 800, FACEPLATE_DATA_URL);
 		if (adjustmentOptions.v070.slice(0,5) === faceplateRequestUrl.slice(-5)) {
 			ClickableElement = [];
