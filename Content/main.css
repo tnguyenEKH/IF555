@@ -46,11 +46,6 @@ html {
 }
 */
 body {
-	/*
-	width: var(--width);
-	aspect-ratio: var(--aspectRatio);
-    overflow: hidden;
-	*/
     background-color: var(--darkerWhite);
     font-family: monospace, 'Courier New';
 	margin: var(--margin);
@@ -69,6 +64,53 @@ body > * {
 	border: 1px solid var(--darkestWhite);
 	border-radius: var(--borderRadius);
 	background-color: var(--darkWhite);
+}
+
+.modalBg {
+	grid-row: 1 / -1;
+	grid-column: 1 / -1;
+	width: 100%;
+	height: 100%;
+	z-index: 1;
+	background-color: hsla(0, 0%, 0%, 0.4);
+	display: grid;
+	justify-items: center;
+	align-items: center;
+}
+.modalContent {
+	display: grid;
+	justify-items: center;
+	align-items: center;
+	grid-template-areas:
+	'modalHeader'
+	'modalBody'
+	'modalFooter';
+	grid-template-rows: min-content auto min-content;
+}
+.modalContent > * {
+	width: 100%;
+}
+.modalHeader {
+	grid-area: modalHeader;
+	color: var(--darkWhite);
+	background-color: var(--cyan);
+	display: grid;
+	grid-auto-flow: column;
+}
+.modalContent.alarms > .modalHeader,
+.modalContent.alarms > .modalFooter {
+	background-color: var(--magenta);
+}
+.modalBody {
+	grid-area: modalBody;
+	background-color: var(--darkWhite);
+}
+.modalFooter {
+	grid-area: modalFooter;
+	color: var(--darkWhite);
+	background-color: var(--cyan);
+	display: grid;
+	grid-auto-flow: column;
 }
 
 .header {
@@ -133,6 +175,7 @@ body > * {
 	grid-auto-flow: column;
 }
 
+.close:not([cursorStyle]),
 .tablink:not([cursorStyle]),
 [type = "button"]:not([cursorStyle]) {
 	cursor: pointer;

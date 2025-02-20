@@ -36,7 +36,7 @@ async function reloadVisuLiveData() {
 	const mpcTimeStamp = document.querySelector(`.mpcTimeStamp`);
 	if (!!liveData) {
 		updateLiveDataElements(liveData.items);
-		mpcTimeStamp.innerText = liveData.date.toLocaleString(`de-DE`);
+		mpcTimeStamp.innerText = `MPC Zeit: ${liveData.date.toLocaleString(`de-DE`)}`;
 	}
 	mpcTimeStamp.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 }
@@ -647,8 +647,6 @@ function drawTextList() {
 }
 */
 
-
-
 async function visuBtnClickEventHandler(ev) {
 	const link = ev.target.getAttribute(`link`);
 	const linkBgIdx = parseInt(link);
@@ -663,9 +661,9 @@ async function visuBtnClickEventHandler(ev) {
 		const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
 		updateConnectionStatus(!!liveDataRaw);
 		
-		const h5 = content.querySelector(`h5`);
+		const h3 = content.querySelector(`h3`);
 		if (link === `alarms`) {
-			h5.innerText = `Aktuelle Störungen:`;
+			h3.innerText = `Aktuelle Störungen:`;
 			const alarms = parseAlarms(liveDataRaw);
 			let alarmTxt = (alarms.length) ? `\n` : `keine anstehenden Störungen`;
 			alarms.forEach(alarm => alarmTxt += `${alarm.id.padStart(3, `0`)} ${alarm.txt}\n`);
@@ -673,9 +671,10 @@ async function visuBtnClickEventHandler(ev) {
 		}
 		else if (link === `counter`) {
 			const date = parseDate(liveDataRaw);
-			h5.innerText = `Zähler: ${updateProjectName(getSteuerungNameUrl)}\n${date.toLocaleString(`de-DE`)}`;
+			const projectName = await updateProjectName(getSteuerungNameUrl);
+			h3.innerText = `Zähler: ${projectName}\n${date.toLocaleString(`de-DE`)}`;
 
-			const gesamtZaehler = getOnlinegesamtZaehler(COUNTER_URL);
+			const gesamtZaehler = await getOnlinegesamtZaehler(COUNTER_URL);
 			content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
 		}
 		else if (link === `counterArchive`) {

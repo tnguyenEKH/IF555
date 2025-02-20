@@ -16,6 +16,21 @@
 </head>
 
 <body lang="en">
+	<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
+		<div class="modalContent">
+			<div class="modalHeader">
+				<h3>Title</h3>
+				<span class="close">×</span>
+			</div>
+			<div class="modalBody">
+			</div>
+			<div class="modalFooter">
+				<input type="button" value="OK" class="modalFooterBtn">
+				<input type="button" value="Abbrechen" class="modalFooterBtn">
+			</div>
+		</div>
+	</div>
+
 	<div class="header">
 		<ul>
 			<li id="visualisierung" class="tablink active" onclick="tabSwitchClickEventHandler(event)">Visualisierung</li>
@@ -29,23 +44,6 @@
 	</div>
 		
 	<div class="content">
-		<!--
-		<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
-			<div class="modalContent">
-				<div class="modalHeader">
-					<h5>Title</h5>
-					<span class="close">×</span>
-				</div>
-				<div class="modalBody">
-				</div>
-				<div class="modalFooter">
-					<input type="button" value="OK" class="modalFooterBtn">
-					<input type="button" value="Abbrechen" class="modalFooterBtn">
-				</div>
-			</div>
-		</div>
-		-->
-
 		<div id="visualisierungDisplay" class="tabcontent">
 			<div id="vimgArea" class="container"></div>
 
