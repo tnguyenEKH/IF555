@@ -96,6 +96,8 @@ body > * {
 	background-color: var(--cyan);
 	display: grid;
 	grid-auto-flow: column;
+	align-items: center;
+	justify-items: center;
 }
 .modalContent.alarms > .modalHeader,
 .modalContent.alarms > .modalFooter {
@@ -168,13 +170,13 @@ body > * {
 	position: relative;
 }
 
-
 .footer {
 	grid-area: footer;
 	display: grid;
 	grid-auto-flow: column;
 }
 
+.lockStatus:not([cursorStyle]),
 .close:not([cursorStyle]),
 .tablink:not([cursorStyle]),
 [type = "button"]:not([cursorStyle]) {

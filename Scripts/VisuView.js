@@ -42,11 +42,24 @@ async function reloadVisuLiveData() {
 }
 
 async function getOnlinegesamtZaehler(url) {
-	const res = await fetchTxt(url);
-	updateConnectionStatus(!!res);
-    const resWithoutDate = res.substring(41);
-	const index = resWithoutDate.lastIndexOf('\x1b\x1b\x44\x34');
-	return resWithoutDate.substr(0, index - 1);
+	const rawData = await fetchTxt(url);
+	updateConnectionStatus(!!rawData);
+	
+	const rows = rawData.split(`\r`);
+	const headerRow = rows.shift();
+	const date = parseDate(headerRow);
+
+	const existingTextarea = document.querySelector(`.textareaCounter`);
+	const textarea = (existingTextarea) ? existingTextarea : document.createElement(`textarea`);
+	textarea.classList.add(`textareaCounter`);
+	textarea.value = `${rawData.replace(`${ESC}${ESC}D4`,``).replace(`${headerRow}\r`,``)}\r(Stand: ${date.toLocaleString(`de-DE`)})`;
+	textarea.setAttribute(`rows`, rows.length + 1);
+	textarea.setAttribute(`cols`, rows.at(-2).length);
+
+    const resWithoutDate = rawData.substring(41);
+	const index = resWithoutDate.lastIndexOf(`${ESC}${ESC}D4`);
+	return textarea;
+	//return resWithoutDate.substr(0, index - 1);
 }
 
 async function getVisuData(deployedVisuFile) {
@@ -670,12 +683,12 @@ async function visuBtnClickEventHandler(ev) {
 			content.querySelector(`.modalBody`).innerText = alarmTxt;
 		}
 		else if (link === `counter`) {
-			const date = parseDate(liveDataRaw);
 			const projectName = await updateProjectName(getSteuerungNameUrl);
-			h3.innerText = `Zähler: ${projectName}\n${date.toLocaleString(`de-DE`)}`;
+			h3.innerText = `Zähler: ${projectName}`;//\n${date.toLocaleString(`de-DE`)}`;
 
 			const gesamtZaehler = await getOnlinegesamtZaehler(COUNTER_URL);
-			content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
+			content.querySelector(`.modalBody`).appendChild(gesamtZaehler);
+			//content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
 		}
 		else if (link === `counterArchive`) {
 		}
@@ -695,6 +708,12 @@ function modalBgClickEventHandler(ev) {
 	if (ev.target.matches(`.modalBg, .close, .modalFooterBtn`)) {
 		document.querySelector(`.modalBg`).classList.add(`hidden`);
 	}
+}
+
+function updateLockStatus(lockVisu) {
+	const lockStatus = document.querySelector(`.lockStatus`);
+	lockStatus.innerText = (lockVisu) ? `locked` : `unlocked`;
+	lockStatus.classList.toggle(`errorHighlighter`, lockVisu);
 }
 
 function closeFaceplate() {

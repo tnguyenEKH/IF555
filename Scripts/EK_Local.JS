@@ -1,3 +1,5 @@
+const ESC = `\x1b`;
+
 /********************* COLORS *********************/
 //Colors here in rgb, because style.color will return rgb-format
 const MAGENTA_HSL = `hsl(334, 74%, 44%)`;
@@ -1037,6 +1039,7 @@ function tabSwitchHandler(target) {
   document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === target));
   document.querySelector(`.connectedUsers`).classList.toggle(`displayNone`, target.id !== `fernbedienung`);
   document.querySelector(`.mpcTimeStamp`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
+  document.querySelector(`.lockStatus`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
 
 	if (target.id == "fernbedienung") {
     document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, document.querySelector(`#DisplayCanvas`));
