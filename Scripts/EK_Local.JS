@@ -1,5 +1,3 @@
-const LOAD_QH_DATA = false;
-
 /********************* COLORS *********************/
 //Colors here in rgb, because style.color will return rgb-format
 const MAGENTA_HSL = `hsl(334, 74%, 44%)`;
@@ -36,7 +34,11 @@ const textInputUrl = `${mpcJsonPutUrl}V007=`;
 
 const piDataUrl = `http://172.16.0.101/Data/`;
 const uploadSkriptUrl = `${piDataUrl}upload.php`;
-const HASH_FILE = '../SD_DATA/hash.txt';
+
+const MPC_H0_URL = `../SD_DATA/`;
+const HASH_FILE_URL = `${MPC_H0_URL}hash.txt`;
+const MANUAL_URL = `${MPC_H0_URL}Bedien.pdf`;
+const SLP_URL = `${MPC_H0_URL}SLP.pdf`;
 
 /********************* Projekt SETTINGS *********************/
 var projektName = '';
@@ -99,12 +101,6 @@ async function init() {
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
   fetchedData = await fetchJSON(getSteuerungNameUrl);
   projektName = fetchedData.V065.trim();
-	const QHDataFile = `${piDataUrl}${projektNummer.match(/\d+/).at(0)}.bin`;
-
-	var dynamicBedien = '../SD_DATA/Bedien.pdf' + '?' + Date.now();
-	const bedien_pdf = new PDF_file(dynamicBedien, 'bedien');
-	var dynamicSLP = '../SD_DATA/SLP.pdf' + '?' + Date.now();
-	const slp_pdf = new PDF_file(dynamicSLP, 'slp');
 	
 	fernbedienungCanvas = document.getElementById('DisplayCanvas');
 	fernbedienungCanvasContext = fernbedienungCanvas.getContext('2d');
@@ -116,26 +112,18 @@ async function init() {
 	initCanvas(wochenKalenderImVisuCanvas, wochenKalenderImVisuCanvasContext);
 	*/
   /***********Operating******************/
-	fernbedienungAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, fernbedienungCanvasContext, fernbedienungCanvas );  /*  alle 50ms starten aber dann auf Zähler schauen <<< */
-  benachrichtigungAutoReload = setInterval(updateBenachrichtigung, 5000);		// Aktivieren der Aktualiserung der Benachrichtigung
-	
   /**********Visualization*/
 	//locked ? toggleBtnsPinLock('btnLock') : toggleBtnsPinLock('btnUnlock');
-	//handleConfirmBtn(locked);		//Visubedienung verriegeln
-   
-  /*********Data evaluation********/
-  //jw startQH();
-  if (LOAD_QH_DATA) {
-    readQHFromFile(QHDataFile);
-    numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
-  }
+	//handleConfirmBtn(locked);		//Visubedienung verriegeln  
 
 	zyklus=40;             // <<< 
 	zykzaehler=10;         // <<<
 	einmalholen=7;         // <<<
 	
 	/*******************************/
-    callReader(bedien_pdf);
+  const bedien_pdf = new PDF_file(MANUAL_URL, 'bedien');
+	const slp_pdf = new PDF_file(SLP_URL, 'slp');
+  callReader(bedien_pdf);
 	callReader(slp_pdf);	
 }
 
@@ -223,52 +211,6 @@ async function fetchTxt(url, charset, options) {
     console.error(err);
   }
 }
-
-
-/***********************syncTrash*************************************/
-/*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
-*/
- function readQHFromFile(fileName) {
-  var pufferArrayUint8;
-  var dataArray;
-  var xhr = new XMLHttpRequest();
-  xhr.open("GET", fileName);
-  xhr.responseType = "arraybuffer";
-  xhr.send();
-  xhr.onload = function(){
-    if(this.status === 200)  
-    pufferArray = new Float32Array(xhr.response)
-  
-    //pufferArray processing
-    var res="";
-    //define length of date and index in one datarecord
-    var dayLength = 1;
-    var monthLength = 1;
-    var yearLength = 1;
-    var datumLength = dayLength + monthLength + yearLength;
-    var indexLength = 1;
-    var dataTrackLength = 1;
-    var recordTotalLength = datumLength + indexLength + dataTrackLength * numberOfDataTrack;
-    var totalRecords = pufferArray.length/recordTotalLength;
-    for(var i = 0; i< totalRecords; i++){
-      var dataRaw = pufferArray.slice((i*recordTotalLength), ((i+1)*recordTotalLength));
-      var record ={};
-      
-      var datum   = new Date("20"+ dataRaw[0].toString(), (dataRaw[1] -1).toString(), dataRaw[2].toString()); //month index from 0-11
-      var index = dataRaw[3].toString();
-      
-      record.Datum = datum.toLocaleString().split(',')[0];
-      record.Index = index;
-      record.nValues = numberOfDataTrack;
-      record.Projektnumer = projektNummer;
-	  record.Values = dataRaw.slice(4, recordTotalLength);
-      allQHDataRecords.push(record);
-    }
-  }
-} 
-
-
-
 
 /********************************Operating**************************************************************************/
 

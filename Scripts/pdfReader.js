@@ -1,27 +1,20 @@
 class PDF_file {
-	constructor(url, filename, scale = 1.1, pageNum = 1){
+	constructor(url, filename, scale = 1, pageNum = 1) {
 		this.url = url;
 		this.filename = filename;
-		
 		this.scale = scale;
 		this.pageNum = pageNum;
 	}
 }
 
-
-
-function callReader(pdf_file){
-	const url = pdf_file.url,
-		  filename = pdf_file.filename;
-		  
-	let scale = pdf_file.scale,
-		pageNum = pdf_file.pageNum;
+function callReader(pdf_file) {
+	const {url, filename, scale, pageNum} = pdf_file;
 
 	let pdfDoc = null,
 	  pageIsRendering = false,
 	  pageNumIsPending = null;
 
-	let pdfcanvas = document.querySelector('#'+filename+'-pdf-render'),
+	const pdfcanvas = document.querySelector('#'+filename+'-pdf-render'),
 	//let pdfcanvas = document.createElement("pdfcanvas");
 	  ctx = pdfcanvas.getContext('2d');
 

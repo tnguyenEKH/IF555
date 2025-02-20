@@ -757,7 +757,7 @@ function handlePinVisibility(checked) {
 
 async function checkPin() {
   var txtPin = document.getElementById("txtPin");
-  let hash = await fetchTxt(HASH_FILE);
+  let hash = await fetchTxt(HASH_FILE_URL);
   if (md5(txtPin.value) == hash) {
     locked = false;
     toggleBtnsPinLock("btnUnlock");

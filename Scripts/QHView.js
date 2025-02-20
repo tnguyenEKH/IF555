@@ -59,17 +59,48 @@ function writeToTextFile(data) {
   xhr.open("POST", uploadSkriptUrl, true);
   xhr.send(formData);
   return xhr.responseText;
-}	
+}
+
+/*1/4h Datafile will ber served by Apache webserver, which is installed on Pi. 
+*/
+function readQHFromFile(fileName) {
+    var pufferArrayUint8;
+    var dataArray;
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", fileName);
+    xhr.responseType = "arraybuffer";
+    xhr.send();
+    xhr.onload = function(){
+      if(this.status === 200)  
+      pufferArray = new Float32Array(xhr.response)
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
+      //pufferArray processing
+      var res="";
+      //define length of date and index in one datarecord
+      var dayLength = 1;
+      var monthLength = 1;
+      var yearLength = 1;
+      var datumLength = dayLength + monthLength + yearLength;
+      var indexLength = 1;
+      var dataTrackLength = 1;
+      var recordTotalLength = datumLength + indexLength + dataTrackLength * numberOfDataTrack;
+      var totalRecords = pufferArray.length/recordTotalLength;
+      for(var i = 0; i< totalRecords; i++){
+        var dataRaw = pufferArray.slice((i*recordTotalLength), ((i+1)*recordTotalLength));
+        var record ={};
+        
+        var datum   = new Date("20"+ dataRaw[0].toString(), (dataRaw[1] -1).toString(), dataRaw[2].toString()); //month index from 0-11
+        var index = dataRaw[3].toString();
+        
+        record.Datum = datum.toLocaleString().split(',')[0];
+        record.Index = index;
+        record.nValues = numberOfDataTrack;
+        record.Projektnumer = projektNummer;
+        record.Values = dataRaw.slice(4, recordTotalLength);
+        allQHDataRecords.push(record);
+      }
+    }
+} 
     
     var QHHeaderFile = "./DATA/vierttx.txt";
 	var QHUpdateFile = "./DATA/viertdat.txt";
@@ -140,45 +171,50 @@ function writeToTextFile(data) {
     var QHInfo;
        
 function startQH() {
-        
-		//defaultColors = generateDefaultColors();
-		
-        canvas = document.getElementById('myqCanvas');
-        canvas.width = 1120;
-        canvas.height =630;
-        qctx = canvas.getContext('2d');
-        qctx.clearRect(0, 0, canvas.width, canvas.height);
-        canvasOffset = $("#myqCanvas").offset();
-        offsetX = canvasOffset.left;
-        offsetY = canvasOffset.top;
 
-        diagramHeader = loadHeader(QHHeaderFile);
-        diagramData = loadData();
-		
-        //writeToTextFile(QHSettingTestFile)
-        if (!UserSettings) UserSettings = getUserSettings();
+    const QHDataFile = `${piDataUrl}${projektNummer.match(/\d+/).at(0)}.bin`;
+    readQHFromFile(QHDataFile);
+    numberOfDataTrack = parseInt(loadDataTrackNumber(QHHeaderFile)) + 10;
+    
+    
+    //defaultColors = generateDefaultColors();
+    
+    canvas = document.getElementById('myqCanvas');
+    canvas.width = 1120;
+    canvas.height =630;
+    qctx = canvas.getContext('2d');
+    qctx.clearRect(0, 0, canvas.width, canvas.height);
+    canvasOffset = $("#myqCanvas").offset();
+    offsetX = canvasOffset.left;
+    offsetY = canvasOffset.top;
 
-        //var sQHInfo = getQH_Info_St(Steuerung);
-        //QHInfo = $.parseJSON(sQHInfo);
-        //var qhidx = QHInfo.LastItemIndex;
+    diagramHeader = loadHeader(QHHeaderFile);
+    diagramData = loadData();
+    
+    //writeToTextFile(QHSettingTestFile)
+    if (!UserSettings) UserSettings = getUserSettings();
 
-        //dLastUpdate = new Date(QHInfo.LastItemDate);
-        //dLastUpdate_ms = dLastUpdate.getTime();
-        //dLastUpdate_ms += qhidx * 15 * 60 * 1000;
-        //dLastUpdate.setTime(dLastUpdate_ms);
+    //var sQHInfo = getQH_Info_St(Steuerung);
+    //QHInfo = $.parseJSON(sQHInfo);
+    //var qhidx = QHInfo.LastItemIndex;
 
-        //sLastUpdate = dLastUpdate.getDate() + "." + (dLastUpdate.getMonth() + 1) + "." + dLastUpdate.getFullYear();
-        //sLastUpdate += " " + dLastUpdate.getHours() + ":" + dLastUpdate.getMinutes() + " Uhr";
+    //dLastUpdate = new Date(QHInfo.LastItemDate);
+    //dLastUpdate_ms = dLastUpdate.getTime();
+    //dLastUpdate_ms += qhidx * 15 * 60 * 1000;
+    //dLastUpdate.setTime(dLastUpdate_ms);
 
-        //$("#LabelQHInfo").text("Letzte Aktualisierung: " + sLastUpdate);
+    //sLastUpdate = dLastUpdate.getDate() + "." + (dLastUpdate.getMonth() + 1) + "." + dLastUpdate.getFullYear();
+    //sLastUpdate += " " + dLastUpdate.getHours() + ":" + dLastUpdate.getMinutes() + " Uhr";
 
-        InitSettings();
-        drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
-        drawData();
-        //var Projektname = getProjektName(Steuerung);
-        //document.title = "1/4h Datenauswertung " + " " + Projektname;
-        //OpenModalQH();
-        //setTimeout(function () { document.getElementById("btnGetData").click(); }, 1000);
+    //$("#LabelQHInfo").text("Letzte Aktualisierung: " + sLastUpdate);
+
+    InitSettings();
+    drawGrid(diagramLeft, diagramTop, diagramWidth, diagramHeight, diagramZeitraum, diagramDatum);
+    drawData();
+    //var Projektname = getProjektName(Steuerung);
+    //document.title = "1/4h Datenauswertung " + " " + Projektname;
+    //OpenModalQH();
+    //setTimeout(function () { document.getElementById("btnGetData").click(); }, 1000);
 }
 
 
