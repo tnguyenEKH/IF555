@@ -16,6 +16,22 @@
 </head>
 
 <body lang="en">
+	<!-- Modal für Einstellwerte
+	<div id="fpBg" class="modalBg hidden">
+		<div id="fpContent" class="modalVisuContent">
+			<div id="fpHeader" class="modalVisuHeader">
+				<span class="close" onclick="closeFaceplate()">&times;</span>
+				<h4 id="h4FpHeader"></h4>
+			</div>
+			<div id="fpBody" class="modalVisuBody">
+			</div>
+			<div id="fpFooter" class="modalVisuFooter">
+				<button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosEventHandler(event)">Übernehmen</button>
+				<button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
+			</div>
+		</div>
+	</div>
+	-->
 	<div class="modalBg hidden" onclick="modalBgClickEventHandler(event)">
 		<div class="modalContent">
 			<div class="modalHeader">
@@ -52,24 +68,7 @@
 		
 	<div class="content">
 		<div id="visualisierungDisplay" class="tabcontent">
-			<div id="vimgArea" class="container"></div>		
-			
-		
-		<!-- Modal für Einstellwerte-->
-			<div id="fpBg" class="modalBg hidden displayNone">
-			<div id="fpContent" class="modalVisuContent">
-				<div id="fpHeader" class="modalVisuHeader">
-				<span class="close" onclick="closeFaceplate()">&times;</span>
-				<h4 id="h4FpHeader"></h4>
-				</div>
-				<div id="fpBody" class="modalVisuBody">
-				</div>
-				<div id="fpFooter" class="modalVisuFooter">
-				<button id="btnFaceplateConfirm" disabled=true onclick ="sendDataToRtosEventHandler(event)">Übernehmen</button>
-				<button id="btnFaceplateCancel" onclick="closeFaceplate()">Abbrechen</button>
-				</div>
-			</div>
-			</div>
+			<div id="vimgArea" class="container"></div>
 			<!--end modal einstellwerte-->
 			
 			<!-- Modal für eingebetten HK Wochenkalender
@@ -95,7 +94,6 @@
 				</div>
 			</div>
 			<!--end modal Modal für eingebetten HK Wochenkalender-->
-		
 		</div>
 
 

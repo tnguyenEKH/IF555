@@ -811,7 +811,7 @@ function closeFaceplate() {
 }
 
 function destroyFaceplate() {
-	var modalBody = document.getElementById('fpBody');
+	var modalBody = document.getElementById('modalBody');
 	while (modalBody.firstChild) {
 		modalBody.removeChild(modalBody.firstChild);
 	}	
@@ -858,56 +858,61 @@ function sendDataToRtos(target) {
 function timeout(delay) {
     return new Promise(resolve => setTimeout(resolve, delay));
 }
-async function asyncSleep(fn, delay, ...args) {
+async function asyncTimeout(fn, delay, ...args) {
     await timeout(delay);
     return fn(...args);
 }
 
 async function openFaceplate(ev) {
 	document.body.setAttribute(`cursorStyle`, `progress`);
-	try {
-		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
-		const response = await fetchJSON(faceplateRequestUrl);
-		updateConnectionStatus(!!response);
-		//console.log(response);
-		const adjustmentOptions = await asyncSleep(fetchJSON, 800, FACEPLATE_DATA_URL);
-		if (adjustmentOptions.v070.slice(0,5) === faceplateRequestUrl.slice(-5)) {
-			ClickableElement = [];
-			Object.entries(adjustmentOptions).forEach(([key, value]) => {
-				const originalKeyNo = parseInt(key.match(/\d+/g));
-				let item = {};
-				item.idx = originalKeyNo + 20;
-				item.sectionIndicator = value.substr(59, 1);
-				
-				switch (item.sectionIndicator) {
-					case 'H':
-						item.name = value.substr(0, 24);
-						item.wert = value.substr(24,35)
-						break;
-					case 'S':
-						item.name = value.substr(0, 59);
-						break;
-					default:
-						item.name = value.substr(0, 24);
-						item.wert = value.substr(24,12);
-						item.oberGrenze = value.substr(36,6);
-						item.unterGrenze = value.substr(42,6);
-						item.nachKommaStellen = value.substr(48,2);
-						item.einheit = value.substr(50,9);
-					}
 
-					ClickableElement.push(item);
-			});
-			buildFaceplate();
-			showFaceplate(matchItem);
-			document.querySelector(`#fpBg`).classList.remove(`hidden`);
-		}
-		else {
-			alert(`timeout`);
-		}
+	const faceplateId = ev.target.getAttribute(`faceplate`);
+	const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${faceplateId}`;
+	//request corresponding FaceplateData from MPC
+	const response = await fetchJSON(faceplateRequestUrl);
+	updateConnectionStatus(!!response);
+	//console.log(response);
+
+	//get Data from MPC after Timeout (500ms)
+	const faceplateDataRaw = await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL);
+	//console.log(faceplateDataRaw);
+	//if DataHeader incorrect get Data again from MPC after Timeout (500ms); refine Data anyways
+	const faceplateData = Object.entries((faceplateDataRaw.v070.startsWith(faceplateId)) ?
+										  faceplateDataRaw :
+										  await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL)).filter(([key, value]) => value.trim() && value.trim() !== `X`);
+	//console.log(faceplateData);
+	if (faceplateData.at(0).at(1).startsWith(faceplateId)) {
+		const fpVarObjects = ClickableElement = [];
+		faceplateData.forEach(([key, value]) => {
+			const fpVarObj = {};
+			fpVarObj.idx = parseInt(key.match(/\d+/)) + 20; //keyOffset = 20; v070 => v090...
+			fpVarObj.sectionIndicator = value.substr(59, 1);
+			
+			switch (fpVarObj.sectionIndicator) {
+				case 'H':
+					fpVarObj.name = value.substr(0, 24);
+					fpVarObj.wert = value.substr(24,35)
+					break;
+				case 'S':
+					fpVarObj.name = value.substr(0, 59);
+					break;
+				default:
+					fpVarObj.name = value.substr(0, 24);
+					fpVarObj.wert = value.substr(24,12);
+					fpVarObj.oberGrenze = value.substr(36,6);
+					fpVarObj.unterGrenze = value.substr(42,6);
+					fpVarObj.nachKommaStellen = value.substr(48,2);
+					fpVarObj.einheit = value.substr(50,9);
+				}
+
+				fpVarObjects.push(fpVarObj);
+		});
+		buildFaceplate(fpVarObjects);
+		//showFaceplate(matchItem);
+		document.querySelector(`.modalBg`).classList.remove(`hidden`);
 	}
-	catch(err) {
-		console.error(err);
+	else {
+		alert(`timeout`);
 	}
 	document.body.removeAttribute(`cursorStyle`);
 }
@@ -1284,20 +1289,18 @@ function initControlGroup(divRtosVar) {
 	}
 }
 
-function buildFaceplate() {
-	const fpBody = document.querySelector('#fpBody');
-	
+function buildFaceplate(fpVarObjects) {
 	let fpSection;
-	ClickableElement.forEach(el => {
-		const wert = (el.wert) ? el.wert.trim() : undefined;
-		const name = (el.name) ? el.name.trim() : undefined;
+	fpVarObjects.forEach(fpVarObj => {
+		const wert = (fpVarObj.wert) ? fpVarObj.wert.trim() : undefined;
+		const name = (fpVarObj.name) ? fpVarObj.name.trim() : undefined;
 		
-		if (el.sectionIndicator.match(/H/i)) {
-			document.querySelector('#h4FpHeader').innerText = `Einstellungen für ${wert}`;
+		if (fpVarObj.sectionIndicator.match(/H/i)) {
+			document.querySelector(`.modalHeader h3`).innerText = `Einstellungen für ${wert}`;
 		}
 		
-		const zwischenüberschrift = el.sectionIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
-									name.includes(`NennVL`) ? `HK-Temperaturparameter` :
+		const zwischenüberschrift = fpVarObj.sectionIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
+									name.includes(`NennVL`) ? `Parameter Heizkurve` :
 									name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
 									name.includes(`Tagbetrieb`) ? `Partytaster` :
 									undefined;
@@ -1306,7 +1309,8 @@ function buildFaceplate() {
 			//Beginn neue Section
 			//neue Section erzeugen & anhängen
 			fpSection = document.createElement('div');
-			(zwischenüberschrift === `Partytaster`) ? fpBody.insertBefore(fpSection, fpBody.firstElementChild) : fpBody.appendChild(fpSection);
+			const modalBody = document.querySelector('.modalBody');
+			(zwischenüberschrift === `Partytaster`) ? modalBody.insertBefore(fpSection, modalBody.firstElementChild) : modalBody.appendChild(fpSection);
 			fpSection.classList.add(`fpSection`);
 			
 			//Zwischenüberschrift erzeugen & anhängen
@@ -1318,8 +1322,8 @@ function buildFaceplate() {
 		}
 		
 		//FP-Zeile erzeugen
-		if (el.sectionIndicator.toUpperCase() != 'H' && wert) {
-			const divRtosVar = createControlGroup(el);
+		if (fpVarObj.sectionIndicator.toUpperCase() != 'H' && wert) {
+			const divRtosVar = createControlGroup(fpVarObj);
 			fpSection.appendChild(divRtosVar);
 			initControlGroup(divRtosVar);
 		}
@@ -1349,7 +1353,7 @@ function closeModalWochenKalenderImVisu(){
 
 function showWochenKalenderVisu() {
 	const kalenderHeader = document.querySelector('#txtWochenKalenderImVisuHeader');
-	const faceplateHeader = document.querySelector('#h4FpHeader');
+	const faceplateHeader = document.querySelector(`.modalHeader h3`);
 	kalenderHeader.textContent = faceplateHeader.textContent.replace('Einstellungen', 'Wochenkalender');
 	
 	const visuWochenkalender = document.querySelector('#visuWochenkalender');
