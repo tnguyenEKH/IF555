@@ -2,10 +2,16 @@ const ESC = `\x1b`;
 
 /********************* COLORS *********************/
 //Colors here in rgb, because style.color will return rgb-format
+const WHITE_GREY = `hsl(0, 0%, 95%)`;
+const ZAEHLER_BG = `hsl(0, 0%, 88%)`;
+const BG_COLOR = `hsl(0, 0%, 75%)`;
+
+
 const MAGENTA_HSL = `hsl(334, 74%, 44%)`;
 const MAGENTA_HEX = `#c31d65`;
 const MAGENTA_RGB = `rgb(195, 29, 101)`;
 const CYAN_HSL = `hsl(194, 74%, 44%)`;
+const CYAN_HSLA = `hsla(194, 74%, 44%, .5)`;
 const CYAN_HEX = `#1d9cc3`;
 const CYAN_RGB = `rgb(29, 156, 195)`;
 const PURPLE_HSL = `hsl(264, 74%, 44%)`;
@@ -94,8 +100,9 @@ async function init() {
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
   updateProjectName(getSteuerungNameUrl);
 	
-	initCanvas(document.querySelector(`#DisplayCanvas`));
-	
+	const displayCanvas = document.querySelector(`#DisplayCanvas`);
+	initCanvas(displayCanvas);
+  reloadFernbedienung(displayCanvas);
   /*
 	initCanvas(document.querySelector(`#settingFromVisuCanvas`));
 	*/
@@ -1042,7 +1049,9 @@ function tabSwitchHandler(target) {
   document.querySelector(`.lockStatus`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
 
 	if (target.id == "fernbedienung") {
-    document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, document.querySelector(`#DisplayCanvas`));
+    const displayCanvas = document.querySelector(`#DisplayCanvas`);
+    reloadFernbedienung(displayCanvas);
+    document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, displayCanvas);
 		updateConnectedUsers();
     document.body.timerConnectedUsers = setInterval (updateConnectedUsers, 5000);
 	}
@@ -1072,8 +1081,7 @@ function tabSwitchHandler(target) {
 
 async function updateConnectedUsers() {
   const data = await fetchJSON(benachrichtigungsUrl);
-  updateConnectionStatus(!!data);
-  if (!!data) {
+  if (updateConnectionStatus(!!data)) {
     const connectedUsers = document.querySelector(`.connectedUsers`);
     connectedUsers.innerText = `connected users: ${data.V064.trim()}`;
   }
@@ -1081,8 +1089,7 @@ async function updateConnectedUsers() {
 
 async function updateProjectName(url) {
   const data = await fetchJSON(url);
-  updateConnectionStatus(!!data);
-  if (!!data) {
+  if (updateConnectionStatus(!!data)) {
     const projectName = document.querySelector(`.projectName`);
     projectName.innerText = data.V065.trim();
     return data.V065.trim();
@@ -1093,6 +1100,7 @@ function updateConnectionStatus(status) {
   const connectionStatus = document.querySelector(`.connectionStatus`);
 	connectionStatus.innerText = (!!status) ? `connected` : `disconnected`;
   connectionStatus.classList.toggle(`errorHighlighter`, !status);
+  return !!status;
 }
 
 /*****************Hanler für Button Click ******************/

@@ -23,99 +23,79 @@ async function initVisu() {
 	switchVisuTab(visudata);
 
 	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
-	updateConnectionStatus(!!liveDataRaw);
-	const liveData = parseLiveData(liveDataRaw);
-	updateLiveDataElements(liveData.items);
+	if (updateConnectionStatus(!!liveDataRaw)) {
+		const liveData = parseLiveData(liveDataRaw);
+		updateLiveDataElements(liveData.items);
+	}
 }
 
 async function reloadVisuLiveData() {
 	const rawvisuData = await fetchTxt(LIVE_DATA_URL);
-	updateConnectionStatus(!!rawvisuData)
-	const liveData = parseLiveData(rawvisuData);
+	if (updateConnectionStatus(!!rawvisuData)) {
+		const liveData = parseLiveData(rawvisuData);
 
-	const mpcTimeStamp = document.querySelector(`.mpcTimeStamp`);
-	if (!!liveData) {
-		updateLiveDataElements(liveData.items);
-		mpcTimeStamp.innerText = `MPC Zeit: ${liveData.date.toLocaleString(`de-DE`)}`;
+		const mpcTimeStamp = document.querySelector(`.mpcTimeStamp`);
+		if (!!liveData) {
+			updateLiveDataElements(liveData.items);
+			mpcTimeStamp.innerText = `MPC Zeit: ${liveData.date.toLocaleString(`de-DE`)}`;
+		}
+		mpcTimeStamp.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
 	}
-	mpcTimeStamp.classList.toggle(`errorHighlighter`, (Math.abs(liveData.date - new Date()) > MAX_TIME_DELTA_MPC_MS));
-}
-
-async function getOnlinegesamtZaehler(url) {
-	const rawData = await fetchTxt(url);
-	updateConnectionStatus(!!rawData);
-	
-	const rows = rawData.split(`\r`);
-	const headerRow = rows.shift();
-	const date = parseDate(headerRow);
-
-	const existingTextarea = document.querySelector(`.textareaCounter`);
-	const textarea = (existingTextarea) ? existingTextarea : document.createElement(`textarea`);
-	textarea.classList.add(`textareaCounter`);
-	textarea.value = `${rawData.replace(`${ESC}${ESC}D4`,``).replace(`${headerRow}\r`,``)}\r(Stand: ${date.toLocaleString(`de-DE`)})`;
-	textarea.setAttribute(`rows`, rows.length + 1);
-	textarea.setAttribute(`cols`, rows.at(-2).length);
-
-    const resWithoutDate = rawData.substring(41);
-	const index = resWithoutDate.lastIndexOf(`${ESC}${ESC}D4`);
-	return textarea;
-	//return resWithoutDate.substr(0, index - 1);
 }
 
 async function getVisuData(deployedVisuFile) {
 	const visudata = await fetchJSON(deployedVisuFile);
-	updateConnectionStatus(!!visudata);
-
-	visudata.FreitextList.forEach(el => {
-		el.BgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
-	});
-	
-	visudata.DropList.forEach(el => {
-		el.msrItem = {};
-		el.msrItem.identifyer = el.VCOItem.Bez.trim();
-		el.msrItem.idx = parseInt(el.VCOItem.Kanal);
-		el.msrItem.msr = `${el.msrItem.identifyer}${el.msrItem.idx}`;
-		el.msrItem.decPlace = parseInt(el.VCOItem.NKStellen);
-		el.msrItem.unit = unitFromInt(parseInt(el.VCOItem.iEinheit));
-		el.msrItem.title = el.ToolTip.replace(`<<<`, ``).replace(`(grau)`, ``).trim();
-		el.msrItem.faceplate = el.VCOItem.iD.trim();
-		el.msrItem.tabIdx = el.bmpIndex;
-		el.msrItem.xPx = parseInt(el.x);
-		el.msrItem.yPx = parseInt(el.y);
-		el.msrItem.font = el.font;
-		el.msrItem.color = (el.Symbol.match(/(Absenkung)/i)) ? CYAN_HSL : el.Color;
-		el.msrItem.bgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
-		el.msrItem.icon = el.Symbol;
-		el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
-		el.msrItem.animation = (el.Symbol.match(/(Feuer)/)) ? `flicker` :
-							   (el.Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) ? `rotate` :
-							   (el.Symbol.match(/(Led)|(Schalter)/)) ? `toggleIcon` :
-							   (el.Symbol.match(/(Pumpe)|(BHKW)|(Luefter)/)) ? `spin` :
-							   (!el.Symbol.match(/(fpButton)|(Heizkreis)/)) ? `show` :
-							   undefined;
-		el.msrItem.animation = (el.SymbolFeature.includes(`blinkend`)) ? `${el.msrItem.animation} blink` : el.msrItem.animation;
-		
-		el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
-							  (el.SymbolFeature.match(/(Oben)/i)) ? 90 :
-							  (el.SymbolFeature.match(/(Unten)/i)) ? 270 :
-							  0;
-		
-		el.msrItem.trueTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Nacht` :
-							 (el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature :
-							 undefined;
-		el.msrItem.falseTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Tag` :
-							  (el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : `` :
-							  undefined;
-		
-		el.msrItem.alarms = {};
-		el.msrItem.alarms.H = {};
-		el.msrItem.alarms.HH = {};
-		el.msrItem.alarms.L = {};
-		el.msrItem.alarms.LL = {};
-		el.msrItem.alarms.H.msr = (el.msrItem.identifyer === `GA`) ? `GR2` : undefined;
-		el.msrItem.alarms.HH.msr = (el.msrItem.identifyer === `GA`) ? `GR3` : undefined;
-		el.msrItem.alarms.L.msr = (el.msrItem.msr === `AI32`) ? `GR1` : undefined;
-	});
+	if (updateConnectionStatus(!!visudata)) {
+		visudata.FreitextList.forEach(el => {
+			el.BgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
+		});		
+		visudata.DropList.forEach(el => {
+			el.msrItem = {};
+			el.msrItem.identifyer = el.VCOItem.Bez.trim();
+			el.msrItem.idx = parseInt(el.VCOItem.Kanal);
+			el.msrItem.msr = `${el.msrItem.identifyer}${el.msrItem.idx}`;
+			el.msrItem.decPlace = parseInt(el.VCOItem.NKStellen);
+			el.msrItem.unit = unitFromInt(parseInt(el.VCOItem.iEinheit));
+			el.msrItem.title = el.ToolTip.replace(`<<<`, ``).replace(`(grau)`, ``).trim();
+			el.msrItem.faceplate = el.VCOItem.iD.trim();
+			el.msrItem.tabIdx = el.bmpIndex;
+			el.msrItem.xPx = parseInt(el.x);
+			el.msrItem.yPx = parseInt(el.y);
+			el.msrItem.font = el.font;
+			el.msrItem.color = (el.Symbol.match(/(Absenkung)/i)) ? CYAN_HSL : el.Color;
+			el.msrItem.bgColor = (el.BgColor.match(/(#BEBEBE)|(#E0E0E0)|(transparent)/)) ? undefined : el.BgColor;
+			el.msrItem.icon = el.Symbol;
+			el.msrItem.iconFeature = el.SymbolFeature.replace(`gruen`, `green`).replace(`rot`, `red`).replace(`unsichtbar`, ``).replace(`blinkend`, ``).trim();		
+			el.msrItem.animation = (el.Symbol.match(/(Feuer)/)) ? `flicker` :
+								(el.Symbol.match(/(Lueftungsklappe)|(Abluftklappe)/)) ? `rotate` :
+								(el.Symbol.match(/(Led)|(Schalter)/)) ? `toggleIcon` :
+								(el.Symbol.match(/(Pumpe)|(BHKW)|(Luefter)/)) ? `spin` :
+								(!el.Symbol.match(/(fpButton)|(Heizkreis)/)) ? `show` :
+								undefined;
+			el.msrItem.animation = (el.SymbolFeature.includes(`blinkend`)) ? `${el.msrItem.animation} blink` : el.msrItem.animation;
+			
+			el.msrItem.rotation = (el.SymbolFeature.match(/(Rechts)/i)) ? 180 :
+								(el.SymbolFeature.match(/(Oben)/i)) ? 90 :
+								(el.SymbolFeature.match(/(Unten)/i)) ? 270 :
+								0;
+			
+			el.msrItem.trueTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Nacht` :
+								(el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? `` : el.SymbolFeature :
+								undefined;
+			el.msrItem.falseTxt = (el.Symbol.match(/(Absenkung)/i)) ? `Tag` :
+								(el.Symbol.match(/(Freitext)/i)) ? (el.SymbolFeature.startsWith(`!`)) ? el.SymbolFeature : `` :
+								undefined;
+			
+			el.msrItem.alarms = {};
+			el.msrItem.alarms.H = {};
+			el.msrItem.alarms.HH = {};
+			el.msrItem.alarms.L = {};
+			el.msrItem.alarms.LL = {};
+			el.msrItem.alarms.H.msr = (el.msrItem.identifyer === `GA`) ? `GR2` : undefined;
+			el.msrItem.alarms.HH.msr = (el.msrItem.identifyer === `GA`) ? `GR3` : undefined;
+			el.msrItem.alarms.L.msr = (el.msrItem.msr === `AI32`) ? `GR1` : undefined;
+		});
+	}
 
 	//console.log(visudata);
 	return visudata
@@ -462,9 +442,46 @@ function createIcon(msrItem) {
     	});
   	}
 	else if (msrItem.icon.match(/(fpButton)|(Heizkreis)/)) {
-		htmlEl.type = `button`;
-		htmlEl.classList.add(`faceplateBtn`);		
-		htmlEl.addEventListener(`click`, openFaceplate);
+		if (ctx) {
+			const outerRadius = 20;
+			const innerRadius = 7;
+			const deltaRadius = outerRadius - innerRadius;
+			const lineWidth = 5;
+			const {PI} = Math;
+
+			htmlEl.width = 2 * (outerRadius + lineWidth);
+			htmlEl.height = htmlEl.width;
+			ctx.lineWidth = lineWidth;
+
+			ctx.translate(htmlEl.width/2, htmlEl.height/2);
+			ctx.scale(.6, .6);
+			ctx.strokeStyle = "black";
+			ctx.fillStyle = 'black';
+
+			/*AUTO
+			ctx.beginPath();
+			ctx.arc(0, 0, innerRadius, 0, 2 * PI);
+			ctx.stroke();
+			//ctx.lineTo(0,0)
+			ctx.beginPath();
+			ctx.arc(-(deltaRadius)/2, -(deltaRadius)/3, deltaRadius, 0, PI, true);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.rotate(2/3*PI);
+			ctx.arc(-(deltaRadius)/2, -(deltaRadius)/3, deltaRadius, 0, PI, true);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.rotate(2/3*PI);
+			ctx.arc(-(deltaRadius)/2, -(deltaRadius)/3, deltaRadius, 0, PI, true);
+			ctx.stroke();
+			*/
+
+		}
+		else {
+			htmlEl.type = `button`;
+			htmlEl.classList.add(`faceplateBtn`);		
+			htmlEl.addEventListener(`click`, openFaceplate);
+		}
 	}
 	else {
 		return null;
@@ -544,8 +561,9 @@ function updateLiveDataElements(liveDataItems) {
 					el.classList.toggle(`animate`, !!item.Wert);
 				}
 				else if (el.matches(`.faceplateBtn`)) {
-					el.classList.toggle(`btnHand`, !!item.Wert);
-					el.classList.toggle(`btnAuto`, !item.Wert);
+					el.style.background = `center / contain no-repeat url(/Images/FaceplateBtns/${(!!item.Wert) ? 'Hand_inet.png' : 'Auto.png'}) ${BG_COLOR}`;
+					//el.classList.toggle(`btnHand`, !!item.Wert);
+					//el.classList.toggle(`btnAuto`, !item.Wert);
 				}
 				else if (!!item.Wert && el.matches(`[true-txt]`)) {
 					el.innerText = el.getAttribute(`true-txt`);
@@ -661,39 +679,56 @@ function drawTextList() {
 */
 
 async function visuBtnClickEventHandler(ev) {
+	document.body.setAttribute(`cursorStyle`, `progress`);
 	const link = ev.target.getAttribute(`link`);
 	const linkBgIdx = parseInt(link);
 	if (Number.isNaN(linkBgIdx)) {
 		const modal = document.querySelector(`.modalBg`);
-		modal.classList.remove(`hidden`);
 		modal.querySelector(`.modalFooter`).classList.add(`hidden`);
-
+		
 		const content = modal.querySelector(`.modalContent`);
 		content.classList.toggle(`alarms`, link === `alarms`);
 		
-		const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
-		updateConnectionStatus(!!liveDataRaw);
-		
+		const textarea = modal.querySelector(`textarea`);
+		textarea.classList.remove(`displayNone`);
 		const h3 = content.querySelector(`h3`);
+
 		if (link === `alarms`) {
+			const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
+			updateConnectionStatus(!!liveDataRaw);
 			h3.innerText = `Aktuelle Störungen:`;
 			const alarms = parseAlarms(liveDataRaw);
-			let alarmTxt = (alarms.length) ? `\n` : `keine anstehenden Störungen`;
-			alarms.forEach(alarm => alarmTxt += `${alarm.id.padStart(3, `0`)} ${alarm.txt}\n`);
-			content.querySelector(`.modalBody`).innerText = alarmTxt;
+			let alarmTxt = (alarms.length) ? `` : `keine anstehenden Störungen`;
+			alarms.forEach(alarm => alarmTxt += `${alarm.id.padStart(3, ` `)}   ${alarm.txt}\n`);
+			textarea.setAttribute(`rows`, alarms.length + 1);
+			const columnCount = Math.max(...alarmTxt.split(`\n`).map(el => el.length));
+			textarea.setAttribute(`cols`, columnCount);
+			textarea.value = alarmTxt;
 		}
 		else if (link === `counter`) {
 			const projectName = await updateProjectName(getSteuerungNameUrl);
 			h3.innerText = `Zähler: ${projectName}`;//\n${date.toLocaleString(`de-DE`)}`;
 
-			const gesamtZaehler = await getOnlinegesamtZaehler(COUNTER_URL);
-			content.querySelector(`.modalBody`).appendChild(gesamtZaehler);
-			//content.querySelector(`.modalBody`).innerText = (gesamtZaehler) ? gesamtZaehler : `Keine Zählerdaten verfügbar`;
+			const counterRawData = await fetchTxt(COUNTER_URL);
+			if (updateConnectionStatus(!!counterRawData)) {
+				const rows = counterRawData.split(`\r`);
+				const rowCount = rows.length;
+				const columnCount = Math.max(...rows.map(el => el.length));
+				const headerRow = rows.shift();
+				const date = parseDate(headerRow);
+				textarea.setAttribute(`rows`, rowCount);
+				textarea.setAttribute(`cols`, columnCount);
+				textarea.value = `${counterRawData.replace(`${ESC}${ESC}D4`,``).replace(`${headerRow}\r`,``)}\r(Stand: ${date.toLocaleString(`de-DE`)})`;
+			}
+			else {
+				textarea.value = `Keine Zählerdaten verfügbar`;
+			}
 		}
 		else if (link === `counterArchive`) {
 		}
 		else if (link === `IPcamera`) {
 		}
+		modal.classList.remove(`hidden`);
 	}
 	else {		
 		const bgIdx = parseInt(document.querySelector(`#vimgArea`).getAttribute(`tab-idx`));
@@ -702,18 +737,70 @@ async function visuBtnClickEventHandler(ev) {
 			switchVisuTab(visudata, parseInt(link));
 		}	
 	}
+	document.body.removeAttribute(`cursorStyle`);
 }
 
-function modalBgClickEventHandler(ev) {
-	if (ev.target.matches(`.modalBg, .close, .modalFooterBtn`)) {
-		document.querySelector(`.modalBg`).classList.add(`hidden`);
+async function modalBgClickEventHandler(ev) {
+	if (ev.target.matches(`.modalFooterConfirmBtn`)) {
+		if (inputPin.value) {
+			const validityState = await validateVisuPin();
+			console.log(validityState);
+			if (validityState.valid) {
+				closeModal();
+			}
+		}		
+	}
+
+	if (ev.target.matches(`.modalBg, .close, modalFooterCancelBtn`)) {
+		closeModal();
+	}	
+}
+function closeModal() {
+	document.querySelector(`#inputPin`).value = ``;
+	const modalBg = document.querySelector(`.modalBg`);
+	modalBg.classList.add(`hidden`);
+	modalBg.querySelector(`.modalContent`).classList.remove(`alarms`);
+	modalBg.querySelectorAll(`.modalBody > *`).forEach(modalBodyChild => modalBodyChild.classList.add(`displayNone`));
+}
+async function validateVisuPin() {
+	const hash = await fetchTxt(HASH_FILE_URL);
+	updateConnectionStatus(!!hash);
+	const inputPin = document.querySelector(`#inputPin`);
+	const isUnlocked = updateLockStatus((md5(inputPin.value) === hash));
+	inputPin.setCustomValidity((isUnlocked) ? `` : `Pin Inkorrekt!`);
+	inputPin.reportValidity();
+	return inputPin.validity;
+}
+function updateLockStatus(unlock) {
+	const lockStatus = document.querySelector(`.lockStatus`);
+	lockStatus.unlocked = !!unlock;
+	lockStatus.innerText = (unlock) ? `unlocked` : `locked`;
+	lockStatus.classList.toggle(`errorHighlighter`, !unlock);
+	lockStatus.timerVisuLock = (unlock) ? setTimeout(updateLockStatus, AUTOLOCK_TIMEOUT) : clearTimeout(lockStatus.timerVisuLock);
+	return unlock;
+}
+function visuLockClickEventHandler(ev) {
+	const lockStatus = document.querySelector(`.lockStatus`);
+	if (lockStatus.unlocked) {
+		updateLockStatus(!lockStatus.unlocked);
+	}
+	else {	
+		const modalBg = document.querySelector(`.modalBg`);
+		modalBg.querySelector(`.pinInputContainer`).classList.remove(`displayNone`);
+		hidePinHandler();	
+		modalBg.classList.remove(`hidden`);
+		document.querySelector(`#inputPin`).focus();
 	}
 }
-
-function updateLockStatus(lockVisu) {
-	const lockStatus = document.querySelector(`.lockStatus`);
-	lockStatus.innerText = (lockVisu) ? `locked` : `unlocked`;
-	lockStatus.classList.toggle(`errorHighlighter`, lockVisu);
+function hidePinHandler() {
+	const hidePin = document.querySelector(`#cbHidePin`).checked;
+	const inputPin = document.querySelector(`#inputPin`);
+	inputPin.type = (hidePin) ? `password` : `text`;
+}
+function pinInputEventHandler(ev) {
+	if (ev.target.value.length === parseInt(ev.target.getAttribute(`maxlength`))) {
+		document.querySelector(`.modalFooterConfirmBtn`).focus();
+	}
 }
 
 function closeFaceplate() {
@@ -730,80 +817,8 @@ function destroyFaceplate() {
 	}	
 }
 
-function closePinModal() {
-	hideElemementById('modalPinBg');
-	hideElemementById('osk');
-}
-
-function toggleBtnsPinLock(id) {
-	var btn = document.getElementById(id);
-	var relatedBtns = Array.from(document.getElementsByClassName(btn.className));
-	
-	relatedBtns.forEach(el => el.style.display = "inline-block");
-	btn.style.display = "none";
-}
-
-function pinLock(id) {
-  toggleBtnsPinLock(id);
-
-  locked = true;
-  handleConfirmBtn(locked);
-}
-
-function btnLockVisuEventHandler(ev) {
-	//ev.target 
-}
-
-function pinUnlock(id) {
-  const OFFSET_MODAL_2_OSK = 40;
-  showElemementById('modalPinBg');
-  var modal = document.getElementById("Pin-content");
-  
-  var cb = document.getElementById("cbHidePin");
-  cb.checked = true;
-  handlePinVisibility(cb.checked);
-  
-  var txtPin = document.getElementById("txtPin");
-  txtPin.value = "";  
-  txtPin.focus();
-}
-
-function switchPinFocus(value) {
-  if (value.length >= 4) document.getElementById("btnPinConfirm").focus();
-}
-
-function handlePinVisibility(checked) {
-  var txtPin = document.getElementById("txtPin");
-  checked ? txtPin.type = "password" : txtPin.type = "text";
-}
-
-async function checkPin() {
-  var txtPin = document.getElementById("txtPin");
-  const hash = await fetchTxt(HASH_FILE_URL);
-  updateConnectionStatus(!!hash);
-  if (md5(txtPin.value) == hash) {
-    locked = false;
-    toggleBtnsPinLock("btnUnlock");
-	if(!DEBUG && !DEVMODE) setTimeout(pinLock, AUTOLOCK_TIMEOUT, "btnLock");
-  }
-  else {
-    locked = true;
-    alert("Pin Inkorrekt!");
-  }
-
-  handleConfirmBtn(locked);
-  closePinModal();
-}
-
 function handleConfirmBtn(disable) {
   document.getElementById("btnFaceplateConfirm").disabled = disable;
-}
-
-function sleep(miliseconds) {
-   var currentTime = new Date().getTime();
-
-   while (currentTime + miliseconds >= new Date().getTime()) {
-   }
 }
 
 function sendDataToRtosEventHandler(ev) {
@@ -850,7 +865,6 @@ async function asyncSleep(fn, delay, ...args) {
 
 async function openFaceplate(ev) {
 	document.body.setAttribute(`cursorStyle`, `progress`);
-	ev.target.setAttribute(`cursorStyle`, `progress`);
 	try {
 		const faceplateRequestUrl = `${mpcJsonPutUrl}V008=Qz${ev.target.getAttribute(`faceplate`)}`;
 		const response = await fetchJSON(faceplateRequestUrl);
@@ -885,7 +899,7 @@ async function openFaceplate(ev) {
 					ClickableElement.push(item);
 			});
 			buildFaceplate();
-			//showFaceplate(matchItem);
+			showFaceplate(matchItem);
 			document.querySelector(`#fpBg`).classList.remove(`hidden`);
 		}
 		else {
@@ -896,7 +910,6 @@ async function openFaceplate(ev) {
 		console.error(err);
 	}
 	document.body.removeAttribute(`cursorStyle`);
-	ev.target.removeAttribute(`cursorStyle`);
 }
 
 function convertHexToRGBArray(hex) {

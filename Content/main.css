@@ -13,10 +13,9 @@
 	--lightGrey: hsl(249, 10%, 33%);
 	--lighterGrey: hsl(249, 10%, 38%);
 	--lightestGrey: hsl(249, 10%, 43%);
-	
-	--darkestWhite: hsl(0, 0%, 75%); /*ehemals BgColor*/
-	--darkerWhite: hsl(0, 0%, 88%); /*ehemals ZaehlerBg*/
-	--darkWhite: hsl(0, 0%, 95%);
+	--whiteGrey: hsl(0, 0%, 95%);
+	--zaehlerBg: hsl(0, 0%, 88%);
+	--bgColor: hsl(0, 0%, 75%);
 	
 	--iconSize: 40px;
 	/*
@@ -46,7 +45,7 @@ html {
 }
 */
 body {
-    background-color: var(--darkerWhite);
+    background-color: var(--zaehlerBg);
     font-family: monospace, 'Courier New';
 	margin: var(--margin);
 	display: grid;
@@ -57,13 +56,16 @@ body {
 	'main'
 	'footer';
 	grid-template-rows: min-content auto min-content;
+	cursor: default;
 }
-
+body[cursorStyle] * {
+	cursor: inherit;
+}
 body > * {
 	width: var(--width);
-	border: 1px solid var(--darkestWhite);
+	border: 1px solid var(--bgColor);
 	border-radius: var(--borderRadius);
-	background-color: var(--darkWhite);
+	background-color: var(--whiteGrey);
 }
 
 .modalBg {
@@ -89,12 +91,12 @@ body > * {
 }
 .modalContent > * {
 	width: 100%;
+	display: grid;
 }
 .modalHeader {
 	grid-area: modalHeader;
-	color: var(--darkWhite);
+	color: var(--whiteGrey);
 	background-color: var(--cyan);
-	display: grid;
 	grid-auto-flow: column;
 	align-items: center;
 	justify-items: center;
@@ -105,13 +107,20 @@ body > * {
 }
 .modalBody {
 	grid-area: modalBody;
-	background-color: var(--darkWhite);
+	background-color: var(--whiteGrey);
+	align-items: center;
+	justify-items: center;
+}
+.pinInputContainer {
+	display: grid;
+	align-items: center;
+	justify-items: center;
+	grid-auto-flow: column;
 }
 .modalFooter {
 	grid-area: modalFooter;
-	color: var(--darkWhite);
+	color: var(--whiteGrey);
 	background-color: var(--cyan);
-	display: grid;
 	grid-auto-flow: column;
 }
 
@@ -135,11 +144,11 @@ body > * {
 	border-radius: 0 var(--borderRadius) var(--borderRadius) 0;
 }
 .tablink:hover {
-	background-color: var(--darkerWhite);
+	background-color: var(--zaehlerBg);
 }
 .tablink.active {
 	background-color: hsl(194, 71%, 42%);
-	color: var(--darkWhite);
+	color: var(--whiteGrey);
 }
 
 .content {
@@ -158,7 +167,7 @@ body > * {
 	display: grid;
 	justify-items: center;
 	align-items: center;
-	background-color: var(--darkestWhite);
+	background-color: var(--bgColor);
 	border-radius: var(--borderRadius);
 }
 .container {
@@ -176,17 +185,21 @@ body > * {
 	grid-auto-flow: column;
 }
 
-.lockStatus:not([cursorStyle]),
-.close:not([cursorStyle]),
-.tablink:not([cursorStyle]),
-[type = "button"]:not([cursorStyle]) {
+body:not([cursorStyle]) .lockStatus:not([cursorStyle]),
+body:not([cursorStyle]) .close:not([cursorStyle]),
+body:not([cursorStyle]) .tablink:not([cursorStyle]),
+body:not([cursorStyle]) [type = "button"]:not([cursorStyle]) {
 	cursor: pointer;
+}
+
+*:focus, *:focus-visible {
+	outline-color: var(--cyan);
 }
 
 /*
 .connectionStatusBar {
 	height: 2rem;
-	background-color: var(--darkestWhite);
+	background-color: var(--bgColor);
 	border-radius: .5em;
 	padding: 0.5rem;
 	color: black;
@@ -215,7 +228,7 @@ button:disabled,
 	left: 0;
 	height: 100%;
 	width: 100%;
-	background-color: var(--darkestWhite);
+	background-color: var(--bgColor);
 	z-index: 1000;
 }
 
@@ -228,7 +241,7 @@ button:disabled,
 	height: 1.7em;
     border: 1px solid #C0C0C0;
     border-radius: .5em;
-    background-color: var(--darkWhite);
+    background-color: var(--whiteGrey);
 	margin-top: 0.2em;
 	margin-bottom: 0.2em;
 	padding-top: 0.3em;
@@ -246,7 +259,7 @@ button:disabled,
 	grid-area: tabContent;
 	width: 100%;
 	height: 100%;
-	background-color: var(--darkestWhite);
+	background-color: var(--bgColor);
     border-radius: .5em;
 }
 
@@ -255,12 +268,12 @@ button:disabled,
 	border-radius: inherit;
 	height: inherit;
 	width: inherit;
-	background-color: var(--darkestWhite);
+	background-color: var(--bgColor);
 }
 	
 	.sidebar {
 		width: 0%;
-		background-color: var(--darkerWhite);
+		background-color: var(--zaehlerBg);
 		border-radius: .5em;
 		height: 85.6vh;
 		font-family: sans-serif;
@@ -289,12 +302,12 @@ button:disabled,
 
 .btn:hover, .pdf-btn:hover{
 	background-color: hsl(194, 71%, 42%);
-	color: var(--darkWhite);
+	color: var(--whiteGrey);
 }
 
 .btn:active, .pdf-btn:active{
 	background-color: hsl(194, 71%, 42%);
-	color: var(--darkWhite);
+	color: var(--whiteGrey);
 	box-shadow: 4px 4px hsl(0, 0%, 40%);
 	transform: translateY(2px);
 }
@@ -305,7 +318,7 @@ button:disabled,
 	height: 60px;
 	border: 1px solid;
 	border-radius: 3px;
-	background-color: var(--darkWhite);
+	background-color: var(--whiteGrey);
 	box-shadow: 2px 2px #666;
 }
 
@@ -466,7 +479,6 @@ button:disabled,
 
 
 /*******************visu upgrade JW*******************/
-
 .visuElement {
 	position: absolute;
 }

@@ -23,10 +23,17 @@
 				<h1 class="close">×</h1>
 			</div>
 			<div class="modalBody">
+				<textarea class="displayNone"></textarea>
+				<div class="pinInputContainer displayNone">
+					<label for="inputPin">Pin:</label>
+					<input type="password" id="inputPin" required maxlength="4" size="4" oninput="pinInputEventHandler(event)">
+					<input type="checkbox" id="cbHidePin" checked onchange="hidePinHandler()">
+					<label for="cbHidePin">Hide Pin
+				</div>
 			</div>
 			<div class="modalFooter">
-				<input type="button" value="OK" class="modalFooterBtn">
-				<input type="button" value="Abbrechen" class="modalFooterBtn">
+				<input type="button" value="OK" class="modalFooterConfirmBtn">
+				<input type="button" value="Abbrechen" class="modalFooterCancelBtn">
 			</div>
 		</div>
 	</div>
@@ -45,43 +52,7 @@
 		
 	<div class="content">
 		<div id="visualisierungDisplay" class="tabcontent">
-			<div id="vimgArea" class="container"></div>
-
-
-			
-
-			<!--
-			<input type="button" value="🔒🔓" class="btnLockVisu" onclick="btnLockVisuEventHandler(event)">
-			
-			Lock modal 
-			<div id="modalPinBg" class="modalBg">
-			<div id="Pin-content" class="modalVisuContent">
-				<div class="modalVisuHeader">
-				<span id="xModalPin" class="close" onclick="closePinModal()">&times;</span>
-				<h4>Freischaltung der Bedienung</h4>
-				</div>
-				<div class="modalVisuBody">
-				<label id="lblPin">Pin:</label>
-				<input type="password" id="txtPin" required minlength="1" maxlength="4" size="10" value="" onkeyup="switchPinFocus(value)"></br>
-				<div class="modalVisuBodyLine">
-					<label id="lblHidePin">Hide Pin
-						<input type="checkbox" id="cbHidePin" checked onclick="handlePinVisibility(checked)">
-						<span class="checkmark"></span>
-					</label>
-				</div>
-				</div>
-				<div class="modalVisuFooter">
-				<button id="btnPinConfirm" class="modalVisuBtn" onclick="checkPin()">OK</button>
-				<button id="btnPinCancel" class="modalVisuBtn" onclick="closePinModal()">Abbrechen</button>
-				</div>
-			</div>
-			</div>
-			-->
-
-			
-			
-			
-			
+			<div id="vimgArea" class="container"></div>		
 			
 		
 		<!-- Modal für Einstellwerte-->
@@ -347,7 +318,7 @@
 		<div class="mpcTimeStamp"></div>
 		<div class="connectedUsers"></div>
 		<div class="projectName"></div>
-		<div class="lockStatus errorHighlighter">locked</div>
+		<div class="lockStatus errorHighlighter" onclick ="visuLockClickEventHandler(event)">locked</div>
 	</div>
 
 
