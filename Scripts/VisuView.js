@@ -742,16 +742,14 @@ async function visuBtnClickEventHandler(ev) {
 
 async function modalBgClickEventHandler(ev) {
 	if (ev.target.matches(`.modalFooterConfirmBtn`)) {
-		if (inputPin.value) {
-			const validityState = await validateVisuPin();
-			console.log(validityState);
-			if (validityState.valid) {
-				closeModal();
-			}
-		}		
+		const validityState = await validateVisuPin();
+		console.log(validityState);
+		if (validityState.valid) {
+			closeModal();
+		}	
 	}
 
-	if (ev.target.matches(`.modalBg, .close, modalFooterCancelBtn`)) {
+	if (ev.target.matches(`.modalBg, .close, .modalFooterCancelBtn`)) {
 		closeModal();
 	}	
 }
@@ -785,6 +783,8 @@ function visuLockClickEventHandler(ev) {
 		updateLockStatus(!lockStatus.unlocked);
 	}
 	else {	
+		const h3 = document.querySelector(`.modalHeader h3`);
+		h3.innerText = `Unlock Visu`;
 		const modalBg = document.querySelector(`.modalBg`);
 		modalBg.querySelector(`.pinInputContainer`).classList.remove(`displayNone`);
 		hidePinHandler();	
