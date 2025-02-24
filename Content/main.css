@@ -111,6 +111,18 @@ body > * {
 	align-items: center;
 	justify-items: center;
 }
+.divRtosVar {
+	display: grid;
+	grid-template-columns: repeat(3, auto);
+}
+.divInpWert {
+	display: grid;
+	grid-template-columns: repeat(4, auto);
+}
+.divInpWert [type="range"] {
+	grid-column: span 2;
+
+}
 .pinInputContainer {
 	display: grid;
 	align-items: center;

@@ -100,7 +100,25 @@ async function init() {
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
   updateProjectName(getSteuerungNameUrl);
 	
-	const displayCanvas = document.querySelector(`#DisplayCanvas`);
+  
+  /*const textareaFB = document.querySelector(`.textareaFB`);
+  const data = await fetchJSON(dataUrl);
+  const displayStatus = data.v034;
+  const colIdxRed = data.v035 - 1; //spalte, wo die texte anfang "rot" sein soll
+  const rowIdxRed = data.v036 - 1; //Zeile, wo die Texte rot markiert werden soll
+  const charCountRed = data.v037; //Anzahl der Zeichen, die rot markiert werden soll
+  Object.entries(data).forEach(([key, val]) => {
+    const idx = parseInt(key.slice(1));
+    if (idx >= 16 && idx <= 33) {
+      textareaFB.value += `${val}\n`
+      }
+      else {
+        
+      }
+      });
+      console.log(data, data.v016.length);
+      */
+  const displayCanvas = document.querySelector(`#DisplayCanvas`);
 	initCanvas(displayCanvas);
   reloadFernbedienung(displayCanvas);
   /*

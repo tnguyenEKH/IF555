@@ -161,7 +161,7 @@ function parseMSRdata(liveDataRaw) {
 	const msrData = liveDataRaw.match(/[A-Z]+\s*\d+,\d,[\s\d]{2}\s*-*\d+\.*\d*/g);
 	const result = [];
 	msrData.forEach(msrDataset => {
-		const msrObject = msrDataset.match(/(?<Bezeichnung>[A-Z]+)\s*(?<Kanal>\d+),(?<Nachkommastellen>\d),(?<iEinheit>[\s\d]{2})\s*(?<Wert>-*\d+\.*\d*)/).groups;
+		const msrObject = msrDataset.match(/(?<Bezeichnung>[A-Z]+)\s*(?<Kanal>\d+),(?<decPlace>\d),(?<iEinheit>[\s\d]{2})\s*(?<Wert>-*\d+\.*\d*)/).groups;
 		msrObject.Kanal = parseInt(msrObject.Kanal);
 		msrObject.Wert = parseInt(msrObject.Wert);
 		msrObject.msr = `${msrObject.Bezeichnung.trim()}${msrObject.Kanal}`;
@@ -845,7 +845,7 @@ function sendDataToRtos(target) {
 	}
 	
 	ClickableElement.forEach(el => {
-		const rtosVar = `"${el.name}${el.wert}${el.oberGrenze}${el.unterGrenze}${el.nachKommaStellen}${el.einheit}${el.sectionIndicator}"`;
+		const rtosVar = `"${el.name}${el.wert}${el.maximum}${el.minimum}${el.decPlace}${el.unit}${el.formatIndicator}"`;
 		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
 		const responsePromise = fetchJSON(url);
 	}); 
@@ -880,29 +880,38 @@ async function openFaceplate(ev) {
 	const faceplateData = Object.entries((faceplateDataRaw.v070.startsWith(faceplateId)) ?
 										  faceplateDataRaw :
 										  await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL)).filter(([key, value]) => value.trim() && value.trim() !== `X`);
-	//console.log(faceplateData);
+	console.log(faceplateData);
 	if (faceplateData.at(0).at(1).startsWith(faceplateId)) {
-		const fpVarObjects = ClickableElement = [];
+		const nameAreaEndIdx = 24;
+		const fpVarObjects = [];
 		faceplateData.forEach(([key, value]) => {
 			const fpVarObj = {};
 			fpVarObj.idx = parseInt(key.match(/\d+/)) + 20; //keyOffset = 20; v070 => v090...
-			fpVarObj.sectionIndicator = value.substr(59, 1);
-			
-			switch (fpVarObj.sectionIndicator) {
+			fpVarObj.formatIndicator = value.slice(-1);
+			if (key === `v070` && Number.isNaN(parseFloat(value.slice(nameAreaEndIdx, -1))) && !fpVarObj.formatIndicator.trim()) {
+				//Kompatibilität zu alten Projekten ohne formatIndicator
+				fpVarObj.formatIndicator = `H`
+			}
+
+			switch (fpVarObj.formatIndicator) {
 				case 'H':
-					fpVarObj.name = value.substr(0, 24);
-					fpVarObj.wert = value.substr(24,35)
+					fpVarObj.name = value.slice(0, nameAreaEndIdx).trim();
+					fpVarObj.wert = value.slice(nameAreaEndIdx, -1).trim();
 					break;
 				case 'S':
-					fpVarObj.name = value.substr(0, 59);
+					fpVarObj.name = value.slice(0, -1).trim();
 					break;
 				default:
-					fpVarObj.name = value.substr(0, 24);
-					fpVarObj.wert = value.substr(24,12);
-					fpVarObj.oberGrenze = value.substr(36,6);
-					fpVarObj.unterGrenze = value.substr(42,6);
-					fpVarObj.nachKommaStellen = value.substr(48,2);
-					fpVarObj.einheit = value.substr(50,9);
+					const wertAreaEndIdx = nameAreaEndIdx + 12;
+					const maxAreaEndIdx = wertAreaEndIdx + 6;
+					const minAreaEndIdx = maxAreaEndIdx + 6;
+					const decPlaceEndIdx = minAreaEndIdx + 2;
+					fpVarObj.name = value.slice(0, nameAreaEndIdx).trim();
+					fpVarObj.wert = parseFloat(value.slice(nameAreaEndIdx, wertAreaEndIdx));
+					fpVarObj.maximum = parseFloat(value.slice(wertAreaEndIdx, maxAreaEndIdx));
+					fpVarObj.minimum = parseFloat(value.slice(maxAreaEndIdx, minAreaEndIdx));
+					fpVarObj.decPlace = parseFloat(value.slice(minAreaEndIdx, decPlaceEndIdx));
+					fpVarObj.unit = value.slice(decPlaceEndIdx, -1).trim();
 				}
 
 				fpVarObjects.push(fpVarObj);
@@ -1064,7 +1073,8 @@ function controlGroupBtnHandler(target) {
 }
 
 function createControlGroup(el) {
-	const {idx, name, wert, oberGrenze, unterGrenze, nachKommaStellen, einheit} = el;
+	console.log(el);
+	const {idx, name, wert, maximum, minimum, decPlace, unit} = el;
 	//div mit ID=rtosVariable erzeugen & anhängen (return object)
 	const divRtosVar = document.createElement('div');
 	divRtosVar.id = `v${idx.toString().padStart(3,'0')}`;
@@ -1085,7 +1095,7 @@ function createControlGroup(el) {
 	divInpWert.idx = idx;
 	
 	//zu erzeugende Elemente auf Basis der Range ermitteln:
-	const range = (parseFloat(oberGrenze.trim()) - parseFloat(unterGrenze.trim()) + 1) * Math.pow(10, nachKommaStellen);
+	const range = (maximum - minimum + 1) * Math.pow(10, decPlace);
 	
 	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
 	if (range <= 4 && !name.match(/(kalender|tagbetrieb)/gi)) lblName.innerText = '\n' + lblName.innerText;
@@ -1095,20 +1105,20 @@ function createControlGroup(el) {
 	inpWert.className = `inpWert`;
 	inpWert.id = `inpWert${idx}`;
 	inpWert.idx = idx;
-	inpWert.unit = einheit.trim().replace(`&deg`, `°`);
-	inpWert.unterGrenze = parseFloat(unterGrenze.trim());
-	inpWert.oberGrenze = parseFloat(oberGrenze.trim());
-	inpWert.min = inpWert.unterGrenze;
+	inpWert.unit = unit.replace(`&deg`, `°`);
+	inpWert.minimum = minimum;
+	inpWert.maximum = maximum;
+	inpWert.min = inpWert.minimum;
 	inpWert.minColor = '#1F94B9';
-	inpWert.max = inpWert.oberGrenze;
+	inpWert.max = inpWert.maximum;
 	if (inpWert.unit === `°C` || lblName.innerText.match(/(Kessel)|(BHKW)/)) {
 		inpWert.maxColor = '#C31D64';
 	}
 	else {
 		inpWert.maxColor = '#1F94B9';
 	}
-	inpWert.step = Math.pow(10, -nachKommaStellen);
-	inpWert.wert = parseFloat(wert);
+	inpWert.step = Math.pow(10, -decPlace);
+	inpWert.wert = wert;
 	
 	//+-Buttons neben Slider erzeugen
 	if (range > 4) {
@@ -1118,7 +1128,7 @@ function createControlGroup(el) {
 			btnIncDec.type = 'button';
 			btnIncDec.className = `btnIncDec`;
 			btnIncDec.value = el;
-			btnIncDec.wert = Math.pow(10, -nachKommaStellen);
+			btnIncDec.wert = Math.pow(10, -decPlace);
 			btnIncDec.addEventListener(`mousedown`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseup`, sliderAdjustValueBtnEventHandler);
 			btnIncDec.addEventListener(`mouseout`, sliderAdjustValueBtnEventHandler);
@@ -1146,7 +1156,7 @@ function createControlGroup(el) {
 			inpWert.classList.toggle(`checked`, parseInt(wert));
 			inpWert.name = 'triggerBtn';
 			inpWert.wert = 1;
-			inpWert.title = name.trim();
+			inpWert.title = name;
 			inpWert.addEventListener(`click`, (ev) => radioBtnByName(ev.target));
 			if (name.toUpperCase().includes('AUS')) {
 				inpWert.id = `triggerBtnAus`;
@@ -1167,7 +1177,7 @@ function createControlGroup(el) {
 		case 3:
 		//createBtnGroup3PMischer (Auto, HandOpen, HandClose, Stop)
 		case 4:
-			if (parseFloat(unterGrenze.trim()) == 0) {
+			if (minimum === 0) {
 				inpWert.type = 'button';
 				inpWert.id = 'calenderBtn';
 				inpWert.classList.add(`calenderBtn`);
@@ -1179,7 +1189,7 @@ function createControlGroup(el) {
 				inpWert.addEventListener(`click`, (ev) => jumpToWochenKalender(ev.target));
 			}
 			
-			if (parseFloat(unterGrenze.trim()) == -1) {
+			if (minimum === -1) {
 				const idArray = (range === 3) ? [`Auto`, `Ein`, `Aus`] : [`Auto`, `Auf`, `Zu`, `Stopp`];
 				idArray.forEach((el, elIdx) => {
 					const inpBtn = (elIdx === 0) ? inpWert : document.createElement('input');
@@ -1195,8 +1205,9 @@ function createControlGroup(el) {
 					inpBtn.name = `btnValve${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
 					inpBtn.wert = (elIdx === idArray.length - 1) ? -1 : elIdx;
 					inpBtn.addEventListener(`click`, (ev) => radioBtnByName(ev.target));
-					if (wert == inpBtn.wert)
+					if (wert == inpBtn.wert) {
 						divRtosVar.initCheckedBtn = inpBtn;
+					}
 				});
 			}
 			break;
@@ -1205,7 +1216,7 @@ function createControlGroup(el) {
 		case 101: //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
 			inpWert.min = 1;
 		case 102:
-			lblName.innerText = 'Handwert\n\n' + lblName.innerText;
+			lblName.innerText = `Handwert\n\n${lblName.innerText}`;
 							
 			const iterations = (name.match(/(mischer)|(ventil)/i)) ? 1 : range - 100 + 1;
 			
@@ -1241,8 +1252,9 @@ function createControlGroup(el) {
 				inpBtn.name = `btnBA${idx}`;	//idx nutzen um eindeutige RadioGroups zu erzeugen
 				inpBtn.addEventListener(`click`, (ev) => controlGroupBtnHandler(ev.target));
 				
-				if (wert == inpBtn.wert || (!divRtosVar.initCheckedBtn && id === `Hand`))
-					divRtosVar.initCheckedBtn = inpBtn;	
+				if (wert == inpBtn.wert || (!divRtosVar.initCheckedBtn && id === `Hand`)) {
+					divRtosVar.initCheckedBtn = inpBtn;
+				}
 			}
 			//hier KEIN break um zusätzlichen slider zu erzeugen!
 			//break;
@@ -1252,10 +1264,9 @@ function createControlGroup(el) {
 			inpWert.value = constrain(inpWert.wert, inpWert.min, inpWert.max);
 			inpWert.wert = inpWert.value;
 			
-			if (inpWert.type == 'number' || inpWert.type == 'text')
-				inpWert.addEventListener(`click`, showOSK); //OSK für 'text' & 'number' bei Eingabe einblenden
-			if (inpWert.type == 'range')
+			if (inpWert.type == 'range') {
 				inpWert.addEventListener(`input`, (ev) => sliderHandler(ev.target));
+			}
 	}	
 	
 	//Unit-Label erzeugen & anhängen
@@ -1264,9 +1275,10 @@ function createControlGroup(el) {
 	lblUnit.className = 'lblUnit';
 	lblUnit.idx = idx;
 	lblUnit.value = inpWert.value;//parseFloat(wert);
-	lblUnit.unit = (range > 4) ? einheit.trim().replace(`&deg`, `°`) : ``;
-	if (lblUnit.unit && lblUnit.unit != '3P')
+	lblUnit.unit = (range > 4) ? unit.replace(`&deg`, `°`) : ``;
+	if (lblUnit.unit && lblUnit.unit != '3P') {
 		lblUnit.innerText = `${inpWert.value} ${inpWert.unit}`;
+	}
 	if (lblUnit.innerText.includes('undefined')) {
 		lblUnit.innerText = "";
 	}
@@ -1290,16 +1302,51 @@ function initControlGroup(divRtosVar) {
 }
 
 function buildFaceplate(fpVarObjects) {
+	const modalBody = document.querySelector('.modalBody');
+	
+	fpVarObjects.forEach(fpVarObj => {
+		const {wert, name} = fpVarObj;
+		const legendTxt = (fpVarObj.formatIndicator === `S` || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/)) ? name :
+					   	  name.includes(`NennVL`) ? `Parameter Heizkurve` :
+						  name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
+						  name.includes(`Tagbetrieb`) ? `Partytaster` :
+						  undefined;
+		
+		console.log(legendTxt);
+		const fieldset = (legendTxt) ? document.createElement('fieldset') : document.querySelector(`.modalBody fieldset:last-child`);
+		console.log(fieldset);
+		if (legendTxt) {
+			//legend is only truthy if new fieldset created => init fieldset (setAttributes 'n' stuff)
+			modalBody.appendChild(fieldset);
+			fieldset.setAttribute(`legend`, legendTxt);
+			const legend = document.createElement(`legend`);
+			fieldset.appendChild(legend);
+			legend.innerText = legendTxt;
+		}
+		
+		if (fpVarObj.formatIndicator === `H`) {
+			document.querySelector(`.modalHeader h3`).innerText = `Einstellungen für ${wert}`;
+		}
+		else {
+			//FP-Zeile erzeugen
+			const divRtosVar = createControlGroup(fpVarObj);
+			console.log(fieldset);
+			fieldset.appendChild(divRtosVar);
+			initControlGroup(divRtosVar);
+		}
+	});
+
+
+	/*
 	let fpSection;
 	fpVarObjects.forEach(fpVarObj => {
-		const wert = (fpVarObj.wert) ? fpVarObj.wert.trim() : undefined;
-		const name = (fpVarObj.name) ? fpVarObj.name.trim() : undefined;
+		const {wert, name} = fpVarObj;
 		
-		if (fpVarObj.sectionIndicator.match(/H/i)) {
+		if (fpVarObj.formatIndicator.match(/H/i)) {
 			document.querySelector(`.modalHeader h3`).innerText = `Einstellungen für ${wert}`;
 		}
 		
-		const zwischenüberschrift = fpVarObj.sectionIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
+		const zwischenüberschrift = fpVarObj.formatIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
 									name.includes(`NennVL`) ? `Parameter Heizkurve` :
 									name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
 									name.includes(`Tagbetrieb`) ? `Partytaster` :
@@ -1322,12 +1369,13 @@ function buildFaceplate(fpVarObjects) {
 		}
 		
 		//FP-Zeile erzeugen
-		if (fpVarObj.sectionIndicator.toUpperCase() != 'H' && wert) {
+		if (fpVarObj.formatIndicator.toUpperCase() != 'H' && wert) {
 			const divRtosVar = createControlGroup(fpVarObj);
 			fpSection.appendChild(divRtosVar);
 			initControlGroup(divRtosVar);
 		}
-	});	
+	});
+	*/
 }
 
 function jumpToWochenKalender(target){
