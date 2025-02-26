@@ -111,18 +111,56 @@ body > * {
 	align-items: center;
 	justify-items: center;
 }
-.divRtosVar {
+.modalBody fieldset > div {
 	display: grid;
-	grid-template-columns: repeat(3, auto);
+	align-items: center;
+	grid-template-columns: [lblName] max-content [controlGroup] max-content [lblUnit] max-content;
 }
-.divInpWert {
+.lblName {
+	grid-column: lblName;
+	text-align: end;
+}
+.lblUnit {
+	grid-column: lblUnit;
+	text-align: start;
+}
+.controlGroup {
+	/*
+	grid-row: 1;
+	*/
+	grid-column: controlGroup;
 	display: grid;
-	grid-template-columns: repeat(4, auto);
+	align-items: center;
+	justify-items: center;
+	grid-template-columns: [btnDec] min-content [slider] max-content [btnInc] min-content;
 }
-.divInpWert [type="range"] {
-	grid-column: span 2;
+.sliderBtn {
+	grid-row: 1;
+	height: 100%;
+	aspect-ratio: 1;
+}
+.btnDec {
+	grid-column: btnDec;
+}
+.btnInc {
+	grid-column: btnInc;
+}
+.controlGroup input[type="range"] {
+	grid-row: 1;
+	grid-column: slider;
+}
+.calenderBtn {
+	grid-column: span 3;
+}
+.controlGroup[range="2"] {
+	grid-template-columns: 1fr;
+}
+.controlGroup[range="4"] {
+	grid-template-columns: repeat(4, 1fr);
+}
 
-}
+
+
 .pinInputContainer {
 	display: grid;
 	align-items: center;

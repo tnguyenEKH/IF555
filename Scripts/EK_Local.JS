@@ -1392,7 +1392,7 @@ function createOSK(layout, keyDownIntervalMs = 20) {
   return osk;
 }
 
-function constrain(_in, _min, _max) {
+function constrain(_in, _min = Number.NEGATIVE_INFINITY, _max = Number.POSITIVE_INFINITY) {
   const min = Math.min(parseFloat(_min), parseFloat(_max));
   const max = Math.max(parseFloat(_min), parseFloat(_max));
   return Math.max(Math.min(parseFloat(_in), max), min);
