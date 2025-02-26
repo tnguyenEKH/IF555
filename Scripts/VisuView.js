@@ -880,8 +880,8 @@ async function openFaceplate(ev) {
 	const faceplateData = Object.entries((faceplateDataRaw.v070.startsWith(faceplateId)) ?
 										  faceplateDataRaw :
 										  await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL)).filter(([key, value]) => value.trim() && value.trim() !== `X`);
-	console.log(faceplateData);
-	if (faceplateData.at(0).at(1).startsWith(faceplateId)) {
+	//console.log(faceplateData);
+	if (faceplateData && faceplateData.at(0).at(1).startsWith(faceplateId)) {
 		const nameAreaEndIdx = 24;
 		const fpVarObjects = [];
 		faceplateData.forEach(([key, value]) => {
