@@ -17,21 +17,23 @@
 	--zaehlerBg: hsl(0, 0%, 88%);
 	--bgColor: hsl(0, 0%, 75%);
 	
-	--iconSize: 40px;
 	/*
     box-sizing: border-box;
 	*/
-
+	
 	/*Sizes*/
 	--aspectRatio: 16/9;
 	--maxWidth: 100vw;
 	--maxHeight: 85vh;
 	--width: min(var(--maxWidth), calc(var(--maxHeight) * var(--aspectRatio)));
-
+	
 	--margin: .5rem;
 	--borderRadius: .5em;
 	--padding: 1rem;
+	
+	--iconSize: 40px;
 
+	--controlGroupMinWidth: 180px;
 }
 /*
 *,
@@ -111,10 +113,13 @@ body > * {
 	align-items: center;
 	justify-items: center;
 }
+.modalBody fieldset {
+	width: 90%;
+}
 .modalBody fieldset > div {
 	display: grid;
 	align-items: center;
-	grid-template-columns: [lblName] max-content [controlGroup] max-content [lblUnit] max-content;
+	grid-template-columns: [lblName] max-content [controlGroup] auto [lblUnit] max-content;
 }
 .lblName {
 	grid-column: lblName;
@@ -125,38 +130,58 @@ body > * {
 	text-align: start;
 }
 .controlGroup {
-	/*
-	grid-row: 1;
-	*/
 	grid-column: controlGroup;
 	display: grid;
 	align-items: center;
 	justify-items: center;
-	grid-template-columns: [btnDec] min-content [slider] max-content [btnInc] min-content;
+	grid-template-columns: min-content max-content min-content;
 }
 .sliderBtn {
-	grid-row: 1;
 	height: 100%;
 	aspect-ratio: 1;
-}
-.btnDec {
-	grid-column: btnDec;
-}
-.btnInc {
-	grid-column: btnInc;
-}
-.controlGroup input[type="range"] {
-	grid-row: 1;
-	grid-column: slider;
 }
 .calenderBtn {
 	grid-column: span 3;
 }
 .controlGroup[range="2"] {
-	grid-template-columns: 1fr;
+	grid-template-columns: .25fr;
+}
+.controlGroup[range="3"] {
+	grid-template-columns: repeat(3, .25fr);
 }
 .controlGroup[range="4"] {
 	grid-template-columns: repeat(4, 1fr);
+}
+
+[type="radio"] {
+	appearance: none;
+	border: outset 2px var(--bgColor);
+	width: 100%;
+	aspect-ratio: 1;
+}
+[type="radio"]:checked {
+	border: inset 2px var(--bgColor);
+	background-color: var(--bgColor);
+}
+[type="radio"]:disabled {
+	opacity: .5;
+}
+.radioBtnAuto {
+	background: center / contain no-repeat url(/Images/FaceplateBtns/Auto.png);
+}
+.radioBtnHand {
+	background: center / contain no-repeat url(/Images/FaceplateBtns/Hand.png);
+}
+.radioBtnEin,
+.radioBtnAuf {
+	background: center / contain no-repeat url(/Images/FaceplateBtns/On.png);
+}
+.radioBtnAus,
+.radioBtnZu {
+	background: center / contain no-repeat url(/Images/FaceplateBtns/Off.png);
+}
+.radioBtnStopp {
+	background: center / contain no-repeat url(/Images/FaceplateBtns/Stopp.png);
 }
 
 
@@ -572,6 +597,24 @@ input[type = "button"].visuElement {
 [rotation = "270"]:not([type = "button"]) {
 	transform: rotate(270deg);
 }
+/*********************FP-Element Redesign*********************/
+/*
+[type="range"] {
+	appearance: none;
+	background: linear-gradient(to right, var(--cyan) 0%, var(--magenta) 50%, #E0E0E0 50%, #E0E0E0 100%);
+	border: solid 1px var(--bgColor);
+	border-radius: 12px;
+	height: 8px;
+	transition: background 150ms ease-in;
+}
+.controlGroup {
+	min-width: var(--controlGroupMinWidth);
+}
+*/
+
+
+					
+
 /*********************Animations*********************/
 .animate[animation ~= "rotate"]:not([rotation]) {
 	transform: rotate(90deg);

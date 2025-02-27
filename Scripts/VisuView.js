@@ -898,32 +898,57 @@ async function openFaceplate(ev) {
 			fpVarObj.formatIndicator = value.slice(-1);
 			if (key === `v070` && Number.isNaN(parseFloat(value.slice(nameAreaEndIdx, -1))) && !fpVarObj.formatIndicator.trim()) {
 				//Kompatibilität zu alten Projekten ohne formatIndicator
-				fpVarObj.formatIndicator = `H`
+				fpVarObj.formatIndicator = `H`;
 			}
 
-			switch (fpVarObj.formatIndicator) {
-				case 'H':
-					fpVarObj.name = value.slice(0, nameAreaEndIdx).trim();
-					fpVarObj.wert = value.slice(nameAreaEndIdx, -1).trim();
-					break;
-				case 'S':
-					fpVarObj.name = value.slice(0, -1).trim();
-					break;
-				default:
-					const wertAreaEndIdx = nameAreaEndIdx + 12;
-					const maxAreaEndIdx = wertAreaEndIdx + 6;
-					const minAreaEndIdx = maxAreaEndIdx + 6;
-					const decPlaceEndIdx = minAreaEndIdx + 2;
-					fpVarObj.name = value.slice(0, nameAreaEndIdx).replace(`&deg`, `°`).trim();
-					fpVarObj.wert = parseFloat(value.slice(nameAreaEndIdx, wertAreaEndIdx));
-					fpVarObj.maximum = parseFloat(value.slice(wertAreaEndIdx, maxAreaEndIdx));
-					fpVarObj.minimum = parseFloat(value.slice(maxAreaEndIdx, minAreaEndIdx));
-					fpVarObj.decPlace = parseFloat(value.slice(minAreaEndIdx, decPlaceEndIdx));
-					fpVarObj.unit = value.slice(decPlaceEndIdx, -1).replace(`&deg`, `°`).trim();
+			if (fpVarObj.formatIndicator === `H`) {
+				fpVarObj.name = value.slice(0, nameAreaEndIdx).trim();
+				fpVarObj.wert = value.slice(nameAreaEndIdx, -1).trim();
+			}
+			else if (fpVarObj.formatIndicator === `S`) {
+				fpVarObj.name = value.slice(0, -1).trim();
+			}
+			else {
+				const wertAreaEndIdx = nameAreaEndIdx + 12;
+				const maxAreaEndIdx = wertAreaEndIdx + 6;
+				const minAreaEndIdx = maxAreaEndIdx + 6;
+				const decPlaceEndIdx = minAreaEndIdx + 2;
+				fpVarObj.name = value.slice(0, nameAreaEndIdx).replace(`&deg`, `°`).trim();
+				fpVarObj.wert = parseFloat(value.slice(nameAreaEndIdx, wertAreaEndIdx));
+				fpVarObj.maximum = parseFloat(value.slice(wertAreaEndIdx, maxAreaEndIdx));
+				fpVarObj.minimum = parseFloat(value.slice(maxAreaEndIdx, minAreaEndIdx));
+				fpVarObj.decPlace = parseFloat(value.slice(minAreaEndIdx, decPlaceEndIdx));
+				fpVarObj.unit = value.slice(decPlaceEndIdx, -1).replace(`&deg`, `°`).trim();
+				fpVarObj.range = (fpVarObj.maximum - fpVarObj.minimum + 1) * Math.pow(10, fpVarObj.decPlace);
+			}
+			
+			//verschachtelte BA in Handwert -> Eintrag verdoppeln und auseinanderklamüsern!
+			const fpBAvarObj = (fpVarObj.range === 101 || fpVarObj.range === 102) ? JSON.parse(JSON.stringify(fpVarObj)) : undefined;
+			if (fpBAvarObj) {
+				fpBAvarObj.rtosKey = `${key}BA`;
+				fpBAvarObj.unit = ``;
+				fpBAvarObj.rangeMap = new Map([[0, `Auto`], [`>=2`, `Hand`], [1, `Ein`]]);
+				if (fpBAvarObj.minimum === -1) {
+					fpBAvarObj.rangeMap.set(-1, `Aus`);
 				}
-
-				fpVarObjects.push(fpVarObj);
+				fpBAvarObj.wert = fpBAvarObj.rangeMap.get((fpBAvarObj.wert >= 2) ? `>=2` : fpBAvarObj.wert);//constrain(fpBAvarObj.wert, fpBAvarObj.minimum, fpBAvarObj.maximum);
+				fpBAvarObj.minimum = undefined;
+				fpBAvarObj.maximum = undefined;//2;
+				fpBAvarObj.range = fpBAvarObj.rangeMap.size;//(fpBAvarObj.maximum - fpBAvarObj.minimum + 1) * Math.pow(10, fpBAvarObj.decPlace);
+				
+				fpVarObj.lblName = `Handwert`;
+				fpVarObj.minimum = 2;
+				fpVarObj.range = (fpVarObj.maximum - fpVarObj.minimum + 1) * Math.pow(10, fpVarObj.decPlace);
+				fpVarObj.wert = constrain(fpVarObj.wert, fpVarObj.minimum, fpVarObj.maximum);
+				fpVarObj.BA = fpBAvarObj.wert;
+				//console.log(fpBAvarObj, fpVarObj);
+			}		
+			fpVarObjects.push(fpVarObj);
+			if (fpBAvarObj) {
+				fpVarObjects.push(fpBAvarObj);
+			}
 		});
+		//console.log(fpVarObjects);
 		buildFaceplate(fpVarObjects);
 		//showFaceplate(matchItem);
 		document.querySelector(`.modalBg`).classList.remove(`hidden`);
@@ -963,10 +988,10 @@ function calcColor(percentVal, minColorHex = `#1F94B9`, maxColorHex = `#C31D64`)
 
 
 function sliderStyling(target) {
-	const {value, min, max, disabled, minColor, maxColor, classList} = target;
+	const {value, min, max, disabled, maxColor, classList} = target;
 	const percentVal = (value - min) / (max - min) * 100;
-	const _minColor = (disabled) ? '#C0C0C0' : minColor;
-	const currentColor = (disabled) ? '#C0C0C0' : calcColor(percentVal, minColor, maxColor);
+	const minColor = (disabled) ? BG_COLOR : target.minColor;
+	const currentColor = (disabled) ? BG_COLOR : calcColor(percentVal, minColor, maxColor);
 	if (!disabled) {
 		if (maxColor == '#C31D64') {
 			classList.remove('quarter', 'half', 'threequarter', 'full');
@@ -982,53 +1007,38 @@ function sliderStyling(target) {
 		}		
 	}
 	
-	target.style.background = `linear-gradient(to right, ${_minColor} 0%, ${currentColor} ${percentVal}%, #E0E0E0 ${percentVal}%, #E0E0E0 100%)`;
+	target.style.background = `linear-gradient(to right, ${minColor} 0%, ${currentColor} ${percentVal}%, #E0E0E0 ${percentVal}%, #E0E0E0 100%)`;
 }
 
-function sliderHandler(target) {	//sliderHandler
-	sliderStyling(target);
-	const {min, max} = target;
-
-	const divRtosVar = target.closest(`.divRtosVar`);
-	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
-	
-	if (max - min == 101 && target.value <= 0) {
-		target.value = -1;
-	}
-	target.wert = target.value;
-	divRtosVar.wert = target.wert;
-	const btnHand = divRtosVar.querySelector(`.btnHand`);
-	if (btnHand)
-		btnHand.wert = target.wert;
-	lblUnit.wert = target.wert;
-	lblUnit.value = target.value;
-	
-	//min <= 0 
-	lblUnit.innerText = (max - min == 101 && target.value <= 0) ? 'Zu' : `${lblUnit.value} ${lblUnit.unit}`;
-	
-	return lblUnit;
+function BAbtnEventHandler(ev) {
+	const rtosKey = ev.target.closest(`[rtos-key]`).getAttribute(`rtos-key`).replace(`BA`,``);
+	const sliderControlGroup = document.querySelector(`.controlGroup[rtos-key = ${rtosKey}]`);
+	sliderControlGroup.querySelectorAll(`input`).forEach(inputEl => inputEl.toggleAttribute(`disabled`, (ev.target.value !== `Hand`)));
+	document.querySelector(`.lblUnit[rtos-key = ${rtosKey}]`).classList.toggle(`hidden`, (ev.target.value !== `Hand`));
+}
+function sliderHandler(target) {
+	//sliderStyling(target);
+	const rtosKey = target.closest(`[rtos-key]`).getAttribute(`rtos-key`);
+	const lblUnit = document.querySelector(`.lblUnit[rtos-key=${rtosKey}]`);
+	lblUnit.innerText = `${target.valueAsNumber.toFixed(-Math.log10(target.step))} ${lblUnit.getAttribute(`unit`)}`;
 }
 function sliderAdjustValueBtnEventHandler(ev) {
 	const {type, target} = ev;
 	if (type.match(/(touchstart)/))
 		ev.preventDefault();
-	if (!target.timerMousePressed && type.match(/(mousedown|touchstart)/)) {
-		target.timerMousePressed = setInterval(sliderAdjustValueBtnHandler, 100, target);
+	if (!target.timerBtnPressed && type.match(/(mousedown|touchstart)/)) {
+		target.timerBtnPressed = setInterval(sliderAdjustValueBtnHandler, 100, target);
 	}
-	else if (target.timerMousePressed){
-		clearInterval(target.timerMousePressed);
-		target.timerMousePressed = undefined;
+	else if (target.timerBtnPressed){
+		clearInterval(target.timerBtnPressed);
+		target.timerBtnPressed = undefined;
 	}
 }
 
 function sliderAdjustValueBtnHandler(target) {
-	const slider = Array.from(target.parentElement.childNodes).find(el => (el.type === `range`));
-	
-	slider.value = parseFloat(slider.value) + parseFloat(target.wert);
-	//Sonderfall Analogmischer
-	if (slider.unit == '%' && slider.value == 0)
-		slider.value = parseFloat(slider.value) + parseFloat(slider.step);
-	sliderHandler(slider);	
+	const slider = target.closest(`.controlGroup`).querySelector(`[type=range]`);
+	slider.valueAsNumber += target.wert;
+	sliderHandler(slider);
 }
 
 function radioBtnByName(target) {
@@ -1081,11 +1091,10 @@ function controlGroupBtnHandler(target) {
 }
 
 function createControlGroup(el) {
-	console.log(el);
-	const {rtosKey, name, wert, maximum, minimum, decPlace, unit} = el;
+	//console.log(el);
+	const {rtosKey, name, wert, maximum, minimum, decPlace, range, rangeMap, unit, BA} = el;
 	//zu erzeugende Elemente auf Basis der Range ermitteln:
-	const range = (maximum - minimum + 1) * Math.pow(10, decPlace);
-
+	
 	//div mit ID=rtosVariable erzeugen & anhängen (return object)
 	//Inputelemente (btns, slider, number, etc.) erzeugen & anhängen
 	const controlGroup = document.createElement(`div`);
@@ -1093,19 +1102,27 @@ function createControlGroup(el) {
 	controlGroup.setAttribute(`rtos-key`, rtosKey);
 	controlGroup.setAttribute(`range`, range); //setAttribute `range` for layout
 	
-	//Zeilenumbruch vor lblName anfügen, um Textausrichtung mittig zu Btns (außer Kalender) zu setzen
-	//if (range <= 4 && !name.match(/(kalender|tagbetrieb)/gi)) lblName.innerText = '\n' + lblName.innerText;
-	
-	
-	
-	//let checkedBtn;
-	if (range === 2) {			
+	if (rangeMap) {
+		//BAbtns for sliderBtnCombo
+		rangeMap.forEach(name => {
+			const radioBtn = document.createElement('input');		
+			controlGroup.appendChild(radioBtn);
+			radioBtn.type = `radio`;
+			radioBtn.name = `BAradioGroup${rtosKey}`;
+			radioBtn.classList.add(`radioBtn${name}`);
+			radioBtn.title = `${name}${(name === `Ein`) ? ' (Sollw. intern)' : ''}`;
+			radioBtn.value = name;
+			radioBtn.checked = (wert === name);
+			radioBtn.addEventListener(`change`, BAbtnEventHandler);
+		});
+	}
+	else if (range === 2) {			
 		//createTriggerBtn (Einmalig...); radioBtnByName
 		const checkbox = document.createElement('input');
 		controlGroup.appendChild(checkbox);
 		checkbox.type = (name.match(/(einmalig)\s*(ein|aus)(schalten)/i)) ? `radio` : `checkbox`;
 		checkbox.name = (checkbox.type === `radio`) ? `triggerBtnOnOff` : undefined;
-		checkbox.toggleAttribute(`checked`, !!wert);
+		checkbox.checked = !!wert;
 	}
 	else if (range === 3 && minimum === 0) {
 		//KalenderBtn
@@ -1129,49 +1146,27 @@ function createControlGroup(el) {
 			radioBtn.classList.add(`radioBtn${name}`);
 			radioBtn.title = name;
 			radioBtn.value = name;
-			radioBtn.toggleAttribute(`checked`, (wert === BAstringToInt(name)));
+			radioBtn.checked == (wert === BAstringToInt(name));
 		});
-	}
-	
-			
-	/*	
-	//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
-		else if (range === 102) {
-			lblName.innerText = `Handwert\n\n${lblName.innerText}`;
-							
-			
-			//hier KEIN break um zusätzlichen slider zu erzeugen!
-			//break;
-		//createSlider/Number?
-		default:
-			inpWert.type = 'range';
-			inpWert.value = constrain(inpWert.wert, inpWert.min, inpWert.max);
-			inpWert.wert = inpWert.value;
-			
-			if (inpWert.type == 'range') {
-				inpWert.addEventListener(`input`, (ev) => sliderHandler(ev.target));
-			}
-	}*/
-	
-	if (range > 4) {
+	}	
+	else if (range > 4) {
 		const slider = document.createElement('input');
 		controlGroup.appendChild(slider);
 		slider.type = `range`;
 		slider.step = Math.pow(10, -decPlace);
-		slider.min = (range === 102) ? 2 : //Handwert & BA Kombi: [-1] = Aus, [0] = Auto, [1] = Ein + interner Sollwert
-					 (range === 101) ? 1 : //Kesselpumpe: (hat kein 'Aus' [-1]!; min = 1 statt 2)
-					 minimum;
-		slider.toggleAttribute(`disabled`, wert < slider.min); //BA !== Hand -> disable!
-		slider.value = constrain(wert, slider.min);
+		slider.value = wert;
+		slider.min = minimum;
 		slider.minColor = CYAN_HEX;
 		slider.max = maximum;
-		slider.maxColor = (unit === `°C` || name.match(/(Kessel)|(BHKW)/)) ? MAGENTA_HEX : CYAN_HEX;
+		slider.maxColor = (unit === `°C`) ? MAGENTA_HEX : CYAN_HEX;
+		slider.toggleAttribute(`disabled`, (!!BA && (BA !== `Hand`)));
+		slider.addEventListener(`input`, (ev) => sliderHandler(ev.target));
 		
 		//+&-Buttons neben Slider erzeugen
 		[`-`, `+`].forEach(btnTxt => {
 			const sliderBtn = document.createElement('input');
 			sliderBtn.type = 'button';
-			controlGroup.appendChild(sliderBtn);
+			controlGroup.insertBefore(sliderBtn, (btnTxt === `-`) ? slider : null);
 			sliderBtn.classList.add(`sliderBtn`);
 			sliderBtn.classList.add((btnTxt === `+`) ? `btnInc` : `btnDec`);
 			sliderBtn.toggleAttribute(`disabled`, slider.hasAttribute(`disabled`));
@@ -1184,24 +1179,6 @@ function createControlGroup(el) {
 			sliderBtn.addEventListener(`touchend`, sliderAdjustValueBtnEventHandler);
 			sliderBtn.addEventListener(`touchcancel`, sliderAdjustValueBtnEventHandler);
 		});
-
-
-
-		if (range === 102) {
-			//createSliderBtnCombo (Auto, Hand/(HandOn, HandOff))
-			//createControlGroup()
-			const nameArray = (name.match(/(mischer)|(ventil)/i)) ? [`Auto`, `Hand`] : [`Auto`, `Hand`, `Ein`, `Aus`];
-			nameArray.forEach(name => {
-				const radioBtn = document.createElement('input');		
-				controlGroup.appendChild(radioBtn);
-				radioBtn.type = `radio`;
-				radioBtn.name = `BAradioGroup${rtosKey}`;
-				radioBtn.classList.add(`radioBtn${name}`);
-				radioBtn.title = `${name}${(name === `Ein`) ? ' (Sollw. intern)' : ''}`;
-				radioBtn.value = name;
-				radioBtn.toggleAttribute(`checked`, (wert === BAstringToInt(name)));
-			});
-		}
 	}
 	
 	return controlGroup;
@@ -1233,14 +1210,15 @@ function initControlGroup(divRtosVar) {
 }
 
 function buildFaceplate(fpVarObjects) {
-	
 	fpVarObjects.forEach(fpVarObj => {
-		const {name, wert, unit, rtosKey} = fpVarObj;
-		const legendTxt = (fpVarObj.formatIndicator === `S` || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/)) ? name :
-		name.includes(`NennVL`) ? `Parameter Heizkurve` :
-		name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
-		name.includes(`Tagbetrieb`) ? `Partytaster` :
-		undefined;
+		const {name, lblName, wert, unit, decPlace, rtosKey, formatIndicator} = fpVarObj;
+		const legendTxt = (formatIndicator === `S`) ? name :
+						  (rtosKey.includes(`BA`)) ? undefined :
+						  (name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/)) ? name :
+						  (name.includes(`NennVL`)) ? `Parameter Heizkurve` :
+						  (name.includes(`20 &degC`)) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
+						  (name.includes(`Tagbetrieb`)) ? `Partytaster` :
+						  undefined;
 		
 		if (legendTxt) {
 			//create 'n' init fieldset
@@ -1268,19 +1246,14 @@ function buildFaceplate(fpVarObjects) {
 				lbl.classList.add(classname);
 				lbl.setAttribute(`rtos-key`, rtosKey);
 				const slider = controlGroup.querySelector(`[type=range]`);
-				lbl.innerText = (classname === `lblName`) ? name :
-								(unit && unit !== `3P`) ? `${(slider) ? slider.value : wert} ${unit}` :
+				lbl.innerText = (classname === `lblName`) ? ((lblName) ? lblName : name) :
+								(unit && unit !== `3P`) ? `${(slider) ? slider.valueAsNumber.toFixed(decPlace) : wert.toFixed(decPlace)} ${unit}` :
 								``;
-				lbl.classList.toggle(`hidden`, (classname === `lblUnit` && slider && slider.hasAttribute(`disabled`)));
+				if (classname === `lblUnit`) {
+					lbl.setAttribute(`unit`, unit);
+					lbl.classList.toggle(`hidden`, (slider && slider.hasAttribute(`disabled`)));
+				}
 			});
-
-			
-			//FP-Zeile erzeugen
-			/*const divRtosVar = createControlGroup(fpVarObj);
-			console.log(fieldset);
-			fieldset.appendChild(divRtosVar);
-			initControlGroup(divRtosVar);
-			*/
 		}
 	});
 
