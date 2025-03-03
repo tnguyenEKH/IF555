@@ -114,6 +114,10 @@ body > * {
 	align-items: center;
 	justify-items: center;
 }
+textarea {
+	font-size: 1.1rem;
+	resize: none;
+}  
 .modalBody fieldset {
 	width: 90%;
 }

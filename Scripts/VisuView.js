@@ -569,7 +569,7 @@ function updateLiveDataElements(liveDataItems) {
 					el.classList.toggle(`animate`, !!item.Wert);
 				}
 				else if (el.matches(`.faceplateBtn`)) {
-					el.style.background = `center / contain no-repeat url(/Images/FaceplateBtns/${(!!item.Wert) ? 'Hand_inet.png' : 'Auto.png'}) ${BG_COLOR}`;
+					el.style.background = `center / contain no-repeat url(/Images/FaceplateBtns/${(!!item.Wert) ? 'Hand_inet.png' : 'Auto.png'}) ${(!!item.Wert) ? YELLOW_HSL : BG_COLOR}`;
 					//el.classList.toggle(`btnHand`, !!item.Wert);
 					//el.classList.toggle(`btnAuto`, !item.Wert);
 				}
@@ -749,6 +749,7 @@ async function visuBtnClickEventHandler(ev) {
 }
 
 async function modalBgClickEventHandler(ev) {
+	//confirm
 	if (ev.target.matches(`.modalFooterConfirmBtn`)) {
 		if (document.querySelector(`.pinInputContainer:not(.displayNone)`)) {
 			//pinModal
@@ -760,13 +761,11 @@ async function modalBgClickEventHandler(ev) {
 		else if (document.querySelector(`.modalBody .controlGroup`)) {
 			//faceplate
 			faceplateConfirmHandler();
-
-
-
 			closeModal();
 		}
 	}
 
+	//cancel
 	if (ev.target.matches(`.modalBg, .close, .modalFooterCancelBtn`)) {
 		closeModal();
 	}	
@@ -829,10 +828,16 @@ function destroyFaceplateElements(...elTypes) {
 }
 
 function faceplateConfirmHandler() {
-
+	const faceplateReturnDataMap = new Map();
+	const rtosKeyOffset = 20;
 	const modalBg = document.querySelector(`.modalBg`);
-	modalBg.faceplateDataRawMap.forEach((val, rtosKey) => {
-		const formatIndicator = val.slice(-1);
+	for (let i = 70; i <= 89; i++) {
+		const rtosKey = `v${i.toString().padStart(3, `0`)}`;
+		const rtosOffsetKey = `v${(i+rtosKeyOffset).toString().padStart(3, `0`)}`;
+		faceplateReturnDataMap.set(rtosOffsetKey, modalBg.verifyedFaceplateDataRaw[rtosKey]);
+	}
+	modalBg.filteredFaceplateDataRawMap.forEach((dataString, rtosKey) => {
+		const formatIndicator = dataString.slice(-1);
 		if (formatIndicator.match(/(H)|(S)/) || rtosKey === `v070`) {
 			//ignore TextLines!
 		}
@@ -841,60 +846,33 @@ function faceplateConfirmHandler() {
 			const activeBA = (enabledSlider) ? undefined : modalBg.querySelector(`.controlGroup[rtos-key*=${rtosKey}] input:checked`);
 			const value = (enabledSlider) ? enabledSlider.valueAsNumber :
 						  (activeBA) ? BAtoInt(activeBA.value) :
-						  undefined;
+						  0;
 
+			const nameAreaEndIdx = 24;
+			const wertAreaEndIdx = nameAreaEndIdx + 12;
+			const name = dataString.slice(0, nameAreaEndIdx);
+			const wert = parseFloat(value).toFixed(4).padStart(10).padEnd(12);
+			const rest = dataString.slice(wertAreaEndIdx);
 
-			console.log(value);
-			//modalBg.querySelector(`.controlGroup[rtos-key=${rtosKey}] [type]`)*/
+			const rtosOffsetIdx = parseInt(rtosKey.match(/\d+/)) + rtosKeyOffset;
+			faceplateReturnDataMap.set(`v${rtosOffsetIdx.toString().padStart(3, `0`)}`, `${name}${wert}${rest}`);
+			
+			//console.log(modalBg.verifyedFaceplateDataRaw[rtosKey]);
+			//console.log(faceplateReturnDataMap.get(`v${rtosOffsetIdx.toString().padStart(3, `0`)}`));
 		}
 	});
-
-	//const controlGroups = Array.from(modalBg.querySelectorAll(`.controlGroup`)).filter(controlGroup => controlGroup.querySelector(`[type=range]:not([disabled])`));
-	//console.log(controlGroups);
-
-
-	const nameAreaEndIdx = 24;
-	const wertAreaEndIdx = nameAreaEndIdx + 12;
-	const maxAreaEndIdx = wertAreaEndIdx + 6;
-	const minAreaEndIdx = maxAreaEndIdx + 6;
-	const decPlaceEndIdx = minAreaEndIdx + 2;
-	//fpVarObj.name = value.slice(0, nameAreaEndIdx).replace(`&deg`, `°`).trim();
-//fpVarObj.wert = parseFloat(value.slice(nameAreaEndIdx, wertAreaEndIdx));
-	//fpVarObj.maximum = parseFloat(value.slice(wertAreaEndIdx, maxAreaEndIdx));
-	//fpVarObj.minimum = parseFloat(value.slice(maxAreaEndIdx, minAreaEndIdx));
-	//fpVarObj.decPlace = parseFloat(value.slice(minAreaEndIdx, decPlaceEndIdx));
-	//fpVarObj.unit = value.slice(decPlaceEndIdx, -1).replace(`&deg`, `°`).trim();
 	
-
-}
-
-function sendDataToRtosEventHandler(ev) {
-	sendDataToRtos(ev.target);
-}
-
-function sendDataToRtos(target) {	
-	const {id, idx} = target;
-
-	//Nur RtosVar für Wochenkalender ändern (Aufforderung an Rtos Kalenderdaten schicken)
-	if (id === `calenderBtn` || id === `triggerBtnTagbetrieb`) {
-		const foundEl = ClickableElement.find(el => idx === el.idx);
-		const divRtosVar = target.closest(`.divRtosVar`);
-		foundEl.wert = foundEl.wert.replace(parseInt(foundEl.wert).toString(), divRtosVar.wert);
-	}
-	else {
-		const divRtosVar = Array.from(document.querySelectorAll(`.divRtosVar`));
-		const changedRtosVars = divRtosVar.filter(el => el.wert != undefined);
-		
-		changedRtosVars.forEach(changedEl => {
-			const foundEl = ClickableElement.find(el => changedEl.idx == el.idx);
-			foundEl.wert = parseFloat(changedEl.wert).toFixed(4).padStart(10).padEnd(12);
-		});
-	}
-	
-	ClickableElement.forEach(el => {
-		const rtosVar = `"${el.name}${el.wert}${el.maximum}${el.minimum}${el.decPlace}${el.unit}${el.formatIndicator}"`;
-		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
-		const responsePromise = fetchJSON(url);
+	const responsePromises = [];
+	faceplateReturnDataMap.forEach((dataString, rtosKey) => {
+		const url = `${mpcJsonPutUrl}${rtosKey}=${encodeURIComponent(dataString)}`;
+		responsePromises.push(fetchJSON(url));
+	});
+	Promise.all(responsePromises).then(responses => {
+		Object.entries(responses).forEach(([idx, responseObject]) => {
+			if (responseObject.result !== `OK`) {
+				console.warn(`v${(parseInt(idx) + 70).toString().padStart(3, `0`)}: ${responseObject.result}`);
+			}
+		})
 	});
 }
 
@@ -921,10 +899,11 @@ async function openFaceplate(ev) {
 	//get Data from MPC after Timeout (500ms)
 	const faceplateDataRaw = await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL);
 	//console.log(faceplateDataRaw);
-	//if DataHeader incorrect get Data again from MPC after Timeout (500ms); refine Data anyways
-	const faceplateData = Object.entries((faceplateDataRaw.v070.startsWith(faceplateId)) ?
-										  faceplateDataRaw :
-										  await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL)).filter(([key, value]) => value.trim() && value.trim() !== `X`);
+	//if DataHeader incorrect get Data again from MPC after Timeout (500ms)
+	const verifyedFaceplateDataRaw = (faceplateDataRaw.v070.startsWith(faceplateId)) ? faceplateDataRaw : await asyncTimeout(fetchJSON, 500, FACEPLATE_DATA_URL)
+
+	//refine Data anyways
+	const faceplateData = Object.entries(verifyedFaceplateDataRaw).filter(([key, value]) => value.trim() && value.trim() !== `X`);
 	//console.log(faceplateData);
 	if (faceplateData && faceplateData.at(0).at(1).startsWith(faceplateId)) {
 		const nameAreaEndIdx = 24;
@@ -989,8 +968,9 @@ async function openFaceplate(ev) {
 		buildFaceplate(fpVarObjects);
 		const modalBg = document.querySelector(`.modalBg`)
 		modalBg.classList.remove(`hidden`);
-		modalBg.faceplateDataRawMap = new Map(faceplateData);
-		console.log(modalBg.faceplateDataRawMap);
+		modalBg.verifyedFaceplateDataRaw = verifyedFaceplateDataRaw;
+		modalBg.filteredFaceplateDataRawMap = new Map(faceplateData);
+		//console.log(modalBg.filteredFaceplateDataRawMap);
 	}
 	else {
 		alert(`timeout`);
@@ -1073,60 +1053,10 @@ function sliderAdjustValueBtnEventHandler(ev) {
 		target.timerBtnPressed = undefined;
 	}
 }
-
 function sliderAdjustValueBtnHandler(target) {
 	const slider = target.closest(`.controlGroup`).querySelector(`[type=range]`);
 	slider.valueAsNumber += target.wert;
 	sliderHandler(slider);
-}
-
-function radioBtnByName(target) {
-	const {idx, name, id} = target;		
-	
-	//var changedBtns = [];
-	const relatedBtns = document.getElementsByName(name);
-	const btnToggleForceVal = (target.classList.contains(`uncheckable`)) ? undefined : true;
-	relatedBtns.forEach(el => el.classList.toggle(`checked`, (el === target) ? btnToggleForceVal : false));
-	
-	if (target.wert.toString() == '') {
-		const slider = document.querySelector(`#inpWert${idx}`);
-		target.wert = slider.wert;
-	}
-	//const divRtosVar = document.querySelector(`#v${idx.toString().padStart(3,'0')}`);
-	const divRtosVar = target.closest(`.divRtosVar`);
-	if (id === `triggerBtnTagbetrieb`) {
-		divRtosVar.wert = (target.classList.contains(`checked`)) ? 1 : 0;
-	}
-	else {
-		divRtosVar.wert = target.wert;
-	}
-	if (id === `triggerBtnTagbetrieb`) sendDataToRtos(target);
-}
-
-function toggleSliderAbilityByBtnHand(target) {	
-	const enabled = target.className.toUpperCase().includes('HAND');
-	const relevantSiblings = Array.from(target.parentElement.childNodes).filter(el => (el.type === `range` || el.classList.contains(`btnIncDec`)));
-	relevantSiblings.forEach(el => {
-		el.disabled = !enabled;
-		if (el.type === `range`) {
-			el.classList.toggle(`disabled`, !enabled);
-			sliderStyling(el);
-		}
-	});
-}
-
-function updateLblUnit(target) {
-	const divRtosVar = target.closest(`.divRtosVar`);
-	const lblUnit = divRtosVar.querySelector(`.lblUnit`);
-	
-	const targetIsBtnHand = target.title.toUpperCase().includes('HAND');
-	lblUnit.innerText = (!targetIsBtnHand) ? target.title : (lblUnit.value <= 0) ? `Zu` : `${lblUnit.value} ${lblUnit.unit}`;
-}
-
-function controlGroupBtnHandler(target) {
-	radioBtnByName(target);
-	toggleSliderAbilityByBtnHand(target);
-	updateLblUnit(target);
 }
 
 function createControlGroup(el) {
@@ -1156,7 +1086,7 @@ function createControlGroup(el) {
 		});
 	}
 	else if (range === 2) {			
-		//createTriggerBtn (Einmalig...); radioBtnByName
+		//createTriggerBtn (Einmalig...)
 		if (name.match(/(einmalig)\s*(ein|aus)(schalten)/i)) {
 			const radioBtn = document.createElement('input');
 			controlGroup.appendChild(radioBtn);
@@ -1232,29 +1162,6 @@ function createControlGroup(el) {
 	return controlGroup;
 }
 
-function BAtoInt(BAstring) {
-	//Handwert & BA Kombi: [-1] = Aus, [0] = Auto, [1] = Ein + interner Sollwert
-	//`on` is defaultValue for radio&checkboxEl...
-	const BAmap = new Map([[`Auto`, 0], [`Hand`, `>=2`], [`Ein`, 1], [`Aus`, -1], [`Auf`, 1], [`Zu`, 2], [`Stopp`, -1], [`on`, 1]]);
-	return BAmap.get(BAstring);
-}
-
-function initControlGroup(divRtosVar) {
-	const {initCheckedBtn} = divRtosVar;
-	const slider = divRtosVar.querySelector(`[type = "range"]`);
-	
-	//targetHandler ausführen um aktuellen Zustand zu Initiieren
-	if (slider) {
-		sliderHandler(slider);
-		if (initCheckedBtn) {
-			controlGroupBtnHandler(initCheckedBtn);
-		}
-	}
-	else if (initCheckedBtn) {
-		radioBtnByName(initCheckedBtn);
-	}
-}
-
 function buildFaceplate(fpVarObjects) {
 	document.querySelector(`.modalFooterConfirmBtn`).toggleAttribute(`disabled`, !document.querySelector(`.lockStatus`).unlocked);
 
@@ -1308,41 +1215,9 @@ function buildFaceplate(fpVarObjects) {
 	});
 }
 
-function jumpToWochenKalender(target) {
-	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
-	clearInterval(fernbedienungAutoReload);
-	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
-	//Pearl-seitig wird das HK-Wochenkalender aufm Canvas gerendert.
-	//var sendError = sendValueFromVisuToRtos('openHKWochenKalender');
-	const divRtosVar = target.closest(`.divRtosVar`);
-	divRtosVar.wert = target.wert;
-
-	const sendError = sendDataToRtos(target);
-	if (!sendError) {
-		showWochenKalenderVisu();
-		activeTabID = 'visuWochenkalender';
-		wochenKalenderImVisuAutoReload = setInterval(refreshTextAreaWithoutParameterLocal, 50, wochenKalenderImVisuCanvasContext, wochenKalenderImVisuCanvas);
-	}
-}
-
-function closeModalWochenKalenderImVisu(){
-	hideElemementById('visuWochenkalender');
-}
-
-function showWochenKalenderVisu() {
-	const kalenderHeader = document.querySelector('#txtWochenKalenderImVisuHeader');
-	const faceplateHeader = document.querySelector(`.modalHeader h3`);
-	kalenderHeader.textContent = faceplateHeader.textContent.replace('Einstellungen', 'Wochenkalender');
-	
-	const visuWochenkalender = document.querySelector('#visuWochenkalender');
-	visuWochenkalender.style.display = "block";
-	
-	const fpContentBox = document.querySelector('#fpContent').getBoundingClientRect();
-	const visuWochenkalenderContent = document.querySelector('#visuWochenkalenderContent');
-	const visuWochenkalenderContentBox = visuWochenkalenderContent.getBoundingClientRect();
-	const kalenderLeft = Math.max(10, fpContentBox.x + fpContentBox.width - visuWochenkalenderContentBox.width);
-	
-	visuWochenkalenderContent.style.left = `${kalenderLeft}px`;
-	visuWochenkalenderContent.style.top = `${fpContentBox.y}px`;
-	hideElemementById('osk');	//osk ausblenden wenn Kalender geöffnet wird
+function BAtoInt(BAstring) {
+	//Handwert & BA Kombi: [-1] = Aus, [0] = Auto, [1] = Ein + interner Sollwert
+	//`on` is defaultValue for radio&checkboxEl...
+	const BAmap = new Map([[`Auto`, 0], [`Hand`, `>=2`], [`Ein`, 1], [`Aus`, -1], [`Auf`, 1], [`Zu`, 2], [`Stopp`, -1], [`on`, 1]]);
+	return BAmap.get(BAstring);
 }
