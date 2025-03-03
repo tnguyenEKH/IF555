@@ -31,7 +31,8 @@
 	--borderRadius: .5em;
 	--padding: 1rem;
 	
-	--iconSize: 40px;
+	--iconSize: calc(.03 * var(--width)); /*40px;*/
+	--btnSize: calc(.035 * var(--width));
 
 	--controlGroupMinWidth: 180px;
 }
@@ -124,10 +125,13 @@ body > * {
 .lblName {
 	grid-column: lblName;
 	text-align: end;
+	padding-right: 1ch;
 }
 .lblUnit {
 	grid-column: lblUnit;
 	text-align: start;
+	padding-left: 1ch;
+	min-width: 7ch;
 }
 .controlGroup {
 	grid-column: controlGroup;
@@ -143,20 +147,23 @@ body > * {
 .calenderBtn {
 	grid-column: span 3;
 }
+/*
 .controlGroup[range="2"] {
 	grid-template-columns: .25fr;
 }
+*/
 .controlGroup[range="3"] {
-	grid-template-columns: repeat(3, .25fr);
+	grid-template-columns: repeat(3, min-content);
 }
 .controlGroup[range="4"] {
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(4, min-content);
 }
 
 [type="radio"] {
 	appearance: none;
+	margin: 1px;
 	border: outset 2px var(--bgColor);
-	width: 100%;
+	width: var(--btnSize);
 	aspect-ratio: 1;
 }
 [type="radio"]:checked {
@@ -197,6 +204,10 @@ body > * {
 	color: var(--whiteGrey);
 	background-color: var(--cyan);
 	grid-auto-flow: column;
+}
+
+.modalFooter > [type="button"] {
+	margin: 2ch;
 }
 
 .header {

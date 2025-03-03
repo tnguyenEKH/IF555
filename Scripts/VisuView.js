@@ -750,11 +750,21 @@ async function visuBtnClickEventHandler(ev) {
 
 async function modalBgClickEventHandler(ev) {
 	if (ev.target.matches(`.modalFooterConfirmBtn`)) {
-		const validityState = await validateVisuPin();
-		console.log(validityState);
-		if (validityState.valid) {
+		if (document.querySelector(`.pinInputContainer:not(.displayNone)`)) {
+			//pinModal
+			const validityState = await validateVisuPin();
+			if (validityState.valid) {
+				closeModal();
+			}	
+		}
+		else if (document.querySelector(`.modalBody .controlGroup`)) {
+			//faceplate
+			faceplateConfirmHandler();
+
+
+
 			closeModal();
-		}	
+		}
 	}
 
 	if (ev.target.matches(`.modalBg, .close, .modalFooterCancelBtn`)) {
@@ -767,6 +777,8 @@ function closeModal() {
 	modalBg.classList.add(`hidden`);
 	modalBg.querySelector(`.modalContent`).classList.remove(`alarms`);
 	modalBg.querySelectorAll(`.modalBody > *`).forEach(modalBodyChild => modalBodyChild.classList.add(`displayNone`));
+	modalBg.querySelector(`.modalFooter`).classList.remove(`hidden`);
+	destroyFaceplateElements(`fieldset`);
 }
 async function validateVisuPin() {
 	const hash = await fetchTxt(HASH_FILE_URL);
@@ -793,6 +805,7 @@ function visuLockClickEventHandler(ev) {
 	else {	
 		const h3 = document.querySelector(`.modalHeader h3`);
 		h3.innerText = `Unlock Visu`;
+		document.querySelector(`.modalFooterConfirmBtn`).removeAttribute(`disabled`);
 		const modalBg = document.querySelector(`.modalBg`);
 		modalBg.querySelector(`.pinInputContainer`).classList.remove(`displayNone`);
 		hidePinHandler();	
@@ -810,23 +823,49 @@ function pinInputEventHandler(ev) {
 		document.querySelector(`.modalFooterConfirmBtn`).focus();
 	}
 }
-
-function closeFaceplate() {
-	destroyFaceplate();
-	hideElemementById('fpBg');
-	hideElemementById('osk');
-	//AnchorHandler(1);	//Sprung ins Hauptmenü, wenn Kalender geschlossen wird
+function destroyFaceplateElements(...elTypes) {
+	const modalBody = document.querySelector(`.modalBody`);
+	modalBody.querySelectorAll(elTypes.toString()).forEach(faceplateEl => faceplateEl.remove());
 }
 
-function destroyFaceplate() {
-	var modalBody = document.getElementById('modalBody');
-	while (modalBody.firstChild) {
-		modalBody.removeChild(modalBody.firstChild);
-	}	
-}
+function faceplateConfirmHandler() {
 
-function handleConfirmBtn(disable) {
-  document.getElementById("btnFaceplateConfirm").disabled = disable;
+	const modalBg = document.querySelector(`.modalBg`);
+	modalBg.faceplateDataRawMap.forEach((val, rtosKey) => {
+		const formatIndicator = val.slice(-1);
+		if (formatIndicator.match(/(H)|(S)/) || rtosKey === `v070`) {
+			//ignore TextLines!
+		}
+		else {
+			const enabledSlider = modalBg.querySelector(`.controlGroup[rtos-key=${rtosKey}] [type=range]:not(input:disabled)`);
+			const activeBA = (enabledSlider) ? undefined : modalBg.querySelector(`.controlGroup[rtos-key*=${rtosKey}] input:checked`);
+			const value = (enabledSlider) ? enabledSlider.valueAsNumber :
+						  (activeBA) ? BAtoInt(activeBA.value) :
+						  undefined;
+
+
+			console.log(value);
+			//modalBg.querySelector(`.controlGroup[rtos-key=${rtosKey}] [type]`)*/
+		}
+	});
+
+	//const controlGroups = Array.from(modalBg.querySelectorAll(`.controlGroup`)).filter(controlGroup => controlGroup.querySelector(`[type=range]:not([disabled])`));
+	//console.log(controlGroups);
+
+
+	const nameAreaEndIdx = 24;
+	const wertAreaEndIdx = nameAreaEndIdx + 12;
+	const maxAreaEndIdx = wertAreaEndIdx + 6;
+	const minAreaEndIdx = maxAreaEndIdx + 6;
+	const decPlaceEndIdx = minAreaEndIdx + 2;
+	//fpVarObj.name = value.slice(0, nameAreaEndIdx).replace(`&deg`, `°`).trim();
+//fpVarObj.wert = parseFloat(value.slice(nameAreaEndIdx, wertAreaEndIdx));
+	//fpVarObj.maximum = parseFloat(value.slice(wertAreaEndIdx, maxAreaEndIdx));
+	//fpVarObj.minimum = parseFloat(value.slice(maxAreaEndIdx, minAreaEndIdx));
+	//fpVarObj.decPlace = parseFloat(value.slice(minAreaEndIdx, decPlaceEndIdx));
+	//fpVarObj.unit = value.slice(decPlaceEndIdx, -1).replace(`&deg`, `°`).trim();
+	
+
 }
 
 function sendDataToRtosEventHandler(ev) {
@@ -856,9 +895,7 @@ function sendDataToRtos(target) {
 		const rtosVar = `"${el.name}${el.wert}${el.maximum}${el.minimum}${el.decPlace}${el.unit}${el.formatIndicator}"`;
 		const url = `${mpcJsonPutUrl}v${el.idx.toString().padStart(3, '0')}=${encodeURIComponent(rtosVar)}`;
 		const responsePromise = fetchJSON(url);
-	}); 
-	
-	if (id.toUpperCase().includes('CONFIRM') || id.toUpperCase().includes('SEND')) closeFaceplate();
+	});
 }
 
 
@@ -950,8 +987,10 @@ async function openFaceplate(ev) {
 		});
 		//console.log(fpVarObjects);
 		buildFaceplate(fpVarObjects);
-		//showFaceplate(matchItem);
-		document.querySelector(`.modalBg`).classList.remove(`hidden`);
+		const modalBg = document.querySelector(`.modalBg`)
+		modalBg.classList.remove(`hidden`);
+		modalBg.faceplateDataRawMap = new Map(faceplateData);
+		console.log(modalBg.faceplateDataRawMap);
 	}
 	else {
 		alert(`timeout`);
@@ -1118,11 +1157,20 @@ function createControlGroup(el) {
 	}
 	else if (range === 2) {			
 		//createTriggerBtn (Einmalig...); radioBtnByName
-		const checkbox = document.createElement('input');
-		controlGroup.appendChild(checkbox);
-		checkbox.type = (name.match(/(einmalig)\s*(ein|aus)(schalten)/i)) ? `radio` : `checkbox`;
-		checkbox.name = (checkbox.type === `radio`) ? `triggerBtnOnOff` : undefined;
-		checkbox.checked = !!wert;
+		if (name.match(/(einmalig)\s*(ein|aus)(schalten)/i)) {
+			const radioBtn = document.createElement('input');
+			controlGroup.appendChild(radioBtn);
+			radioBtn.type = `radio`;
+			radioBtn.classList.add(`radioBtn${(name.match(/(ausschalten)/i)) ? `Aus` : `Ein`}`);
+			radioBtn.name = `triggerBtnOnOff`;
+			radioBtn.checked = !!wert;
+		}
+		else {
+			const checkbox = document.createElement('input');
+			controlGroup.appendChild(checkbox);
+			checkbox.type = `checkbox`;
+			checkbox.checked = !!wert;
+		}
 	}
 	else if (range === 3 && minimum === 0) {
 		//KalenderBtn
@@ -1146,7 +1194,7 @@ function createControlGroup(el) {
 			radioBtn.classList.add(`radioBtn${name}`);
 			radioBtn.title = name;
 			radioBtn.value = name;
-			radioBtn.checked == (wert === BAstringToInt(name));
+			radioBtn.checked = (wert === BAtoInt(name));
 		});
 	}	
 	else if (range > 4) {
@@ -1184,13 +1232,11 @@ function createControlGroup(el) {
 	return controlGroup;
 }
 
-function BAstringToInt(BAstring) {
+function BAtoInt(BAstring) {
 	//Handwert & BA Kombi: [-1] = Aus, [0] = Auto, [1] = Ein + interner Sollwert
-	return 	(BAstring.match(/(aus)|(stopp)/i)) ? -1 :
-			(BAstring.match(/(auto)/i)) ? 0 :
-			(BAstring.match(/(ein)|(auf)/i)) ? 1 :
-			(BAstring.match(/(zu)/i)) ? 2 :
-			undefined
+	//`on` is defaultValue for radio&checkboxEl...
+	const BAmap = new Map([[`Auto`, 0], [`Hand`, `>=2`], [`Ein`, 1], [`Aus`, -1], [`Auf`, 1], [`Zu`, 2], [`Stopp`, -1], [`on`, 1]]);
+	return BAmap.get(BAstring);
 }
 
 function initControlGroup(divRtosVar) {
@@ -1210,32 +1256,36 @@ function initControlGroup(divRtosVar) {
 }
 
 function buildFaceplate(fpVarObjects) {
+	document.querySelector(`.modalFooterConfirmBtn`).toggleAttribute(`disabled`, !document.querySelector(`.lockStatus`).unlocked);
+
 	fpVarObjects.forEach(fpVarObj => {
 		const {name, lblName, wert, unit, decPlace, rtosKey, formatIndicator} = fpVarObj;
 		const legendTxt = (formatIndicator === `S`) ? name :
 						  (rtosKey.includes(`BA`)) ? undefined :
-						  (name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/)) ? name :
+						  (name.match(/(Betriebsart)|([kK]alender)|(Tagbetrieb)/)) ? name :
 						  (name.includes(`NennVL`)) ? `Parameter Heizkurve` :
 						  (name.includes(`20 &degC`)) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
 						  (name.includes(`Tagbetrieb`)) ? `Partytaster` :
 						  undefined;
 		
-		if (legendTxt) {
-			//create 'n' init fieldset
-			const newFieldset = document.createElement('fieldset');
-			document.querySelector('.modalBody').appendChild(newFieldset);
-			newFieldset.setAttribute(`legend`, legendTxt);
-			const legend = document.createElement(`legend`);
-			newFieldset.appendChild(legend);
-			legend.innerText = legendTxt;
-			const newFieldsetContainer = document.createElement(`div`);	//fieldsetContainer needed bc gridLayout fails for fieldsetEl´s
-			newFieldset.appendChild(newFieldsetContainer);
-		}
-		
 		if (fpVarObj.formatIndicator === `H`) {
 			document.querySelector(`.modalHeader h3`).innerText = `Einstellungen für ${wert}`;
 		}
 		else {
+			if ((!document.querySelector(`.modalBody fieldset:last-child > div`)) || legendTxt) {
+				//create 'n' init fieldset
+				const newFieldset = document.createElement('fieldset');
+				document.querySelector('.modalBody').appendChild(newFieldset);
+				const newFieldsetContainer = document.createElement(`div`);	//fieldsetContainer needed bc gridLayout fails for fieldsetEl´s
+				newFieldset.appendChild(newFieldsetContainer);
+				if (legendTxt) {
+					newFieldset.setAttribute(`legend`, legendTxt);
+					const legend = document.createElement(`legend`);
+					newFieldset.insertBefore(legend, newFieldsetContainer);
+					legend.innerText = legendTxt;
+				}
+			}
+		
 			const fieldsetContainer = document.querySelector(`.modalBody fieldset:last-child > div`);
 			const controlGroup = createControlGroup(fpVarObj);
 			fieldsetContainer.appendChild(controlGroup);
@@ -1256,50 +1306,9 @@ function buildFaceplate(fpVarObjects) {
 			});
 		}
 	});
-
-
-	/*
-	let fpSection;
-	fpVarObjects.forEach(fpVarObj => {
-		const {wert, name} = fpVarObj;
-		
-		if (fpVarObj.formatIndicator.match(/H/i)) {
-			document.querySelector(`.modalHeader h3`).innerText = `Einstellungen für ${wert}`;
-		}
-		
-		const zwischenüberschrift = fpVarObj.formatIndicator.match(/S/i) || name.match(/(Betriebsart)|(Wochenkalender)|(Tagbetrieb)/) ? name :
-									name.includes(`NennVL`) ? `Parameter Heizkurve` :
-									name.includes(`20 &degC`) ? `Pumpenkennlinie\n(nach Außentemperatur)` :
-									name.includes(`Tagbetrieb`) ? `Partytaster` :
-									undefined;
-		
-		if (zwischenüberschrift || !fpSection) {
-			//Beginn neue Section
-			//neue Section erzeugen & anhängen
-			fpSection = document.createElement('div');
-			const modalBody = document.querySelector('.modalBody');
-			(zwischenüberschrift === `Partytaster`) ? modalBody.insertBefore(fpSection, modalBody.firstElementChild) : modalBody.appendChild(fpSection);
-			fpSection.classList.add(`fpSection`);
-			
-			//Zwischenüberschrift erzeugen & anhängen
-			const h5fpSection = document.createElement('h5');
-			fpSection.appendChild(h5fpSection)
-			if (zwischenüberschrift) {
-				h5fpSection.innerText = zwischenüberschrift;
-			}
-		}
-		
-		//FP-Zeile erzeugen
-		if (fpVarObj.formatIndicator.toUpperCase() != 'H' && wert) {
-			const divRtosVar = createControlGroup(fpVarObj);
-			fpSection.appendChild(divRtosVar);
-			initControlGroup(divRtosVar);
-		}
-	});
-	*/
 }
 
-function jumpToWochenKalender(target){
+function jumpToWochenKalender(target) {
 	//1.Deaktivieren Autoreload Funktion beim Fernbedienung ? (überlegung)
 	clearInterval(fernbedienungAutoReload);
 	//2.Der Wert 'HK Wochenkalender' wird auf 1 geändert und zurückübertragen (gesamte 20 Zeile)
