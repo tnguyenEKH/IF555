@@ -1,3 +1,7 @@
+/********************* COLORS *********************/
+const LOCALE = true;
+const TOUCHDISPLAY = LOCALE;
+
 const ESC = `\x1b`;
 
 /********************* COLORS *********************/
@@ -92,8 +96,11 @@ window.addEventListener('load', function () {
   init();
 }, false);
 
-
 async function init() {
+  if (TOUCHDISPLAY) {
+    appendOSK(document.body);
+    hideOsk();
+  }
   initVisu();
 	/*Initialize layout, static variable....*/	
   let fetchedData = await fetchTxt(QHHeaderFile);
@@ -1214,32 +1221,50 @@ $(document).keydown(function (event) {
 */
 
 /*************Hilfsfunktionen------------------*/
-function createOSK(layout, keyDownIntervalMs = 20) {
+function showOsk() {
+  document.querySelector(`.osk[layout]`).style.display = `grid`;
+}
+function hideOsk() {
+  document.querySelector(`.osk[layout]`).style.display = `none`;
+}
+function appendOSK(target, layout = `default`, allowMultipleOSKs = false, keyDownIntervalMs = 20) {
+  const existingOsk = document.querySelector(`.osk[layout]`);
+  const oskParent = (existingOsk) ? existingOsk.parentNode : undefined;
+  if (!allowMultipleOSKs && existingOsk) {
+    existingOsk.remove();
+  }  
+  const targetParent = (target) ? target : (oskParent) ? oskParent : undefined;
+  if (targetParent) {
+    const osk = createOSK(layout, keyDownIntervalMs);
+    targetParent.appendChild(osk);
+    return osk;
+  }
+}
+function createOSK(layout = `default`, keyDownIntervalMs = 20) {
   const osk = document.createElement(`div`);
   osk.classList.add(`osk`);
   osk.setAttribute(`layout`, layout);
   const layoutStr = (layout.match(/num/i)) ?
-   `"_7 _8 _9 №"
+  `"_7 _8 _9 №"
     "_4 _5 _6 ⌫"
     "_1 _2 _3 ⏎"
     "_0 ↑ . ⏎"
     "← ↓ → ⏎"`
   : (layout.match(/min/i)) ?
-   `"ƒ ↑ ⏎"
+  `"ƒ ↑ ⏎"
     "← ↓ →"`
   :
-   `"␛ _1 _2 _3 _4 _5 _6 _7 _8 _9 _0 ß ⌫"
+  `"␛ _1 _2 _3 _4 _5 _6 _7 _8 _9 _0 ß ⌫"
     "↹ q w e r t z u i o p ü ␡"
     "⇫ a s d f g h j k l ö ä ⏎"
     "⇧ y x c v b n m . - __ ↑ ⏎"
-    "№ ƒ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ← ↓ →"`;//*/
-  
-  
+    "№ ƒ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ␠ ← ↓ →"`;//*/    
 
-  osk.style.position = `absolute`;
-  osk.style.bottom = `0px`;
-  osk.style.width = `100%`;
+  //osk.style.position = `absolute`;
+  //osk.style.bottom = `0px`;
+  //osk.style.width = `100%`;
   //osk.style.height = `100%`;
+  osk.style.gridArea = `osk`;
   osk.style.display = `grid`;
   osk.style.gridTemplateAreas = layoutStr;//`"1 2 3"`;
   
@@ -1258,6 +1283,26 @@ function createOSK(layout, keyDownIntervalMs = 20) {
       oskKey.style.borderStyle = `inset`;
     }
   });
+
+  const supportedElements = `textarea:not([readonly]):not([disabled]), [type=text]:not([readonly]):not([disabled]), [type=password]:not([readonly]):not([disabled]), [type=number]:not([readonly]):not([disabled])`
+  
+  document.body.addEventListener(`focusin`, oskFocusedElementEventHandler);
+  document.body.addEventListener(`focusout`, oskFocusedElementEventHandler);
+  function oskFocusedElementEventHandler (ev) {
+    if (ev.type === `focusout`) {
+      hideOsk();
+    }
+    else if (ev.target.matches(supportedElements)) {
+      const currentLayout = document.querySelector(`.osk[layout]`).getAttribute(`layout`);
+      if (ev.target.matches(`[type=number], [type=password]`) && !currentLayout.match(/(num)/i)) {
+        appendOSK(undefined, `num`);
+      }
+      else if (!currentLayout.match(/(default)/i)) {
+        appendOSK();
+      }
+      showOsk();
+    }
+  }
 
   osk.addEventListener(`mousedown`, oskMousedownEventHandler);
   osk.addEventListener(`touchstart`, oskMousedownEventHandler);
@@ -1280,7 +1325,7 @@ function createOSK(layout, keyDownIntervalMs = 20) {
     const key = ev.target;
     const keyVal = key.value;
     const osk = key.closest(`.osk`);
-    const focusedInput = (document.activeElement.matches(`input:not(.osk input)`)) ? document.activeElement : null;
+    const focusedInput = (document.activeElement.matches(supportedElements)) ? document.activeElement : null;
 
     if (osk.timerStartKeyDown) {
       osk.timerStartKeyDown = undefined;
@@ -1331,10 +1376,9 @@ function createOSK(layout, keyDownIntervalMs = 20) {
       document.activeElement.blur();
     }
     else if (keyVal === `№`) {
-      const existingOsk = key.closest(`.osk`);
-      const oskParent = existingOsk.parentNode;
-      existingOsk.remove();
-      oskParent.appendChild(createOSK(`${(existingOsk.getAttribute(`layout`).match(/num/i)) ? `` : `num`}`));
+      oskMouseupEventHandler(ev);
+      const layout = (key.closest(`.osk`).getAttribute(`layout`).match(/num/i)) ? `default` : `num`;
+      appendOSK(undefined, layout);
     }
     else if (keyVal === `⇫`) {
       const capsLock = osk.toggleAttribute(`caps-lock`);
@@ -1374,8 +1418,10 @@ function createOSK(layout, keyDownIntervalMs = 20) {
         //uncheck ShiftKey
         osk.removeAttribute(`shift`);
         const shiftKey = osk.querySelector(`input[type=button][value=⇧]`);
-        shiftKey.style.backgroundColor = ``;
-        shiftKey.style.borderStyle = ``;
+        if (shiftKey) {
+          shiftKey.style.backgroundColor = ``;
+          shiftKey.style.borderStyle = ``;
+        }
 
         //return to lowerCase if not caps-lock
         if (!osk.matches(`[caps-lock]`)) {
@@ -1386,6 +1432,10 @@ function createOSK(layout, keyDownIntervalMs = 20) {
         focusedInput.selectionStart = selectionStart + 1;
       }
       focusedInput.selectionEnd = focusedInput.selectionStart;
+      //workaround pinInputEventHandler(): inputEvent doesn't trigger on oskInput...
+      if (focusedInput.value.length === parseInt(focusedInput.getAttribute(`maxlength`))) {
+        document.querySelector(`.modalFooterConfirmBtn`).focus();
+      }
     }
   };
 

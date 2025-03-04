@@ -15,9 +15,11 @@ const FACEPLATE_DATA_URL = `http://172.16.0.102/JSONADD/GET?p=5&Var=all`;
 //Einstellungen Visualisierungen
 const MAX_TIME_DELTA_MPC_MS = 900000; //15min
 const AUTOLOCK_TIMEOUT = 1200000; //20min
-var locked = !DEVMODE;
 
 async function initVisu() {
+	if (!LOCALE) {
+		document.querySelector(`.lockStatus`).style.display = `none`;
+	}
 	const visudata = await getVisuData(DEPLOYED_VISU_FILE);
 	DrawVisu(visudata);
 	switchVisuTab(visudata);
@@ -749,6 +751,7 @@ async function visuBtnClickEventHandler(ev) {
 }
 
 async function modalBgClickEventHandler(ev) {
+	//console.log(ev.target);
 	//confirm
 	if (ev.target.matches(`.modalFooterConfirmBtn`)) {
 		if (document.querySelector(`.pinInputContainer:not(.displayNone)`)) {
@@ -766,7 +769,7 @@ async function modalBgClickEventHandler(ev) {
 	}
 
 	//cancel
-	if (ev.target.matches(`.modalBg, .close, .modalFooterCancelBtn`)) {
+	if (ev.target.matches(`.close, .modalFooterCancelBtn`)) {
 		closeModal();
 	}	
 }
@@ -778,6 +781,7 @@ function closeModal() {
 	modalBg.querySelectorAll(`.modalBody > *`).forEach(modalBodyChild => modalBodyChild.classList.add(`displayNone`));
 	modalBg.querySelector(`.modalFooter`).classList.remove(`hidden`);
 	destroyFaceplateElements(`fieldset`);
+	hideOsk();
 }
 async function validateVisuPin() {
 	const hash = await fetchTxt(HASH_FILE_URL);
@@ -818,6 +822,7 @@ function hidePinHandler() {
 	inputPin.type = (hidePin) ? `password` : `text`;
 }
 function pinInputEventHandler(ev) {
+	//console.log(`pinInputEventHandler`);
 	if (ev.target.value.length === parseInt(ev.target.getAttribute(`maxlength`))) {
 		document.querySelector(`.modalFooterConfirmBtn`).focus();
 	}
