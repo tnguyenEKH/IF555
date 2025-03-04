@@ -703,15 +703,16 @@ async function visuBtnClickEventHandler(ev) {
 		textarea.classList.remove(`displayNone`);
 		const h3 = content.querySelector(`h3`);
 
+		
 		if (link === `alarms`) {
 			const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
 			updateConnectionStatus(!!liveDataRaw);
 			h3.innerText = `Aktuelle Störungen:`;
-			const alarms = parseAlarms(liveDataRaw);
-			let alarmTxt = (alarms.length) ? `` : `keine anstehenden Störungen`;
-			alarms.forEach(alarm => alarmTxt += `${alarm.id.padStart(3, ` `)}   ${alarm.txt}\n`);
-			textarea.setAttribute(`rows`, alarms.length + 1);
-			const columnCount = Math.max(...alarmTxt.split(`\n`).map(el => el.length));
+			const alarms = parseAlarms(liveDataRaw).map(alarm => `${alarm.id.padStart(3, ` `)}   ${alarm.txt}`);
+			//console.log(alarms);
+			const alarmTxt = (alarms.length) ? alarms.toString().replaceAll(`,`, `\r`) : `keine anstehenden Störungen`;
+			textarea.setAttribute(`rows`, alarms.length);
+			const columnCount = Math.max(...alarmTxt.split(`\r`).map(el => el.length));
 			textarea.setAttribute(`cols`, columnCount);
 			textarea.value = alarmTxt;
 		}
