@@ -615,21 +615,28 @@ function drawTextList(visudata) {
 		htmlEl.setAttribute(`tab-idx`, txtEl.bmpIndex);
 		htmlEl.style.font = txtEl.font;
 		htmlEl.style.color = txtEl.Color;
-		htmlEl.style.background = txtEl.BgColor;
+		//htmlEl.style.background = txtEl.BgColor;
+		htmlEl.style.opacity = `.5`;
 
 		const paddingAsPx = (txtEl.isVerweis) ? 6 : 0;
 		const rotation = (txtEl.VerweisAusrichtung == "up") ? -90 : (txtEl.VerweisAusrichtung == "dn") ? 90 : undefined;
 		if (rotation) {
 			//ToDo: translate Calc!
-			//const htmlElBox = htmlEl.getBoundingClientRect();
-			console.log(htmlEl.clientWidth);
-			htmlEl.style.transform = `translate(${-htmlEl.clientWidth/2}px,0) rotate(${0}deg)`;
+			htmlEl.style.left = `${txtEl.x - htmlEl.clientWidth/4}px`;// - paddingAsPx}px`;
+			htmlEl.style.top = `${txtEl.y}px`;// - parseInt(txtEl.font) - paddingAsPx}px`;
+			const htmlElBox = htmlEl.getBoundingClientRect();
+			console.log(htmlEl.clientWidth, htmlEl.offsetWidth, htmlEl.scrollWidth, htmlEl.width, htmlElBox.width);
+			console.log(txtEl.x);
+			console.log(htmlElBox);
+			htmlEl.style.transform = `translate(${0}px, ${0}px) rotate(${0}deg)`;
 			//const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
 			//htmlEl.style.transform = `rotate(${rotation}deg) translate(${(rotatedHtmlElBox.left - htmlElBox.left)/2 - paddingAsPx}px, ${(rotatedHtmlElBox.top - htmlElBox.top + paddingAsPx)/2}px)`;
 		}
+		else {
+			htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
+			htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
+		}
 		
-		htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
-		htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
 		
 		if (txtEl.isVerweis) {
 			htmlEl.type = `button`;

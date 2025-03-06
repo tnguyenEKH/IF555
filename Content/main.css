@@ -103,9 +103,12 @@ body > * {
 	grid-area: modalHeader;
 	color: var(--whiteGrey);
 	background-color: var(--cyan);
-	grid-auto-flow: column;
+	grid-template-columns: auto min-content;
 	align-items: center;
 	justify-items: center;
+}
+.close {
+	padding: var(--padding);
 }
 .modalContent.alarms > .modalHeader,
 .modalContent.alarms > .modalFooter {
@@ -117,12 +120,13 @@ body > * {
 	align-items: center;
 	justify-items: center;
 }
-textarea {
+.modalBody textarea {
 	font-size: 1.1rem;
 	resize: none;
+	margin: var(--margin);
 }  
 .modalBody fieldset {
-	width: 90%;
+	width: 93%;
 }
 .modalBody fieldset > div {
 	display: grid;

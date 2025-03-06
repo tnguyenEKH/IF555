@@ -35,6 +35,14 @@ const mpcJsonAddUrl = `http://172.16.0.102/JSONADD/`;
 const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
 const mpcJsonPutUrl = `${mpcJsonAddUrl}PUT?`;
 
+//p=[1-6] available:
+//p=1: v011: 0xStatus; v012: 0xDisplayStatus, v013: xDisplayRot, v014: xDisplayRot, v015: zDisplayRot
+//p=2: v016-v033: Displayzeilen (klein 46x18), v034: displayStatus, v035-v037: xyz-redTxt
+//p=3: v038-v059: Displayzeilen (gross 80x22), v060: displayStatus, v061-v063: xyz-redTxt
+//p=4: v064: connectedUsers, v065: ProjectName, v066-069: unknown
+//p=5: v070-v089: FaceplateData
+//p=6: v090-v109: FaceplateResponseData
+
 const dataUrl = `${mpcJsonGetUrl}p=2&Var=all`;
 const kalenderUrl = `${mpcJsonGetUrl}p=3&Var=all`;
 const benachrichtigungsUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
@@ -419,9 +427,14 @@ async function reloadFernbedienung(canvas, data) {
       if (tastzaehler < 2) {                             
         tastzaehler=0;
       } 
-	  if(data == undefined){
+	  if(data == undefined) {
 		  data = await fetchJSON(dataUrl);
-		  //data = JSON.parse(jsonData);
+      /*
+      console.log(data);
+      for(let i = 1; i <= 6; i++) {
+         console.log(`p${i}`, await fetchJSON(`${mpcJsonGetUrl}p=${i}&Var=all`));
+      }
+      */
 	  }
 	  else{
 		  data = data;
@@ -429,14 +442,18 @@ async function reloadFernbedienung(canvas, data) {
       var x = data['v035'] - 1; //spalte, wo die texte anfang "rot" sein soll
       var y = data['v036'] + 15;    //Zeile, wo die Texte rot markiert werden soll
       var z = data['v037'];   //Anzahl der Zeichen, die rot markiert werden soll
-      var s = data['v034'];   // DISPSTATUS  
+      var s = data['v034'];   
+      // DISPSTATUS(v034):
+      // MSB(Bit0): standardausgabe (klein p=2), Bit1: halb-rot-ausgabe (klein p=2), Bit2/3: große ausgabe (p=3)
+      // Bit29: MPC busy creating viertdat.txt, Bit30: enter `T` to enter NUMBER, Bit31: enter `T` to enter STRING
       var variableName = "";
       var textToDisplay = "";
       var textToReplace = "";
       var rotText = "";
       var html = "";
       var rotHtml = "";
-      var str = b32(s);
+      var str = hexToBinary(s);
+      //console.log(str);
       var xpos= 1;                  //  Positionsvariable auf dem CANVAS  x (Pixel) 
       var ypos= 1;                  //  Positionsvariable auf dem CANVAS  y (Pixel)
       stat1=str.charAt(0);          // 1: normale Ausgabe rot ab x,y fuer z Zeichen 
@@ -1480,9 +1497,11 @@ function ojbCounts(obj) {
  * Return a string representing n as a 32-bit unsigned integer,
  * in binary notation.
  */
-function b32(n) {
+function hexToBinary(val) {
+  const byteCount = val.replace(`0x`, ``).length / 2;
+  const bitCount = 8 * byteCount;
   // >>> ensures highest bit isn’t interpreted as a sign
-  return (n >>> 0).toString(2).padStart(32, '0');
+  return (val >>> 0).toString(2).padStart(bitCount, '0');
 }
 
 //string.replace does not work with the week-year calendar. Because the data contain only 1 and 0. The built-in function won't work
