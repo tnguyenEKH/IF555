@@ -3,6 +3,7 @@ const LOCALE = true;
 const TOUCHDISPLAY = LOCALE;
 
 const ESC = `\x1b`;
+const DEL = `\x7f`; //Btns in MPC Terminal
 
 /********************* COLORS *********************/
 //Colors here in rgb, because style.color will return rgb-format
@@ -36,9 +37,9 @@ const mpcJsonGetUrl = `${mpcJsonAddUrl}GET?`;
 const mpcJsonPutUrl = `${mpcJsonAddUrl}PUT?`;
 
 //p=[1-6] available:
-//p=1: v011: 0xStatus; v012: 0xDisplayStatus, v013: xDisplayRot, v014: xDisplayRot, v015: zDisplayRot
-//p=2: v016-v033: Displayzeilen (klein 46x18), v034: displayStatus, v035-v037: xyz-redTxt
-//p=3: v038-v059: Displayzeilen (gross 80x22), v060: displayStatus, v061-v063: xyz-redTxt
+//p=1: v011: 0xUnknownStatus; v012: 0xDisplayStatus, v013: xDisplayRot, v014: xDisplayRot, v015: zDisplayRot
+//p=2: v016-v033: Displayzeilen (klein 46x18), v034: 0xDisplayStatus, v035-v037: xyz-redTxt
+//p=3: v038-v059: Displayzeilen (gross 80x22), v060: 0xDisplayStatus, v061-v063: xyz-redTxt
 //p=4: v064: connectedUsers, v065: ProjectName, v066-069: unknown
 //p=5: v070-v089: FaceplateData
 //p=6: v090-v109: FaceplateResponseData
@@ -49,7 +50,7 @@ const benachrichtigungsUrl = `${mpcJsonGetUrl}p=4&Var=sel&V064`;
 const getSteuerungNameUrl = `${mpcJsonGetUrl}p=4&Var=sel&V065`;
 
 const menuLink = `${mpcJsonPutUrl}V004=`;
-const TastURL = `${mpcJsonPutUrl}V010=`;
+const keyInputUrl = `${mpcJsonPutUrl}V010=`;
 const textInputUrl = `${mpcJsonPutUrl}V007=`;
 
 const piDataUrl = `http://172.16.0.101/Data/`;
@@ -110,6 +111,8 @@ async function init() {
     hideOsk();
   }
   initVisu();
+  //reloadTerminal(dataUrl);
+  reloadTerminal(kalenderUrl);
 	/*Initialize layout, static variable....*/	
   let fetchedData = await fetchTxt(QHHeaderFile);
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
@@ -134,8 +137,8 @@ async function init() {
       console.log(data, data.v016.length);
       */
   const displayCanvas = document.querySelector(`#DisplayCanvas`);
-	initCanvas(displayCanvas);
-  reloadFernbedienung(displayCanvas);
+	//initCanvas(displayCanvas);
+  //reloadFernbedienung(displayCanvas);
   /*
 	initCanvas(document.querySelector(`#settingFromVisuCanvas`));
 	*/
@@ -263,7 +266,8 @@ function initCanvas(canvasName) {
             var ypos = Math.round((y - 76) / 30) - 1;
             var xpos = Math.round((x - 50) / 5);
             var maus = Math.round(4001 + ypos * 144 + xpos)
-            var TastURLId = TastURL + maus;
+            var TastURLId = keyInputUrl + maus;
+            console.log(maus);
             const responsePromise = fetchJSON(TastURLId);
         }
         else {
@@ -338,7 +342,8 @@ function initCanvas(canvasName) {
 		}
 			
 		var maus = Math.round(1000+yr*100+xr) 
-		var TastURLId = TastURL + maus;
+		var TastURLId = keyInputUrl + maus;
+    console.log(maus);
 		const responsePromise = fetchJSON(TastURLId);
 	  }
 
@@ -409,6 +414,90 @@ function timeweek (canvasContext) {
   }
 }
 
+async function reloadTerminal(url = kalenderUrl) {
+  const terminalData = await fetchJSON(url);
+  const terminalDataArray = Object.values(terminalData);
+  const redTxtLength = terminalDataArray.pop();
+  const redTextRowStart = constrain(terminalDataArray.pop() - 1, 0); //mpcDataIdxBase = 1 => idx-1 to get 0-basedIdxs; 
+  const redTextCol = constrain(terminalDataArray.pop() - 1, 0); //mpcDataIdxBase = 1 => idx-1 to get 0-basedIdxs
+  const displayStatus = hexToBinaryString(terminalDataArray.pop());
+  const isHomeDisplay = !!parseInt(displayStatus[1]);
+  const redTextColStartHome = 20;
+  const redTextColStart = (isHomeDisplay) ? redTextColStartHome : redTextCol;
+  const redTextColEnd = (isHomeDisplay) ? undefined : redTextColStart + redTxtLength;
+
+
+  //console.log(terminalDataArray, redTextRowStart, redTextColStart, redTextColEnd);
+
+  document.querySelector(`.mpcTerminal`).remove();
+  const mpcTerminal = document.createElement(`div`);
+  document.querySelector(`#fernbedienungDisplay .container`).appendChild(mpcTerminal);
+  mpcTerminal.classList.add(`mpcTerminal`);
+
+  terminalDataArray.forEach((rowString, rowIdx) => {
+    const rowSpan = document.createElement(`span`);
+    mpcTerminal.appendChild(rowSpan);
+
+    const leftBlackSpan = document.createElement(`span`);
+    if (rowIdx < redTextRowStart || (!isHomeDisplay && redTxtLength === 0)) {
+      rowSpan.appendChild(leftBlackSpan);
+      leftBlackSpan.innerText = rowString;
+      if (rowString.includes(DEL)) {
+        leftBlackSpan.setAttribute(`terminalbtn-col-idx`, rowString.indexOf(DEL));
+        leftBlackSpan.setAttribute(`terminalbtn-row-idx`, rowIdx);
+        leftBlackSpan.setAttribute(`cursorStyle`, `pointer`);
+        leftBlackSpan.addEventListener(`click`, mpcTerminalClickEventHandler);
+      }
+    }
+    else {
+      if (redTextColStart > 0) {
+        rowSpan.appendChild(leftBlackSpan);
+        const leftBlackString = rowString.slice(0, redTextColStart);
+        leftBlackSpan.innerText = leftBlackString
+        if (leftBlackString.includes(DEL)) {
+          leftBlackSpan.setAttribute(`terminalbtn-col-idx`, rowString.indexOf(DEL));
+          leftBlackSpan.setAttribute(`terminalbtn-row-idx`, rowIdx);
+          leftBlackSpan.setAttribute(`cursorStyle`, `pointer`);
+          leftBlackSpan.addEventListener(`click`, mpcTerminalClickEventHandler);
+        }
+      }
+
+      const redSpan = document.createElement(`span`);
+      rowSpan.appendChild(redSpan);
+      redSpan.setAttribute(`color`, `magenta`);
+      const redString = rowString.slice(redTextColStart, redTextColEnd);
+      redSpan.innerText = redString;
+      if (redString.includes(DEL)) {
+        redSpan.setAttribute(`terminalbtn-col-idx`, rowString.indexOf(DEL));
+        redSpan.setAttribute(`terminalbtn-row-idx`, rowIdx);
+        redSpan.setAttribute(`cursorStyle`, `pointer`);
+        redSpan.addEventListener(`click`, mpcTerminalClickEventHandler);
+      }
+
+      if (redTextColEnd) {
+        const rightBlackSpan = document.createElement(`span`);
+        rowSpan.appendChild(rightBlackSpan);
+        const rightBlackString = rowString.slice(redTextColEnd);
+        rightBlackSpan.innerText = rightBlackString;
+        if (rightBlackString.includes(DEL)) {
+          rightBlackSpan.setAttribute(`terminalbtn-col-idx`, rowString.indexOf(DEL));
+          rightBlackSpan.setAttribute(`terminalbtn-row-idx`, rowIdx);
+          rightBlackSpan.setAttribute(`cursorStyle`, `pointer`);
+          rightBlackSpan.addEventListener(`click`, mpcTerminalClickEventHandler);
+        }
+      }
+    }
+  });
+}
+async function mpcTerminalClickEventHandler(ev) {
+  const colIdx = parseInt(ev.target.getAttribute(`terminalbtn-col-idx`)) + 1; //pearl has base-1-idxs
+  const rowIdx = parseInt(ev.target.getAttribute(`terminalbtn-row-idx`)) + 1; //pearl has base-1-idxs
+  const keyVal = 1000 + 100*rowIdx + colIdx;
+  console.log(`${keyInputUrl}${keyVal}`);
+  const responsePromise = await fetchJSON(`${keyInputUrl}${keyVal}`);
+  asyncTimeout(reloadTerminal, 50);
+}
+
 
 async function reloadFernbedienung(canvas, data) {
 	const ctx = canvas.getContext(`2d`);
@@ -452,7 +541,7 @@ async function reloadFernbedienung(canvas, data) {
       var rotText = "";
       var html = "";
       var rotHtml = "";
-      var str = hexToBinary(s);
+      var str = hexToBinaryString(s);
       //console.log(str);
       var xpos= 1;                  //  Positionsvariable auf dem CANVAS  x (Pixel) 
       var ypos= 1;                  //  Positionsvariable auf dem CANVAS  y (Pixel)
@@ -1092,12 +1181,15 @@ function tabSwitchHandler(target) {
 
 	if (target.id == "fernbedienung") {
     const displayCanvas = document.querySelector(`#DisplayCanvas`);
-    reloadFernbedienung(displayCanvas);
-    document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, displayCanvas);
+    reloadTerminal();
+    //document.body.timerReloadTerminal = setInterval(reloadTerminal, 50);
+    //reloadFernbedienung(displayCanvas);
+    //document.body.timerFernbedienung = setInterval(reloadFernbedienung, 50, displayCanvas);
 		updateConnectedUsers();
     document.body.timerConnectedUsers = setInterval (updateConnectedUsers, 5000);
 	}
   else {
+    clearInterval(document.body.timerReloadTerminal);
     clearInterval(document.body.timerFernbedienung);
     clearInterval(document.body.timerConnectedUsers);
   }
@@ -1156,7 +1248,7 @@ function EthernetButtonHanlder(id) {      /* <<< */
   if (id == "btnEnter") var Tast='13';
   
 
-  var TastURLId = TastURL + Tast;
+  var TastURLId = keyInputUrl + Tast;
   const responsePromise = fetchJSON(TastURLId);
   if (zykzaehler > einmalholen) {
     zykzaehler=einmalholen;
@@ -1214,7 +1306,7 @@ $(document).keydown(function (event) {
 		}
 
 		if (tastascii > 0) {
-			var TastURLId = TastURL + tastascii;
+			var TastURLId = keyInputUrl + tastascii;
 			const responsePromise = fetchJSON(TastURLId);
 		}
 		
@@ -1382,7 +1474,7 @@ function createOSK(layout = `default`, keyDownIntervalMs = 20) {
                             (keyVal === `→`) ? `12` :
                             (keyVal === `⏎`) ? `13` :
                             undefined;
-          const responsePromise = fetchJSON(`${TastURL}${rtosKeyId}`);
+          const responsePromise = fetchJSON(`${keyInputUrl}${rtosKeyId}`);
         }
       }
     }
@@ -1497,7 +1589,7 @@ function ojbCounts(obj) {
  * Return a string representing n as a 32-bit unsigned integer,
  * in binary notation.
  */
-function hexToBinary(val) {
+function hexToBinaryString(val) {
   const byteCount = val.replace(`0x`, ``).length / 2;
   const bitCount = 8 * byteCount;
   // >>> ensures highest bit isn’t interpreted as a sign
