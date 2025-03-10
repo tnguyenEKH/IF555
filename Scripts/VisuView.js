@@ -611,7 +611,7 @@ function reAlignRotatedLinkBtns() {
 		const rotatedBtnBox = rotatedBtn.getBoundingClientRect();
 		const x = parseInt(rotatedBtn.style.left);
 		const y = parseInt(rotatedBtn.style.top);
-		console.log(rotatedBtnBox, x, y);
+		//console.log(rotatedBtnBox, x, y);
 		rotatedBtn.style.left = `${x - rotatedBtnBox.width/2}px`;
 		rotatedBtn.style.top = `${y - rotatedBtnBox.height}px`;
 		const verweisAusrichtung = rotatedBtn.getAttribute(`verweis-ausrichtung`);
@@ -1090,7 +1090,7 @@ function createControlGroup(el) {
 		btn.wert = (document.querySelector(`.lockStatus`).unlocked) ? 1 : 2;
 		btn.value = 'zum Kalender';
 		btn.title = `Absenkungswochenkalender öffnen${(document.querySelector(`.lockStatus`).unlocked) ? '' : ' (schreibgeschützt)'}`;
-		btn.addEventListener(`click`, (ev) => jumpToWochenKalender(ev.target));
+		btn.addEventListener(`click`, switchToCalender);
 	}
 	else if ((range === 3 || range === 4) && minimum === -1) {
 		//Betriebsart(BA)-Btns (Mischer/Ventile)
@@ -1191,6 +1191,36 @@ function buildFaceplate(fpVarObjects) {
 				}
 			});
 		}
+	});
+}
+
+function switchToCalender(ev) {
+	document.body.setAttribute(`cursorStyle`, `progress`);
+	const responsePromises = [];
+	const rtosKeyOffset = 20;
+	const calenderBtnRtosKey = ev.target.closest(`[rtos-key]`).getAttribute(`rtos-key`);
+	const modalBg = document.querySelector(`.modalBg`);
+	Object.entries(modalBg.verifyedFaceplateDataRaw).forEach(([requestRtosKey, requestDataString]) => {
+		let dataString = requestDataString;
+		if (requestRtosKey === calenderBtnRtosKey) {
+			const calenderModeVal = (document.querySelector(`.lockStatus`).unlocked) ? 2 : 1;
+			dataString = requestDataString.replace(`0`, calenderModeVal);
+		}
+
+		const rtosIdx = parseInt(requestRtosKey.match(/\d+/)) + rtosKeyOffset;
+		const rtosKey = `v${rtosIdx.toString().padStart(3, `0`)}`;
+		
+		const url = `${mpcJsonPutUrl}${rtosKey}=${encodeURIComponent(dataString)}`;
+		responsePromises.push(fetchJSON(url));
+	});
+	Promise.all(responsePromises).then(responses => {
+		Object.entries(responses).forEach(([idx, responseObject]) => {
+			if (responseObject.result !== `OK`) {
+				console.warn(`v${(parseInt(idx) + 70).toString().padStart(3, `0`)}: ${responseObject.result}`);
+			}
+		})
+		closeModal();
+		tabSwitchHandler(document.querySelector(`#fernbedienung`));
 	});
 }
 

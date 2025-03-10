@@ -638,7 +638,7 @@ async function reloadFernbedienung(data) {
           ctx.fillText("SO",  xpos, ypos); 
 
           if (statmouseweek) {
-            timeweek(canvasContext);
+            timeweek(ctx);
           }
 
       var Bheizkreis=0;    
@@ -1159,6 +1159,7 @@ function tabSwitchHandler(target) {
     //reloadTerminal();
     //document.body.timerReloadTerminal = setInterval(reloadTerminal, 50);
     reloadFernbedienung();
+    document.body.removeAttribute(`cursorStyle`);
     document.body.timerFernbedienung = setInterval(reloadFernbedienung, MPC_TERMINAL_RELOAD_INTERVAL_MS);
 		updateConnectedUsers();
     document.body.timerConnectedUsers = setInterval (updateConnectedUsers, 5000);
