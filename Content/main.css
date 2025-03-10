@@ -632,13 +632,13 @@ input[type = "button"].visuElement {
 	align-items: center;
 	justify-items: center;
 }
-[rotation = "90"]:not([type = "button"]) {
+[rotation = "90"] {
 	transform: rotate(90deg);
 }
-[rotation = "180"]:not([type = "button"]) {
+[rotation = "180"] {
 	transform: rotate(180deg);
 }
-[rotation = "270"]:not([type = "button"]) {
+[rotation = "270"] {
 	transform: rotate(270deg);
 }
 /*********************FP-Element Redesign*********************/

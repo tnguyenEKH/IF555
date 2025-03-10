@@ -23,6 +23,7 @@ async function initVisu() {
 	const visudata = await getVisuData(DEPLOYED_VISU_FILE);
 	DrawVisu(visudata);
 	switchVisuTab(visudata);
+	reAlignRotatedLinkBtns();
 
 	const liveDataRaw = await fetchTxt(LIVE_DATA_URL);
 	if (updateConnectionStatus(!!liveDataRaw)) {
@@ -604,10 +605,27 @@ function updateLiveDataElements(liveDataItems) {
 	});
 }
 
+function reAlignRotatedLinkBtns() {
+	//rotation- & reposition-Handling due to different rotationPoints of htmlEl & canvas(old)
+	document.querySelectorAll(`[verweis-ausrichtung]`).forEach(rotatedBtn => {
+		const rotatedBtnBox = rotatedBtn.getBoundingClientRect();
+		const x = parseInt(rotatedBtn.style.left);
+		const y = parseInt(rotatedBtn.style.top);
+		console.log(rotatedBtnBox, x, y);
+		rotatedBtn.style.left = `${x - rotatedBtnBox.width/2}px`;
+		rotatedBtn.style.top = `${y - rotatedBtnBox.height}px`;
+		const verweisAusrichtung = rotatedBtn.getAttribute(`verweis-ausrichtung`);
+		const rotation = (verweisAusrichtung === `up`) ? 270 :
+						 (verweisAusrichtung === `dn`) ? 90 :
+						 undefined;
+		rotatedBtn.removeAttribute(`verweis-ausrichtung`);
+		rotatedBtn.setAttribute(`rotation`, rotation);
+	});
+}
+
 // Aufruf Funktion
 function drawTextList(visudata) {
 	visudata.FreitextList.forEach(txtEl => {
-		//htmlElements
 		const vimgArea = document.querySelector(`#vimgArea`);
 		const htmlEl = document.createElement(`${(txtEl.isVerweis) ? 'input' : 'label'}`);
 		vimgArea.appendChild(htmlEl);
@@ -615,28 +633,15 @@ function drawTextList(visudata) {
 		htmlEl.setAttribute(`tab-idx`, txtEl.bmpIndex);
 		htmlEl.style.font = txtEl.font;
 		htmlEl.style.color = txtEl.Color;
-		//htmlEl.style.background = txtEl.BgColor;
-		htmlEl.style.opacity = `.5`;
+		htmlEl.style.background = txtEl.BgColor;
 
 		const paddingAsPx = (txtEl.isVerweis) ? 6 : 0;
-		const rotation = (txtEl.VerweisAusrichtung == "up") ? -90 : (txtEl.VerweisAusrichtung == "dn") ? 90 : undefined;
-		if (rotation) {
-			//ToDo: translate Calc!
-			htmlEl.style.left = `${txtEl.x - htmlEl.clientWidth/4}px`;// - paddingAsPx}px`;
-			htmlEl.style.top = `${txtEl.y}px`;// - parseInt(txtEl.font) - paddingAsPx}px`;
-			const htmlElBox = htmlEl.getBoundingClientRect();
-			console.log(htmlEl.clientWidth, htmlEl.offsetWidth, htmlEl.scrollWidth, htmlEl.width, htmlElBox.width);
-			console.log(txtEl.x);
-			console.log(htmlElBox);
-			htmlEl.style.transform = `translate(${0}px, ${0}px) rotate(${0}deg)`;
-			//const rotatedHtmlElBox = htmlEl.getBoundingClientRect();
-			//htmlEl.style.transform = `rotate(${rotation}deg) translate(${(rotatedHtmlElBox.left - htmlElBox.left)/2 - paddingAsPx}px, ${(rotatedHtmlElBox.top - htmlElBox.top + paddingAsPx)/2}px)`;
+		htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
+		htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
+		if (txtEl.VerweisAusrichtung && txtEl.VerweisAusrichtung.match(/(up)|(dn)/)) {
+			//rotationHandling is outsourced to reAlignRotatedLinkBtns() bc rendering seems not completed here, so repositioning would fail
+			htmlEl.setAttribute(`verweis-ausrichtung`, txtEl.VerweisAusrichtung);
 		}
-		else {
-			htmlEl.style.left = `${txtEl.x - paddingAsPx}px`;
-			htmlEl.style.top = `${txtEl.y - parseInt(txtEl.font) - paddingAsPx}px`;
-		}
-		
 		
 		if (txtEl.isVerweis) {
 			htmlEl.type = `button`;
@@ -655,45 +660,6 @@ function drawTextList(visudata) {
 		}
 	});
 }
-/*
-function drawTextList() {
-	var FreitextList = visudata.FreitextList;
-	var n = FreitextList.length;
-	LinkButtonList = [];	//LinkButtonList leeren -> wird nachfolgend neu erzeugt
-	for (i = 0; i < n; i++) {
-		var item = FreitextList[i];
-		if (FreitextList[i].bmpIndex == bmpIndex) {
-			var x = item.x;
-			var y = item.y;
-			var txt = item.Freitext;
-			vStatCtx.font = item.font;
-			vStatCtx.fillStyle = item.BgColor;
-			var w = vStatCtx.measureText(txt).width;
-
-			if (item.isVerweis) {
-				vStatCtx.save();
-				vStatCtx.translate(x, y);
-				if (item.VerweisAusrichtung == "up")
-					vStatCtx.rotate(-Math.PI / 2);
-				if (item.VerweisAusrichtung == "dn")
-					vStatCtx.rotate(Math.PI / 2);
-				if (item.BgColor) vStatCtx.fillRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vStatCtx.strokeStyle = "black";
-				vStatCtx.strokeRect(0 - 6, 0 - item.BgHeight - 6, w + 16, item.BgHeight + 16);
-				vStatCtx.fillStyle = item.Color;
-				vStatCtx.fillText(txt, 0, 0);
-				vStatCtx.restore();
-				addLinkButtonToList(x, y, w, item.BgHeight, item.VerweisAusrichtung, item.idxVerweisBitmap, txt);
-			}
-			else {
-				if (item.BgColor) vStatCtx.fillRect(x - 1, y - item.BgHeight - 1, w + 2, item.BgHeight + 3);
-				vStatCtx.fillStyle = item.Color;
-				vStatCtx.fillText(txt, x, y);
-			}
-		}
-	}
-}
-*/
 
 async function visuBtnClickEventHandler(ev) {
 	document.body.setAttribute(`cursorStyle`, `progress`);
