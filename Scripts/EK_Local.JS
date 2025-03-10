@@ -1162,11 +1162,18 @@ function tabSwitchHandler(target) {
     document.body.timerFernbedienung = setInterval(reloadFernbedienung, MPC_TERMINAL_RELOAD_INTERVAL_MS);
 		updateConnectedUsers();
     document.body.timerConnectedUsers = setInterval (updateConnectedUsers, 5000);
+    if (TOUCHDISPLAY) {
+      appendOSK(undefined, `min`);
+      showOsk();
+    }
 	}
   else {
     clearInterval(document.body.timerReloadTerminal);
     clearInterval(document.body.timerFernbedienung);
     clearInterval(document.body.timerConnectedUsers);
+    if (TOUCHDISPLAY) {
+      hideOsk();
+    }
   }
   
   if (target.id == "visualisierung") {
@@ -1211,26 +1218,6 @@ function updateConnectionStatus(status) {
   connectionStatus.classList.toggle(`errorHighlighter`, !status);
   return !!status;
 }
-
-/*****************Hanler für Button Click ******************/
-function EthernetButtonHanlder(id) {      /* <<< */  
-  if (id == "btnHome")	AnchorHandler(1);
-
-  if ((id == "btnUp") || (id == "btnUpVisu")) 	var Tast='11';
-  if ((id == "btnDown") || (id == "btnDownVisu"))	var Tast='10';
-  if ((id == "btnLeft") || (id == "btnLeftVisu"))	var Tast='8';
-  if ((id == "btnRight") || (id == "btnRightVisu")) var Tast='12';
-  if (id == "btnEnter") var Tast='13';
-  
-
-  var TastURLId = keyInputUrl + Tast;
-  const responsePromise = fetchJSON(TastURLId);
-
-  document.body.setAttribute(`cursorStyle`, `progress`);
-  asyncTimeout(reloadFernbedienung, MPC_TERMINAL_RELOAD_DELAY_AFTER_INPUT_MS);
-
-  document.getElementById("btnEnter").focus();
-}
 /*************Hilfsfunktionen------------------*/
 function showOsk() {
   document.querySelector(`.osk[layout]`).style.display = `grid`;
@@ -1240,21 +1227,28 @@ function hideOsk() {
 }
 function appendOSK(target, layout = `default`, allowMultipleOSKs = false, keyDownIntervalMs = 20) {
   const existingOsk = document.querySelector(`.osk[layout]`);
-  const oskParent = (existingOsk) ? existingOsk.parentNode : undefined;
-  if (!allowMultipleOSKs && existingOsk) {
-    existingOsk.remove();
-  }  
-  const targetParent = (target) ? target : (oskParent) ? oskParent : undefined;
-  if (targetParent) {
-    const osk = createOSK(layout, keyDownIntervalMs);
-    targetParent.appendChild(osk);
-    return osk;
+  if (!allowMultipleOSKs && existingOsk && layout === existingOsk.getAttribute(`layout`) && `${keyDownIntervalMs}` === existingOsk.getAttribute(`keyDownIntervalMs`)) {
+    //don't do anything if existingOSK has same Attributes
+    return existingOsk;
+  }
+  else {    
+    const oskParent = (existingOsk) ? existingOsk.parentNode : undefined;
+    if (!allowMultipleOSKs && existingOsk) {
+      existingOsk.remove();
+    }  
+    const targetParent = (target) ? target : (oskParent) ? oskParent : undefined;
+    if (targetParent) {
+      const osk = createOSK(layout, keyDownIntervalMs);
+      targetParent.appendChild(osk);
+      return osk;
+    }
   }
 }
 function createOSK(layout = `default`, keyDownIntervalMs = 20) {
   const osk = document.createElement(`div`);
   osk.classList.add(`osk`);
   osk.setAttribute(`layout`, layout);
+  osk.setAttribute(`keyDownIntervalMs`, keyDownIntervalMs);
   const layoutStr = (layout.match(/num/i)) ?
   `"_7 _8 _9 №"
     "_4 _5 _6 ⌫"
@@ -1487,10 +1481,7 @@ function ojbCounts(obj) {
   return count;
 }
 
-/**
- * Return a string representing n as a 32-bit unsigned integer,
- * in binary notation.
- */
+
 function hexToBinaryString(val) {
   const byteCount = val.replace(`0x`, ``).length / 2;
   const bitCount = 8 * byteCount;

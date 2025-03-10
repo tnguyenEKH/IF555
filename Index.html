@@ -56,7 +56,7 @@
 
 	<div class="header">
 		<ul>
-			<li id="visualisierung" class="tablink active" onclick="tabSwitchClickEventHandler(event)">Visualisierung</li>
+			<li id="visualisierung" class="tablink" onclick="tabSwitchClickEventHandler(event)">Visualisierung</li>
 			<li id="fernbedienung" class="tablink" onclick="tabSwitchClickEventHandler(event)">Fernbedienung</li>
 			<li id="datenauswertung" class="tablink" onclick="tabSwitchClickEventHandler(event)">1/4h Datenauswertung</li>
 			<li id="bedienungsAnleitung" class="tablink" onclick="tabSwitchClickEventHandler(event)">Bedienungsanleitung</li>
@@ -85,13 +85,6 @@
 						<input id="btnCloseWochenKalenderModal" type="button" class="form-control" onclick="closeModalWochenKalenderImVisu()" value="Schließen" />
 					</div>
 				</div>
-				<div id="buttonGroupVisu">
-					<button id="btnUpVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnDownVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnLeftVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnRightVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-					<button id="btnEnterVisu" class="btn" onclick="EthernetButtonHanlder(id)"></button>
-				</div>
 			</div>
 			<!--end modal Modal für eingebetten HK Wochenkalender-->
 		</div>
@@ -107,7 +100,6 @@
 		<div id="datenauswertungDisplay" class="tabcontent hidden displayNone">
 			<!--<div id="qimage"> style="height: 90vh">600px">-->
 				<div id="qoutsideWrapper" class="qoutsideWrapper">
-					<!--<button id="qbtnVirtualKeyboard" class="btn" onclick="EthernetButtonHanlder(id)">Tastatur</button>-->
 					
 					<div id="qimgArea" class="qinsideWrapper">
 						
@@ -199,9 +191,6 @@
 											</td>
 											<td>
 												<input id="btnIncJahr" type="button" value="+ Jahr" class="qcmdButtonSmall" onclick="ButtonHandler(id)" />
-											</td>
-											<td>
-												<input id="qbtnVirtualKeyboard" type="button" value="Tastatur" class="qcmdButtonMedium" onclick="EthernetButtonHanlder(id)" />
 											</td>
 											<td>
 												
