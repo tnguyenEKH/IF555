@@ -1,3 +1,13 @@
+@font-face {
+    font-family: 'vag';
+	src: url('/fonts/VAG_Rounded_Regular.ttf') format('truetype');
+    /*
+	font-weight: bold;
+	font-style: italic;
+	src: url(/fonts/Volkswagen-Heavy.otf) format('opentype');
+	src: url("path/GraublauWeb.otf") format("opentype");
+	*/
+}
 
 :root {
 	/*Colors*/
@@ -48,9 +58,13 @@ html {
 }
 */
 body {
+	/*
+	font-family: 'vag', monospace, 'Courier New';
+	font-style: italic;
+	*/
+	font-family: monospace, 'Courier New';
 	height: 98vh;
     background-color: var(--zaehlerBg);
-    font-family: monospace, 'Courier New';
 	margin: var(--margin);
 	display: grid;
 	justify-items: center;
@@ -233,6 +247,9 @@ body > * {
 }
 .tablink {
 	padding: var(--padding);
+	font-family: 'vag', monospace, 'Courier New';
+	font-style: italic;
+	font-weight: bold;
 }
 .tablink:first-child {
 	border-radius: var(--borderRadius) 0 0 var(--borderRadius);

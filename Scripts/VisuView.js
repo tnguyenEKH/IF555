@@ -1220,7 +1220,7 @@ function switchToCalender(ev) {
 			}
 		})
 		closeModal();
-		tabSwitchHandler(document.querySelector(`#fernbedienung`));
+		//tabSwitchHandler(document.querySelector(`#fernbedienung`));
 	});
 }
 
