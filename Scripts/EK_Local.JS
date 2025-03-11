@@ -255,6 +255,11 @@ async function fetchTxt(url, charset, options) {
   }
 }
 
+function saveNotes(event) {
+  const notesMap = new Map([[`notes`, event.target.value]]);
+  console.log(notesMap);
+}
+
 /********************************Operating**************************************************************************/
 
 function initCanvas() {
@@ -1149,7 +1154,7 @@ function tabSwitchClickEventHandler(ev) {
   tabSwitchHandler(ev.target);
 }
 function tabSwitchHandler(target) {
-  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`hidden`, el !== document.querySelector(`#${target.id}Display`)));
+  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`displayNone`, el !== document.querySelector(`#${target.id}Display`)));
   document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === target));
   document.querySelector(`.connectedUsers`).classList.toggle(`displayNone`, target.id !== `fernbedienung`);
   document.querySelector(`.mpcTimeStamp`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
@@ -1344,8 +1349,22 @@ function createOSK(layout = `default`, keyDownIntervalMs = 20) {
     //possible MPCinputs
     if (keyVal.match(/[↑← ↓ →⏎⌂␛]/)) {
       if (focusedInput) {
-        if (keyVal.match(/[⏎␛]/)) {
+        if (keyVal === `␛`) {
           focusedInput.blur();
+        }
+        else if (keyVal === `⏎`) {
+          console.log(focusedInput);
+          if (focusedInput.matches(`textarea`)) {
+            const {selectionStart, selectionEnd} = focusedInput;
+            const preSelection = focusedInput.value.slice(0, selectionStart);
+            const pastSelection = focusedInput.value.slice(selectionEnd);
+            focusedInput.value = `${preSelection}\n${pastSelection}`;
+            focusedInput.selectionStart = selectionStart + 1;
+            focusedInput.selectionEnd = focusedInput.selectionStart;
+          }
+          else {
+            focusedInput.blur();
+          }
         }
         else {
           const {selectionStart, selectionEnd, textLength} = focusedInput;

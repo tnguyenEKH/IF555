@@ -67,7 +67,7 @@
 	</div>
 		
 	<div class="content">
-		<div id="visualisierungDisplay" class="tabcontent">
+		<div id="visualisierungDisplay" class="tabcontent displayNone">
 			<div id="vimgArea" class="container"></div>
 			<!--end modal einstellwerte-->
 			
@@ -90,14 +90,14 @@
 		</div>
 
 
-		<div id="fernbedienungDisplay" class="tabcontent hidden">
+		<div id="fernbedienungDisplay" class="tabcontent displayNone">
 			<div class="container">
 				<canvas id="DisplayCanvas"></canvas>
 				<!--<div class="mpcTerminal"></div>-->
 			</div>
 		</div>
 
-		<div id="datenauswertungDisplay" class="tabcontent hidden displayNone">
+		<div id="datenauswertungDisplay" class="tabcontent displayNone">
 			<!--<div id="qimage"> style="height: 90vh">600px">-->
 				<div id="qoutsideWrapper" class="qoutsideWrapper">
 					
@@ -224,7 +224,7 @@
 			<!--</div>-->
 		</div>
 
-		<div id="bedienungsAnleitungDisplay" class="tabcontent hidden displayNone">
+		<div id="bedienungsAnleitungDisplay" class="tabcontent displayNone">
 			<div class="pdf-top-bar">
 				<span class="page-info">
 				Page <span id="bedien-page-num"></span> of <span id="bedien-page-count"></span>
@@ -260,7 +260,7 @@
 			</div>
 		</div>
 		
-		<div id="verdrahtungsplanDisplay" class="tabcontent hidden displayNone">
+		<div id="verdrahtungsplanDisplay" class="tabcontent displayNone">
 			<div class="pdf-top-bar">
 				<span class="page-info">
 				Page <span id="slp-page-num"></span> of <span id="slp-page-count"></span>
@@ -296,8 +296,10 @@
 			</div>
 		</div>
 
-		<div id="notesDisplay" class="tabcontent hidden displayNone"></div>
-		<div id="hilfeDisplay" class="tabcontent hidden displayNone"></div>
+		<div id="notesDisplay" class="tabcontent displayNone">
+			<textarea class="notes" spellcheck="false" onblur="saveNotes(event)"></textarea>
+		</div>
+		<div id="hilfeDisplay" class="tabcontent displayNone"></div>
 	</div>
 
 

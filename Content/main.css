@@ -57,6 +57,10 @@ html {
     scroll-behavior: smooth;
 }
 */
+textarea {
+	font-size: 1.1rem;
+}
+
 body {
 	/*
 	font-family: 'vag', monospace, 'Courier New';
@@ -135,7 +139,6 @@ body > * {
 	justify-items: center;
 }
 .modalBody textarea {
-	font-size: 1.1rem;
 	resize: none;
 	margin: var(--margin);
 }  
@@ -292,6 +295,13 @@ body > * {
 .container {
 	width: 100%;/*1006px;/*1400px; <-ehemalige dimension #vimgArea*/
 	height: 100%;/*660px;/*630px; <-ehemalige dimension #vimgArea*/
+	border-radius: var(--borderRadius);
+}
+.notes {
+	align-self: start;
+	margin-top: var(--margin);
+	width: 98%;
+	height: 98%;
 	border-radius: var(--borderRadius);
 }
 #vimgArea {
