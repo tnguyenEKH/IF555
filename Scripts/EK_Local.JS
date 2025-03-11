@@ -1145,25 +1145,22 @@ async function reloadFernbedienung(data) {
 /*****************Hanler für Menulink Click******************/
 async function AnchorHandler(id) {
   const data = await fetchJSON(`${menuLink}${id}`);
+  console.log(`${menuLink}${id}`, data);
+  /*
   if (updateConnectionStatus(!!data)) {
     reloadFernbedienung(data);
   }
+    */
 }
 
 function tabSwitchClickEventHandler(ev) {
   tabSwitchHandler(ev.target);
 }
-function tabSwitchHandler(target) {
-  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`displayNone`, el !== document.querySelector(`#${target.id}Display`)));
-  document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === target));
-  document.querySelector(`.connectedUsers`).classList.toggle(`displayNone`, target.id !== `fernbedienung`);
-  document.querySelector(`.mpcTimeStamp`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
-  document.querySelector(`.lockStatus`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
-
+async function tabSwitchHandler(target) {
 	if (target.id == "fernbedienung") {
     //reloadTerminal();
     //document.body.timerReloadTerminal = setInterval(reloadTerminal, 50);
-    reloadFernbedienung();
+    await reloadFernbedienung();
     document.body.removeAttribute(`cursorStyle`);
     document.body.timerFernbedienung = setInterval(reloadFernbedienung, MPC_TERMINAL_RELOAD_INTERVAL_MS);
 		updateConnectedUsers();
@@ -1199,6 +1196,12 @@ function tabSwitchHandler(target) {
   else if (target.id == "verdrahtungsplan") {
 	//callReader(slp_pdf);
   }
+
+  document.querySelectorAll(`.tabcontent`).forEach(el => el.classList.toggle(`displayNone`, el !== document.querySelector(`#${target.id}Display`)));
+  document.querySelectorAll(`.tablink`).forEach(el => el.classList.toggle(`active`, el === target));
+  document.querySelector(`.connectedUsers`).classList.toggle(`displayNone`, target.id !== `fernbedienung`);
+  document.querySelector(`.mpcTimeStamp`).classList.toggle(`displayNone`, target.id !== `visualisierung`);
+  document.querySelector(`.lockStatus`).classList.toggle(`displayNone`, target.id !== `visualisierung`);  
 }
 
 async function updateConnectedUsers() {

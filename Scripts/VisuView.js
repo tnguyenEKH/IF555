@@ -1213,15 +1213,40 @@ function switchToCalender(ev) {
 		const url = `${mpcJsonPutUrl}${rtosKey}=${encodeURIComponent(dataString)}`;
 		responsePromises.push(fetchJSON(url));
 	});
-	Promise.all(responsePromises).then(responses => {
+	Promise.all(responsePromises).then(async responses => {
 		Object.entries(responses).forEach(([idx, responseObject]) => {
 			if (responseObject.result !== `OK`) {
 				console.warn(`v${(parseInt(idx) + 70).toString().padStart(3, `0`)}: ${responseObject.result}`);
 			}
 		})
-		closeModal();
-		//tabSwitchHandler(document.querySelector(`#fernbedienung`));
+		await asyncTimeout(destroyFaceplateElements, 5000, `fieldset`);
+		const calenderDiv = await createCalender();
 	});
+}
+
+async function createCalender(type = `week`) {
+	const calenderData = await fetchJSON(kalenderUrl);
+	console.log(calenderData);
+	if (updateConnectionStatus(!!calenderData)) {
+		//daten Aufbereiten: binaryString 10min Raster = 144Bits, separated in 2 rows => 72Bits/row
+		let data = [];
+		Object.values(calenderData).toString().match(/\d{72}/g).forEach((row, idx, arr) => {
+			if (idx % 2 !== 0) {
+				//merge 2rows to 1 dayRow
+				const binaryDayRow = `${arr.at(idx - 1)}${row}`;
+				//find all risingEdges(night->day); assuming that most likely at 00:00 is night...
+				const risingEdges = binaryDayRow.match(/(01)/);
+				const fallingEdges = binaryDayRow.match(/(10)/g);
+
+				console.log(risingEdges);
+
+				data.push(binaryDayRow);
+			}
+		});
+		console.log(data);
+			
+
+	}
 }
 
 function BAtoInt(BAstring) {
