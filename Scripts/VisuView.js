@@ -1225,6 +1225,48 @@ function switchToCalender(ev) {
 }
 
 async function createCalender(type = `week`) {
+	
+	
+	let binString = `0`;
+    for (let i = 0; i < 144; i++) {
+        binString += (i < 6*6 || i > 16 * 6 /*&& i < 20 * 6*/) ? `0` : '1';
+    }
+
+    const nightStartIdxs = [...binString.matchAll(/(10)/g)].map(el => ({nightStartIdx: el.index + 1}));
+    const dayStartIdxs = [...binString.matchAll(/(01)/g)].map(el => ({dayStartIdx: el.index + 1}));
+    const switchingPointIdxs = nightStartIdxs.concat(dayStartIdxs).sort((a, b) => Object.values(a) - Object.values(b));
+    if (binString.startsWith(`1`)) {
+        switchingPointIdxs.splice(0, 0, {dayStartIdx: 0});
+    }
+    /*(binString.startsWith(`0`)) ? switchingPointIdxs.splice(0, 0, {nightStartIdx: 0}) : switchingPointIdxs.splice(0, 0, {dayStartIdx: 0}) ;*/
+    
+    console.log(binString, nightStartIdxs, dayStartIdxs, switchingPointIdxs);
+
+    switchingPointIdxs.forEach((switchingPointIdx, idx) => {
+        const slider = document.createElement(`input`);
+        document.body.appendChild(slider);
+        slider.type = `range`;
+        slider.classList.add(`calenderSlider`);
+        slider.setAttribute(`idx`, idx);
+        slider.min = 0;
+        slider.max = 143;
+        slider.step = 1;
+        slider.value = Object.values(switchingPointIdx);
+        //slider.addEventListener(`input`, calenderSliderEventHandler);
+		//https://mikejolley.com/2019/08/02/building-a-cross-browser-compatible-multi-handle-range-slider/
+		//https://projects.verou.me/multirange/
+	});
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	const calenderData = await fetchJSON(kalenderUrl);
 	console.log(calenderData);
 	if (updateConnectionStatus(!!calenderData)) {
