@@ -148,6 +148,8 @@ body > * {
 .modalBody fieldset > div {
 	display: grid;
 	align-items: center;
+}
+.faceplateFieldsetGridContainer {
 	grid-template-columns: [lblName] max-content [controlGroup] auto [lblUnit] max-content;
 }
 .lblName {
@@ -187,18 +189,18 @@ body > * {
 	grid-template-columns: repeat(4, min-content);
 }
 
-[type="radio"] {
+.controlGroup [type="radio"] {
 	appearance: none;
 	margin: 1px;
 	border: outset 2px var(--bgColor);
 	width: var(--btnSize);
 	aspect-ratio: 1;
 }
-[type="radio"]:checked {
+.controlGroup [type="radio"]:checked {
 	border: inset 2px var(--bgColor);
 	background-color: var(--bgColor);
 }
-[type="radio"]:disabled {
+.controlGroup [type="radio"]:disabled {
 	opacity: .5;
 }
 .radioBtnAuto {
@@ -296,6 +298,61 @@ body > * {
 	width: 100%;/*1006px;/*1400px; <-ehemalige dimension #vimgArea*/
 	height: 100%;/*660px;/*630px; <-ehemalige dimension #vimgArea*/
 	border-radius: var(--borderRadius);
+}
+.calenderContainer {
+	display: grid;
+	grid-template-areas:
+	'calenderArea'
+	'calenderFooter';
+	width: calc(var(--width) - 2 * var(--margin));
+	padding: var(--margin);
+}
+.calenderArea {
+	grid-area: calenderArea;
+    width: 100%;
+    display: grid;
+    grid-template-columns: max-content repeat(144, 1fr);
+    grid-template-rows: max-content repeat(7, 1fr);
+    align-items: end;
+    row-gap: var(--margin);
+}
+.calenderArea > .hourLbl {
+	border-left: 1px solid black;
+	padding-left: var(--margin);
+	grid-column: span 18; /*3-hourSteps: 8per24h; 144 = 24h/10min*/
+}
+.calenderArea > .hourLbl:first-child {
+	grid-column: 2 / span 18;
+}
+.calenderArea > .dayLbl {
+	margin-right: var(--margin);
+}
+.calenderArea > div {
+    background-color: var(--cyan);
+    aspect-ratio: 1;
+	margin-bottom: .2rem;
+}
+.calenderArea > div.cursorPosition {
+	box-sizing: border-box;
+    border-left: 3px solid black;
+}
+.calenderArea > div[day] {
+    background-color: var(--magenta);
+    aspect-ratio: 2/3;
+}
+.calenderArea.disabled > div {
+    background-color: var(--zaehlerBg);
+}
+.calenderArea.disabled > div[day] {
+    background-color: var(--bgColor);
+}
+.calenderFooter {
+	display: grid;
+	grid-template-columns: auto auto;
+}
+.calenderFieldsetGridContainer {
+	grid-template-columns: min-content auto;
+	row-gap: var(--margin);
 }
 .notes {
 	align-self: start;

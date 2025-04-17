@@ -36,6 +36,7 @@ const BG_COLOR = `hsl(0, 0%, 75%)`;
 const MAGENTA_HSL = `hsl(334, 74%, 44%)`;
 const MAGENTA_HEX = `#c31d65`;
 const MAGENTA_RGB = `rgb(195, 29, 101)`;
+const LIGHT_CYAN_HEX = `#23A6D1`;
 const CYAN_HSL = `hsl(194, 74%, 44%)`;
 const CYAN_HSLA = `hsla(194, 74%, 44%, .5)`;
 const CYAN_HEX = `#1d9cc3`;
@@ -129,7 +130,8 @@ async function init() {
   projektNummer = fetchedData.match(/P\s*\d+/).at(0);
   updateProjectName(getSteuerungNameUrl);
 	
-	initCanvas();
+	initCanvas(document.querySelector(`#DisplayCanvas`));
+  //initCanvas(document.querySelector(`.modalBg canvas`));
   reloadFernbedienung();
 	
 	
@@ -262,23 +264,16 @@ function saveNotes(event) {
 
 /********************************Operating**************************************************************************/
 
-function initCanvas() {
-  const displayCanvas = document.querySelector(`#DisplayCanvas`);
-  const canvasContext = displayCanvas.getContext(`2d`);
-	var parent = displayCanvas.parentNode;
-	displayCanvas.width = parent.width;
-	parent.offsetWidth > 0 ? displayCanvas.width = parent.offsetWidth : displayCanvas.width = 960;
-	parent.offsetHeight > 0 ? displayCanvas.height = parent.offsetHeight : displayCanvas.height = 520;
-	//var parent = document.getElementById('fernbedienungDisplay');
-	//displayCanvas.width = parent.offsetWidth;
-	//displayCanvas.height = parent.offsetHeight;
+function initCanvas(canvas) {
+	canvas.width = 960;
+	canvas.height = 520;
   
-  displayCanvas.addEventListener("click", async function (evt) {
+  canvas.addEventListener("click", async function (evt) {
     document.body.setAttribute(`cursorStyle`, `progress`);
-    var rect = displayCanvas.getBoundingClientRect();
+    var rect = canvas.getBoundingClientRect();
 
     let response;
-    if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld 
+    if (stat4 == '1' && statmouseweek) {    //status 4:  Wochenkalender in CANVAS und Maus im Wochenfeld
       var x = evt.clientX - rect.left;
       var y = evt.clientY - rect.top;
       var ypos = Math.round((y - 76) / 30) - 1;
@@ -355,7 +350,7 @@ function initCanvas() {
       
       var maus = Math.round(1000+yr*100+xr) 
       var TastURLId = keyInputUrl + maus;
-      //console.log(maus);
+      console.log(maus);
       response = await fetchJSON(TastURLId);
     }
 
@@ -370,8 +365,8 @@ function initCanvas() {
   }, false);
 	
 	
-	displayCanvas.addEventListener('mousemove', function (evt) {
-	  var rect = displayCanvas.getBoundingClientRect();
+	canvas.addEventListener('mousemove', function (evt) {
+	  var rect = canvas.getBoundingClientRect();
 	  var x= evt.clientX - rect.left;
 	  var y= evt.clientY - rect.top;
 	  var xr = Math.round(x/1) 
@@ -384,7 +379,7 @@ function initCanvas() {
 		  statmouseweek=true;
 		  mousex=xr;
 		  mousey=yr;
-		  timeweek(canvasContext);
+		  timeweek(canvas.getContext(`2d`));
 		}
 	  }
 	  if (stat1 == '1') {
@@ -410,7 +405,7 @@ function timeweek (canvasContext) {
   var ypos = 85 + 30*(Math.round((mousey-76)/30));
   var timehour = Math.round((mousex-64)/30);
   var timemin = 10*Math.round((mousex-50-timehour*30)/5);
-  ctx.fillStyle = "#000000";
+  ctx.fillStyle = `black`;
   if (timemin > 50) {
     timemin=50; 
   }
@@ -508,6 +503,28 @@ async function mpcTerminalClickEventHandler(ev) {
   }
 }
 
+function drawTerminalBtn(ctx, x, y) {
+  ctx.fillStyle = LIGHT_CYAN_HEX;
+  ctx.fillRect(x, y, 20, 23);
+  ctx.fillStyle = CYAN_HEX;
+  ctx.fillRect(x+3, y+3, 14, 17);
+}
+function drawTerminalCross(ctx, x, y) {
+  ctx.strokeStyle = MAGENTA_HEX;         // Kreuz setzen
+  ctx.setLineDash([5,  0]);
+  ctx.lineWidth = 3;
+  x -= 25;    
+  y -= 2;    
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x+12, y-12);
+  ctx.stroke(); 
+  y -= 12;    
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.lineTo(x+12, y+12);
+  ctx.stroke();
+}
 
 async function reloadFernbedienung(data) {
   //console.log(`reload...`);
@@ -537,395 +554,10 @@ async function reloadFernbedienung(data) {
     statTastzeich=str.charAt(31); // 1: aktuelles Menue bietet die Moeglichkeit ueber Eingabe von "t" oder "T" eine Zeichenkette einzugeben 
     stat14haktiv=str.charAt(29);  // 1: Merlin ist beschaeftigt die Datei "viertdat.txt" zu erstellen 
 
-    //status 4:  Wochenkalender in CANVAS anzeigen    600 * 350
+    
+    //status 4:  Wochenkalender in CANVAS anzeigen
     if (stat4 == '1') {
-      var row = 15;
-      var column = 2;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-      var row = 15;
-      var column = 35;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-
-      var row = 16;
-      var column = 2;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-      var row = 16;
-      var column = 35;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-
-      var row = 17;
-      var column = 2;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-      var row = 17;
-      var column = 35;
-      var coordinateOfClickButton = { row, column };
-      ASCII127PositionCurrentPage.push(coordinateOfClickButton);
-        
-      data = await fetchJSON(kalenderUrl);
-      if (updateConnectionStatus(!!data)) {
-          ctx.clearRect(0, 0, DisplayCanvas.width, DisplayCanvas.height);
-          ctx.fillStyle = "#000000";  
-          ctx.font = "20px Arial";
-          xpos= 5;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
-          ypos=25;    //  Positionsvariable auf dem CANVAS  y (Pixel)
-          ctx.fillText("<", xpos, ypos);         //  Pfeil fuer Ausstieg
-          xpos=20;    
-          ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON fuer Ausstieg
-          ctx.fillRect(xpos+1,ypos-20,20,23);
-          ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-          ctx.fillRect(xpos+4,ypos-17,14,17);
-          ctx.fillStyle = "#000000";
-
-          xpos= 50;   
-          ypos=25;    
-          ctx.fillText("Wochenkalender von", xpos, ypos); 
-
-          textToReplace = data['v039'].substring(13, 34)    // Name HK  auslesen aus 2. Zeile grosses Display x 13-34
-          xpos= 50;
-          ypos=ypos+30;
-          ctx.fillText(textToReplace, xpos, ypos); 
-
-          textToReplace = data['v039'].substring(39, 60)    //  Tag  Uhrzeit  auslesen aus 2. Zeile grosses Display x 39-60
-          xpos=xpos+200;
-          ypos=ypos+ 0;
-          ctx.fillText(textToReplace, xpos, ypos); 
-
-          textToReplace = data['v040'].substring(42, 57)    //  Zustand zum Zeitpunkt    auslesen aus 3. Zeile grosses Display x 42-57
-          xpos=xpos+220;
-          ypos=ypos+ 0;
-          var index = textToReplace.indexOf("Tag");    
-          if (index > 1) {
-            ctx.fillStyle = "#C31D64";	/*EKH rot*/  
-          }
-          else {  
-            index = textToReplace.indexOf("EIN");    
-            if (index > 1) {
-              ctx.fillStyle = "#C31D64";	/*EKH rot*/ 
-            }
-            else {  
-              index = textToReplace.indexOf("HT");    
-              if (index > 1) {
-                ctx.fillStyle = "#C31D64";	/*EKH rot*/
-              }
-              else {  
-                ctx.fillStyle = "#1F94B9";	/*EKH blau*/ 
-              }
-            }
-          }
-          ctx.fillText(textToReplace, xpos, ypos); 
-
-          // Darstellung Wochenkalender im Canvas
-          xpos= 50;
-          ypos=ypos+30;
-          ctx.fillStyle = "#303030";  
-          ctx.fillText("0                              6                             12                            18                            24", xpos, ypos); 
-          xpos=  2;
-          ypos=ypos+30;
-          ctx.fillText("MO",  xpos, ypos); 
-          ypos=ypos+30;
-          ctx.fillText("DI",  xpos, ypos); 
-          ypos=ypos+30;
-          ctx.fillText("MI",  xpos, ypos); 
-          ypos=ypos+30;
-          ctx.fillText("DO",  xpos, ypos); 
-          ypos=ypos+30;
-          ctx.fillText("FR",  xpos, ypos); 
-      // ctx.fillStyle = "red";
-          ctx.fillStyle = "#C31D64";	/*EKH rot*/  
-          ypos=ypos+30;
-          ctx.fillText("SA",  xpos, ypos); 
-          ypos=ypos+30;
-          ctx.fillText("SO",  xpos, ypos); 
-
-          if (statmouseweek) {
-            timeweek(ctx);
-          }
-
-      var Bheizkreis=0;    
-          textToReplace = data['v040'].substring(42, 57)    //  Zustand zum Zeitpunkt    auslesen aus 3. Zeile grosses Display x 42-57
-          index = textToReplace.indexOf("Tag");             //  -> es handelt sich um einen Heizkreiskalender
-          if (index > 1) {
-            Bheizkreis=1;
-          }
-          index = textToReplace.indexOf("Nacht");           //  -> es handelt sich um einen Heizkreiskalender
-          if (index > 1) {
-            Bheizkreis=1;
-          }
-
-          if (Bheizkreis > 0) {
-            textToReplace = data['v056'].substring(48, 51)    //  an der Stelle steht bei einem Heizkreis der Betriebszustand (0:Auto, 1:Dauernacht, 2:Dauertag)
-
-            ctx.fillStyle = "#000000";  
-            xpos=550;    
-            ypos=425;    
-            ctx.fillText("HK-Zustand", xpos, ypos);        
-
-            xpos=550;    
-            ypos=451;    
-            ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON HK Automatikbetrieb
-            ctx.fillRect(xpos+1,ypos-20,20,23);
-            ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-            ctx.fillRect(xpos+4,ypos-17,14,17);
-            ctx.fillStyle = "#000000";
-            xpos=580;    
-            ctx.fillText("Automatikbetrieb (nach Wochenkalender)", xpos, ypos);        
-            index = textToReplace.indexOf("1");               //  Automatikbetrieb
-            if (index > 0) {
-              ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
-              ctx.setLineDash([5,  0]);
-              ctx.lineWidth = 3;
-              xpos=xpos-25;    
-              ypos=ypos-2;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos-12);
-              ctx.stroke(); 
-              ypos=ypos-12;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos+12);
-              ctx.stroke(); 
-            }          
-
-            xpos=550;    
-            ypos=481;    
-            ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON HK Dauertagbetrieb 
-            ctx.fillRect(xpos+1,ypos-20,20,23);
-            ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-            ctx.fillRect(xpos+4,ypos-17,14,17);
-            ctx.fillStyle = "#000000";
-            xpos=580;    
-            ctx.fillText("Dauertagbetrieb", xpos, ypos);        
-            index = textToReplace.indexOf("3");               //  Dauertagbetrieb
-            if (index > 0) {
-              ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
-              ctx.setLineDash([5,  0]);
-              ctx.lineWidth = 3;
-              xpos=xpos-25;    
-              ypos=ypos-2;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos-12);
-              ctx.stroke(); 
-              ypos=ypos-12;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos+12);
-              ctx.stroke(); 
-              ctx.strokeStyle = "#606060";         // Kalender durchstreichen dunkelgrau
-              ctx.setLineDash([4, 10]);
-              ctx.lineWidth = 5;
-              xpos=50;    
-              ypos=305;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+725, ypos-215);
-              ctx.stroke(); 
-            }          
-
-            xpos=550;    
-            ypos=511;    
-            ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON HK Dauernachtbetrieb
-            ctx.fillRect(xpos+1,ypos-20,20,23);
-            ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-            ctx.fillRect(xpos+4,ypos-17,14,17);
-            ctx.fillStyle = "#000000";
-            xpos=580;    
-            ctx.fillText("Dauernachtbetrieb", xpos, ypos);        
-            index = textToReplace.indexOf("2");               //  Dauernachtbetrieb
-            if (index > 0) {
-              ctx.strokeStyle = "#C31D64";         // EKH rot Kreuz setzen
-              ctx.setLineDash([5,  0]);
-              ctx.lineWidth = 3;
-              xpos=xpos-25;    
-              ypos=ypos-2;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos-12);
-              ctx.stroke(); 
-              ypos=ypos-12;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+12, ypos+12);
-              ctx.stroke(); 
-              ctx.strokeStyle = "#606060";         // Kalender durchstreichen dunkelgrau
-              ctx.setLineDash([4, 10]);
-              ctx.lineWidth = 5;
-              xpos=50;    
-              ypos=305;    
-              ctx.beginPath();
-              ctx.moveTo(xpos, ypos);
-              ctx.lineTo(xpos+725, ypos-215);
-              ctx.stroke(); 
-            }          
-          }
-
-          var act=1;
-          textToReplace = data['v056'].substring( 2, 40)    //  AKTION:   auslesen aus 19. Zeile grosses Display x 2-40           
-          xpos=30;
-          ypos=330;
-          index = textToReplace.indexOf("anschauen");       // bei Aktion "anschauen" Darstellung schwarz
-          if (index > 2) {
-            ctx.fillStyle = "#000000";  
-          }
-          else {                                            // andere Aktion 
-            index = textToReplace.indexOf("HT");       // bei Aktion "HT setzen" Darstellung rot
-            if (index > 2) {
-              ctx.fillStyle = "#C31D64";	/*EKH rot*/
-              act=2;
-            }
-            else {
-              index = textToReplace.indexOf("EIN");     // bei Aktion "EIN setzen" Darstellung rot
-              if (index > 2) {
-                ctx.fillStyle = "#C31D64";	/*EKH rot*/  
-                act=2;
-              }
-              else {
-              index = textToReplace.indexOf("Tag");     // bei Aktion "Tagbetrieb setzen" Darstellung rot
-                if (index > 2) {
-                  ctx.fillStyle = "#C31D64";	/*EKH rot*/  
-                  act=2;
-                }
-                else {
-                  ctx.fillStyle = "#1F94B9";	/*EKH blau*/	//  sonst blau
-                  act=3;
-                }
-              }
-            }
-            ctx.font = "30px Arial";
-            xpos=250;
-          }
-          ctx.fillText(textToReplace, xpos, ypos); 
-          ctx.font = "20px Arial";
-
-          xpos=20;    
-          ypos=425;    
-          ctx.fillText("Bedienung", xpos, ypos);        
-          xpos=20;    
-          ypos=451;     
-          ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON Wochenkalender anschauen
-          ctx.fillRect(xpos+1,ypos-20,20,23);
-          ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-          ctx.fillRect(xpos+4,ypos-17,14,17);
-          ctx.fillStyle = "#000000";
-          xpos=50;    
-          ctx.fillText("Wochenkalender anschauen", xpos, ypos);        
-          if (act == 1) {
-            ctx.strokeStyle = "#000000";         // Haken setzen
-            ctx.setLineDash([5,  0]);
-            ctx.lineWidth = 3;
-            xpos=28;    
-            ypos=442;    
-            ctx.beginPath();
-            ctx.moveTo(xpos, ypos);
-            ctx.lineTo(xpos+5, ypos+5);
-            ctx.lineTo(xpos+20, ypos-10);
-            ctx.stroke(); 
-          }          
-
-          xpos=20;    
-          ypos=481;    
-          ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON rot setzen
-          ctx.fillRect(xpos+1,ypos-20,20,23);
-          ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-          ctx.fillRect(xpos+4,ypos-17,14,17);
-      // ctx.fillStyle = "#C31D64";	/*EKH rot*/
-          ctx.fillStyle = "#000000";
-          xpos=50;    
-          ctx.fillText("rot setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
-          if (act == 2) {
-            ctx.strokeStyle = "#000000";         // Haken setzen
-            ctx.setLineDash([5,  0]);
-            ctx.lineWidth = 3;
-            xpos=28;    
-            ypos=472;    
-            ctx.beginPath();
-            ctx.moveTo(xpos, ypos);
-            ctx.lineTo(xpos+5, ypos+5);
-            ctx.lineTo(xpos+20, ypos-10);
-            ctx.stroke(); 
-          }          
-
-          xpos=20;    
-          ypos=511;    
-          ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/             //  BUTTON blau setzen
-          ctx.fillRect(xpos+1,ypos-20,20,23);
-          ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-          ctx.fillRect(xpos+4,ypos-17,14,17);
-      // ctx.fillStyle = "#1F94B9";	/*EKH blau*/
-          ctx.fillStyle = "#000000";
-          xpos=50;    
-          ctx.fillText("blau setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
-          if (act == 3) {
-            ctx.strokeStyle = "#000000";         // Haken setzen
-            ctx.setLineDash([5,  0]);
-            ctx.lineWidth = 3;
-            xpos=28;    
-            ypos=502;    
-            ctx.beginPath();
-            ctx.moveTo(xpos, ypos);
-            ctx.lineTo(xpos+5, ypos+5);
-            ctx.lineTo(xpos+20, ypos-10);
-            ctx.stroke(); 
-          }          
-          ctx.fillStyle = "#000000";
-
-          xpos=30;
-
-          ctx.fillStyle = "#000000";  
-          textToReplace = data['v057'].substring( 2, 40)    //  AKTION:    auslesen aus 20. Zeile grosses Display x 2-40              
-          xpos=30;
-          ypos=355;
-          ctx.fillText(textToReplace, xpos, ypos); 
-
-          // jetzt das Feld vom grossen Display auslesen ( "0" oder  "1")
-          // und als Striche blau oder rot im Wochenkalender darstellen
-          ypos=116;
-          ctx.setLineDash([5,  0]);
-          ctx.lineWidth = 6;
-          for (i = 41; i < 55; i++) {
-            for (k = 7; k < 80; k++) {
-              variableName = "v0" + i;
-              textToReplace = data[variableName].substring(k, k+1);
-              xpos= 17 + k*5 + ((i-41) % 2)*360;
-              if (textToReplace == '1') { 
-                ctx.strokeStyle = "#C31D64";	/*EKH rot*/
-                ctx.beginPath();
-                ctx.moveTo(xpos, ypos);
-                ctx.lineTo(xpos, ypos-16);
-                ctx.stroke(); 
-              }
-              if (textToReplace == '0') { 
-                ctx.strokeStyle = "#1F94B9";	/*EKH blau*/
-                ctx.beginPath();
-                ctx.moveTo(xpos, ypos);
-                ctx.lineTo(xpos, ypos-10);
-                ctx.stroke(); 
-              }
-            }
-            if ( ((i-41) % 2) > 0 ) {
-              ypos=ypos+30;
-            }
-          }
-          // aktuelle Position markieren (senkrecht gestrichelt)
-          x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
-          y = data['v062'] -1; /*Zeile, wo die Texte rot markiert werden muss*/
-          xpos= 17 + x*5 + ((y-1) % 2)*360;
-          var y1 = Math.floor((y-1)/2);
-          ypos= 86 + y1*30;
-          ctx.setLineDash([3,  2]);
-          ctx.lineWidth = 3;
-          ctx.strokeStyle = "#000000";
-          ctx.beginPath();
-          ctx.moveTo(xpos, ypos);
-          ctx.lineTo(xpos, ypos-22);
-          ctx.stroke();
-      }
+      drawWeekCalender(DisplayCanvas);
     }
     else {
 
@@ -936,7 +568,7 @@ async function reloadFernbedienung(data) {
         xpos = 1;
         ypos = 1;
         ctx.font = "bold 26px Courier New";
-        ctx.fillStyle = "#000000";
+        ctx.fillStyle = `black`;
         for (i = 16; i < 34; i++) {                                 // alle 18 Zeilen abarbeiten
           variableName = "v0" + i;
 
@@ -948,13 +580,13 @@ async function reloadFernbedienung(data) {
               textToReplace = data[variableName].substring(k, k + 1)
               var ascii = textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
               if (ascii == 127) {                                   // bei = 127  Button erstellen
-                ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+                ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/
                 //ctx.fillStyle = "#FF0000";	/*EKH hellblau*/
                 //ctx.fillRect(xpos + 1, ypos - 20, 30, 30);
                 ctx.fillRect(xpos + 1, ypos - 20, 20, 23);
-                ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+                ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
                 ctx.fillRect(xpos + 4, ypos - 17, 14, 17);
-                ctx.fillStyle = "#000000";
+                ctx.fillStyle = `black`;
                 var row = i - 15;
                 var column = k + 1;
                 var coordinateOfClickButton = { row, column };
@@ -962,9 +594,9 @@ async function reloadFernbedienung(data) {
               }
               else {                                                //  /= 127  dann Zeichen hinschreiben
                 if ((k > x - 1) && (k < x + z)) {                       //  liegt im Bereich rote Darstellung ?
-                  ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
+                  ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/           //  dann rot
                   ctx.fillText(textToReplace, xpos, ypos);
-                  ctx.fillStyle = "#000000";
+                  ctx.fillStyle = `black`;
                 }
                 else {
                   ctx.fillText(textToReplace, xpos, ypos);
@@ -979,11 +611,11 @@ async function reloadFernbedienung(data) {
               textToReplace = data[variableName].substring(k, k + 1)
               var ascii = textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
               if (ascii == 127) {                                    // bei = 127  Button erstellen
-                ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+                ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/
                 ctx.fillRect(xpos + 1, ypos - 20, 20, 23);
-                ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+                ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
                 ctx.fillRect(xpos + 4, ypos - 17, 14, 17);
-                ctx.fillStyle = "#000000";
+                ctx.fillStyle = `black`;
                 var row = i - 15;
                 var column = k + 1;
                 var coordinateOfClickButton = { row, column };
@@ -1022,7 +654,7 @@ async function reloadFernbedienung(data) {
               xpos= 1;    //  Positionsvariable auf dem CANVAS  x (Pixel) 
               ypos=-5;    //  Positionsvariable auf dem CANVAS  y (Pixel)
               ctx.font = "bold 26px Courier New";
-              ctx.fillStyle = "#000000";  
+              ctx.fillStyle = `black`;  
               for (i = 16; i < 34; i++) {                               // alle 18 Zeilen abarbeiten
                 variableName = "v0" + i;
                 ypos=ypos+30;
@@ -1032,17 +664,17 @@ async function reloadFernbedienung(data) {
                   textToReplace = data[variableName].substring(k, k+1)    
                   var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                   if (ascii == 127) {                                   // bei = 127  Button erstellen
-                    ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+                    ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/
                     ctx.fillRect(xpos+1,ypos-20,20,23);
-                    ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+                    ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
                     ctx.fillRect(xpos+4,ypos-17,14,17);
-                    ctx.fillStyle = "#000000";
+                    ctx.fillStyle = `black`;
                   }
                   else {
                     if (k > 18) {
-                      ctx.fillStyle = "#C31D64";	/*EKH rot*/  
+                      ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/  
                       ctx.fillText(textToReplace, xpos, ypos);
-                      ctx.fillStyle = "#000000";  
+                      ctx.fillStyle = `black`;  
                     }
                     else {
                       ctx.fillText(textToReplace, xpos, ypos);
@@ -1083,7 +715,7 @@ async function reloadFernbedienung(data) {
                 xpos= 1;   
                 ypos= 1;   
                 ctx.font = "bold 20px Courier New";
-                ctx.fillStyle = "#000000";  
+                ctx.fillStyle = `black`;  
                 for (i = 38; i < 60; i++) {                                 // alle 18 Zeilen abarbeiten
                   variableName = "v0" + i;
           
@@ -1095,17 +727,17 @@ async function reloadFernbedienung(data) {
                       textToReplace = data[variableName].substring(k, k+1)    
                       var ascii=textToReplace.charCodeAt(0);                // ASCII-Code des Zeichens ermitteln
                       if (ascii == 127) {                                   // bei = 127  Button erstellen
-                        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+                        ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/
                         ctx.fillRect(xpos+1,ypos-20,20,23);
-                        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+                        ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
                         ctx.fillRect(xpos+4,ypos-17,14,17);
-                        ctx.fillStyle = "#000000";
+                        ctx.fillStyle = `black`;
                       }
                       else {                                                //  /= 127  dann Zeichen hinschreiben
                         if ((k > x-1) && (k < x+z)) {                       //  liegt im Bereich rote Darstellung ?
-                          ctx.fillStyle = "#C31D64";	/*EKH rot*/           //  dann rot
+                          ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/           //  dann rot
                           ctx.fillText(textToReplace, xpos, ypos);
-                          ctx.fillStyle = "#000000";  
+                          ctx.fillStyle = `black`;  
                         }
                         else {
                           ctx.fillText(textToReplace, xpos, ypos);
@@ -1120,11 +752,11 @@ async function reloadFernbedienung(data) {
                       textToReplace = data[variableName].substring(k, k+1)    
                       var ascii=textToReplace.charCodeAt(0);                 // ASCII-Code des Zeichens ermitteln
                       if (ascii == 127) {                                    // bei = 127  Button erstellen
-                        ctx.fillStyle = "#23A6D1";	/*EKH hellblau*/
+                        ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/
                         ctx.fillRect(xpos+1,ypos-20,20,23);
-                        ctx.fillStyle = "#1F94B9";	/*EKH blau*/
+                        ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
                         ctx.fillRect(xpos+4,ypos-17,14,17);
-                        ctx.fillStyle = "#000000";
+                        ctx.fillStyle = `black`;
                       }
                       else {
                         ctx.fillText(textToReplace, xpos, ypos);
@@ -1140,6 +772,403 @@ async function reloadFernbedienung(data) {
         } // if stst=4
       
     document.body.removeAttribute(`cursorStyle`);
+  }
+}
+
+async function buildCalenderArea(rawData) {
+  document.body.setAttribute(`cursorStyle`, `progress`);
+  const calenderDataRaw = (rawData) ? rawData : await fetchJSON(kalenderUrl);
+  //console.log(calenderDataRaw);
+  if (updateConnectionStatus(!!calenderDataRaw)) {
+    //daten Aufbereiten: binaryString 10min Raster = 144Bits, separated in 2 rows => 72Bits/row
+    const calenderArea = document.querySelector(`.calenderArea`);
+
+    //create headerRow
+    for (let hour = 0; hour < 24; hour +=3) {
+      const hourLbl = document.createElement(`label`);
+      calenderArea.appendChild(hourLbl);
+      hourLbl.classList.add(`hourLbl`);
+      hourLbl.innerText = `${hour.toString().padStart(2, `0`)}:00`;
+    }
+
+    //eventHandlerPreparation
+    const mpcCursorX = calenderDataRaw.v061;
+    const mpcCursorOffsetX = 8;
+    const mpcCursorY = calenderDataRaw.v062;
+    const mpcCursorOffsetY = 4;
+    const bitsPerRow = 72;
+    const bitIdxBase = 4001;
+    const mpcCursorAsBitIdx = bitsPerRow * (mpcCursorY-mpcCursorOffsetY) + (mpcCursorX - mpcCursorOffsetX) + bitIdxBase;
+
+    let mpcBitIdx = bitIdxBase; //mpc erwartet werte [4001 - 5008; Mo00:00 - So23:50] für ClickEvents
+    const dayStrings = [`Mo`, `Di`, `Mi`, `Do`, `Fr`, `Sa`, `So`];
+    Object.values(calenderDataRaw).toString().match(/\d{72}/g).forEach((row, idx, arr) => {
+      if (idx % 2 !== 0) {
+        //merge 2rows to 1 dayRow
+        const dayBinaryString = `${arr.at(idx - 1)}${row}`;
+        const dayIdx = Math.floor(idx/2);
+        const dayLbl = document.createElement(`label`);
+        calenderArea.appendChild(dayLbl);
+        dayLbl.classList.add(`dayLbl`);
+        dayLbl.innerText = dayStrings.at(dayIdx);
+        dayBinaryString.split(``).forEach((bit, idx) => {
+            const div = document.createElement(`div`);
+            calenderArea.appendChild(div);
+            div.toggleAttribute(`day`, !!parseInt(bit));
+            div.classList.toggle(`cursorPosition`, mpcCursorAsBitIdx === mpcBitIdx);
+            div.setAttribute(`mpc-bit-id`, mpcBitIdx++);
+            const hours = Math.floor(idx * 10 / 60).toString().padStart(2, `0`);
+            const minutes = (idx * 10 % 60).toString().padStart(2, `0`);
+            //console.log(hours, minutes);
+            div.title = `${dayStrings.at(dayIdx)} ${hours}:${minutes}`;
+            div.addEventListener(`click`, async (ev) => {
+              const response = await fetchJSON(`${keyInputUrl}${ev.target.getAttribute(`mpc-bit-id`)}`);
+              buildCalenderArea();
+            });
+        });
+      }
+    });
+  }
+}
+
+async function createCalender() {
+  document.body.setAttribute(`cursorStyle`, `progress`);
+  const calenderDataRaw = await fetchJSON(kalenderUrl);
+	console.log(calenderDataRaw);
+	if (updateConnectionStatus(!!calenderDataRaw)) {
+		//daten Aufbereiten: binaryString 10min Raster = 144Bits, separated in 2 rows => 72Bits/row
+		const calenderData = [];
+		Object.values(calenderDataRaw).toString().match(/\d{72}/g).forEach((row, idx, arr) => {
+			if (idx % 2 !== 0) {
+				//merge 2rows to 1 dayRow
+				const binaryDayRow = `${arr.at(idx - 1)}${row}`;
+				calenderData.push(binaryDayRow);
+      }
+    });
+
+    const calenderContainer = document.createElement(`div`);
+    calenderContainer.classList.add(`calenderContainer`);
+    const calenderFooter = document.createElement(`div`);
+    calenderContainer.appendChild(calenderFooter);
+    calenderFooter.classList.add(`calenderFooter`);
+    const betriebsartAsInt = parseInt(calenderDataRaw.v056.match(/\d/));
+    const mode = calenderDataRaw.v056.replace(`Aktion:`, ``).replace(betriebsartAsInt, ``).trim();
+    [`Modus`, `Betriebsart`].forEach(legendTxt => {
+      const fieldset = document.createElement(`fieldset`);
+      calenderFooter.appendChild(fieldset);
+      const legend = document.createElement(`legend`);
+      fieldset.appendChild(legend);
+      legend.innerText = legendTxt;
+      const fieldsetGridContainer = document.createElement(`div`);
+      fieldset.appendChild(fieldsetGridContainer);
+      fieldsetGridContainer.classList.add(`calenderFieldsetGridContainer`);
+
+
+      const optionObjectArray = (legendTxt === `Modus`) ? [{txt: `Wochenkalender anschauen`, mpcKeyIdx: 2502},
+                                                           {txt: `Tagbetrieb setzen (max. 5h)`, mpcKeyIdx: 2602},
+                                                           {txt: `Nachtbetrieb/Absenkung setzen (max. 5h)`, mpcKeyIdx: 2702}] :
+                                (legendTxt === `Betriebsart`) ? [{txt: `Automatik (nach Wochenkalender)`, mpcKeyIdx: 2535, intValue: 1},
+                                                                 {txt: `Dauertagbetrieb`, mpcKeyIdx: 2635, intValue: 3},
+                                                                 {txt: `Dauernachtbetrieb/Absenkung`, mpcKeyIdx: 2735, intValue: 2}] :
+                                undefined;        
+
+      optionObjectArray.forEach(obj => {
+        const {txt, mpcKeyIdx, intValue} = obj;
+        const radioBtn = document.createElement(`input`);
+        fieldsetGridContainer.appendChild(radioBtn);
+        radioBtn.type = `radio`;
+        radioBtn.value = mpcKeyIdx;
+        radioBtn.intValue = intValue;
+        radioBtn.name = legendTxt;
+        radioBtn.id = `radioBtn${radioBtn.name}${txt}`;
+        radioBtn.checked = (txt.includes(`anschauen`) && mode.includes(`anschauen`) ||
+                            txt.includes(`Tagbetrieb`) && mode.includes(`Tagbetrieb`) ||
+                            txt.includes(`Nachtbetrieb`) && mode.includes(`Nachtbetrieb`) ||
+                            betriebsartAsInt === intValue);
+        radioBtn.disabled = calenderDataRaw.v057.includes(`blockiert`);
+        radioBtn.addEventListener(`input`, async (ev) => {
+          if (ev.target.intValue) {
+            document.querySelector(`.calenderArea`).classList.toggle(`disabled`, parseInt(ev.target.intValue) !== 1);
+          }
+          const response = await fetchJSON(`${keyInputUrl}${ev.target.value}`);
+          buildCalenderArea();
+        });
+
+        const lbl = document.createElement(`label`);
+        fieldsetGridContainer.appendChild(lbl);
+        lbl.setAttribute(`for`, radioBtn.id);
+        lbl.innerText = txt;
+      });
+    });
+
+
+    
+    const calenderArea = document.createElement(`div`);
+    calenderContainer.appendChild(calenderArea);
+    calenderArea.classList.add(`calenderArea`);
+    calenderArea.classList.toggle(`disabled`, betriebsartAsInt !== 1);
+
+    buildCalenderArea(calenderDataRaw);
+
+
+    const date = new Date(2024, 0, 1);
+    //console.log(date);
+
+    document.body.removeAttribute(`cursorStyle`);
+    return calenderContainer;
+  }
+  document.body.removeAttribute(`cursorStyle`);
+}
+
+async function drawWeekCalender(canvas) {
+  const ctx = canvas.getContext(`2d`);
+  ASCII127PositionCurrentPage =
+  [
+    {row: 15, column: 2},
+    {row: 15, column: 35},
+    {row: 16, column: 2},
+    {row: 16, column: 35},
+    {row: 17, column: 2},
+    {row: 17, column: 35}
+  ];
+    
+  data = await fetchJSON(kalenderUrl);
+  //console.log(data);
+  if (updateConnectionStatus(!!data)) {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = `black`;  
+      ctx.font = "20px Arial";
+      ctx.fillText("<", 5, 25);         //  Pfeil fuer Ausstieg
+      drawTerminalBtn(ctx, 20+1, 25-20);
+       
+      ctx.fillStyle = `black`;
+      ctx.fillText("Wochenkalender von", 50, 25); 
+
+      textToReplace = data.v039.substring(13, 34)    // Name HK  auslesen aus 2. Zeile grosses Display x 13-34
+      ctx.fillText(textToReplace, 50, 55); 
+
+      textToReplace = data.v039.substring(39, 60)    //  Tag  Uhrzeit  auslesen aus 2. Zeile grosses Display x 39-60
+      ctx.fillText(textToReplace, 250, 55); 
+
+      textToReplace = data.v040.substring(42, 57)    //  Zustand zum Zeitpunkt    auslesen aus 3. Zeile grosses Display x 42-57
+      
+      var index = textToReplace.includes("Tag");
+      ctx.fillStyle = textToReplace.match(/(Tag)|(EIN)|(HT)/) ? MAGENTA_HEX : CYAN_HEX;          
+      ctx.fillText(textToReplace, 470, 55); 
+
+      // Darstellung Wochenkalender im Canvas
+      xpos= 50;
+      ypos=85;
+      ctx.fillStyle = "#303030";  
+      ctx.fillText("0                              6                             12                            18                            24", 50, 85); 
+      const rowHeight = 30;
+      xpos = 2;
+      ypos = 115;
+      [`MO`, `DI`, `MI`, `DO`, `FR`, `SA`, `SO`].forEach((day, idx) => {
+        ctx.fillStyle = (day.match(/(SA)|(SO)/)) ? MAGENTA_HEX : "#303030";
+        ctx.fillText(day,  xpos, ypos + idx*rowHeight);
+      });
+
+      if (statmouseweek) {
+        timeweek(ctx);
+      }
+      
+      textToReplace = data.v040.substring(42, 57);    //  Zustand zum Zeitpunkt    auslesen aus 3. Zeile grosses Display x 42-57
+      if (textToReplace.match(/(Tag)|(Nacht)/)) {
+        
+        const betriebsart = data.v056.substring(48, 51).includes(`1`) ? `Automatikbetrieb (nach Wochenkalender)` :
+                            data.v056.substring(48, 51).includes(`2`) ? `Dauernachtbetrieb` :
+                            data.v056.substring(48, 51).includes(`3`) ? `Dauertagbetrieb` :
+                            undefined
+
+        ctx.fillStyle = `black`;  
+        ctx.fillText("HK-Zustand", 550, 425);        
+        [`Automatikbetrieb (nach Wochenkalender)`, `Dauernachtbetrieb`, `Dauertagbetrieb`].forEach(baString => {
+          const x = 550;
+          const y = (baString === `Dauernachtbetrieb`) ? 511 :
+                    (baString === `Dauertagbetrieb`) ? 481 :
+                    451;
+          drawTerminalBtn(ctx, x+1, y-20); //  BUTTON HK Automatikbetrieb
+          
+          ctx.fillStyle = `black`;
+          ctx.fillText(baString, x+30, y);        
+          
+          
+          if (betriebsart === baString) {
+            drawTerminalCross(ctx, x+30, y)
+            if (baString.includes(`Dauer`)) {
+              ctx.strokeStyle = "#606060";         // Kalender durchstreichen dunkelgrau
+              ctx.setLineDash([4, 10]);
+              ctx.lineWidth = 5;
+              ctx.beginPath();
+              ctx.moveTo(50, 305);
+              ctx.lineTo(775, 90);
+              ctx.stroke();
+            }
+          }
+        });   
+      }
+
+      var act=1;
+      textToReplace = data['v056'].substring( 2, 40)    //  AKTION:   auslesen aus 19. Zeile grosses Display x 2-40           
+      xpos=30;
+      ypos=330;
+      index = textToReplace.indexOf("anschauen");       // bei Aktion "anschauen" Darstellung schwarz
+      if (index > 2) {
+        ctx.fillStyle = `black`;  
+      }
+      else {                                            // andere Aktion 
+        index = textToReplace.indexOf("HT");       // bei Aktion "HT setzen" Darstellung rot
+        if (index > 2) {
+          ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/
+          act=2;
+        }
+        else {
+          index = textToReplace.indexOf("EIN");     // bei Aktion "EIN setzen" Darstellung rot
+          if (index > 2) {
+            ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/  
+            act=2;
+          }
+          else {
+          index = textToReplace.indexOf("Tag");     // bei Aktion "Tagbetrieb setzen" Darstellung rot
+            if (index > 2) {
+              ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/  
+              act=2;
+            }
+            else {
+              ctx.fillStyle = CYAN_HEX;	/*EKH blau*/	//  sonst blau
+              act=3;
+            }
+          }
+        }
+        ctx.font = "30px Arial";
+        xpos=250;
+      }
+      ctx.fillText(textToReplace, xpos, ypos); 
+      ctx.font = "20px Arial";
+
+      xpos=20;    
+      ypos=425;    
+      ctx.fillText("Bedienung", xpos, ypos);        
+      xpos=20;    
+      ypos=451;     
+      ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/             //  BUTTON Wochenkalender anschauen
+      ctx.fillRect(xpos+1,ypos-20,20,23);
+      ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
+      ctx.fillRect(xpos+4,ypos-17,14,17);
+      ctx.fillStyle = `black`;
+      xpos=50;    
+      ctx.fillText("Wochenkalender anschauen", xpos, ypos);        
+      if (act == 1) {
+        ctx.strokeStyle = `black`;         // Haken setzen
+        ctx.setLineDash([5,  0]);
+        ctx.lineWidth = 3;
+        xpos=28;    
+        ypos=442;    
+        ctx.beginPath();
+        ctx.moveTo(xpos, ypos);
+        ctx.lineTo(xpos+5, ypos+5);
+        ctx.lineTo(xpos+20, ypos-10);
+        ctx.stroke(); 
+      }          
+
+      xpos=20;    
+      ypos=481;    
+      ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/             //  BUTTON rot setzen
+      ctx.fillRect(xpos+1,ypos-20,20,23);
+      ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
+      ctx.fillRect(xpos+4,ypos-17,14,17);
+  // ctx.fillStyle = MAGENTA_HEX;	/*EKH rot*/
+      ctx.fillStyle = `black`;
+      xpos=50;    
+      ctx.fillText("rot setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
+      if (act == 2) {
+        ctx.strokeStyle = `black`;         // Haken setzen
+        ctx.setLineDash([5,  0]);
+        ctx.lineWidth = 3;
+        xpos=28;    
+        ypos=472;    
+        ctx.beginPath();
+        ctx.moveTo(xpos, ypos);
+        ctx.lineTo(xpos+5, ypos+5);
+        ctx.lineTo(xpos+20, ypos-10);
+        ctx.stroke(); 
+      }          
+
+      xpos=20;    
+      ypos=511;    
+      ctx.fillStyle = LIGHT_CYAN_HEX;	/*EKH hellblau*/             //  BUTTON blau setzen
+      ctx.fillRect(xpos+1,ypos-20,20,23);
+      ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
+      ctx.fillRect(xpos+4,ypos-17,14,17);
+  // ctx.fillStyle = CYAN_HEX;	/*EKH blau*/
+      ctx.fillStyle = `black`;
+      xpos=50;    
+      ctx.fillText("blau setzen (max. 5 Stunden zwischen 2 Klicks)", xpos, ypos);        
+      if (act == 3) {
+        ctx.strokeStyle = `black`;         // Haken setzen
+        ctx.setLineDash([5,  0]);
+        ctx.lineWidth = 3;
+        xpos=28;    
+        ypos=502;    
+        ctx.beginPath();
+        ctx.moveTo(xpos, ypos);
+        ctx.lineTo(xpos+5, ypos+5);
+        ctx.lineTo(xpos+20, ypos-10);
+        ctx.stroke(); 
+      }          
+      ctx.fillStyle = `black`;
+
+      xpos=30;
+
+      ctx.fillStyle = `black`;  
+      textToReplace = data['v057'].substring( 2, 40)    //  AKTION:    auslesen aus 20. Zeile grosses Display x 2-40              
+      xpos=30;
+      ypos=355;
+      ctx.fillText(textToReplace, xpos, ypos); 
+
+      // jetzt das Feld vom grossen Display auslesen ( "0" oder  "1")
+      // und als Striche blau oder rot im Wochenkalender darstellen
+      ypos=116;
+      ctx.setLineDash([5,  0]);
+      ctx.lineWidth = 6;
+      for (i = 41; i < 55; i++) {
+        for (k = 7; k < 80; k++) {
+          variableName = "v0" + i;
+          textToReplace = data[variableName].substring(k, k+1);
+          xpos= 17 + k*5 + ((i-41) % 2)*360;
+          if (textToReplace == '1') { 
+            ctx.strokeStyle = MAGENTA_HEX;	/*EKH rot*/
+            ctx.beginPath();
+            ctx.moveTo(xpos, ypos);
+            ctx.lineTo(xpos, ypos-16);
+            ctx.stroke(); 
+          }
+          if (textToReplace == '0') { 
+            ctx.strokeStyle = CYAN_HEX;	/*EKH blau*/
+            ctx.beginPath();
+            ctx.moveTo(xpos, ypos);
+            ctx.lineTo(xpos, ypos-10);
+            ctx.stroke(); 
+          }
+        }
+        if ( ((i-41) % 2) > 0 ) {
+          ypos=ypos+30;
+        }
+      }
+      // aktuelle Position markieren (senkrecht gestrichelt)
+      x = data['v061'] -1; /*spalte, wo die texte anfang "rot" sein soll*/
+      y = data['v062'] -1; /*Zeile, wo die Texte rot markiert werden muss*/
+      xpos= 17 + x*5 + ((y-1) % 2)*360;
+      var y1 = Math.floor((y-1)/2);
+      ypos= 86 + y1*30;
+      ctx.setLineDash([3,  2]);
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = `black`;
+      ctx.beginPath();
+      ctx.moveTo(xpos, ypos);
+      ctx.lineTo(xpos, ypos-22);
+      ctx.stroke();
   }
 }
 /*****************Hanler für Menulink Click******************/

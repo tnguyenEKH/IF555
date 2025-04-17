@@ -754,7 +754,7 @@ function closeModal() {
 	modalBg.querySelector(`.modalContent`).classList.remove(`alarms`);
 	modalBg.querySelectorAll(`.modalBody > *`).forEach(modalBodyChild => modalBodyChild.classList.add(`displayNone`));
 	modalBg.querySelector(`.modalFooter`).classList.remove(`hidden`);
-	destroyFaceplateElements(`fieldset`);
+	destroyFaceplateElements(`fieldset`, `.calenderContainer`);
 	hideOsk();
 }
 async function validateVisuPin() {
@@ -1162,12 +1162,13 @@ function buildFaceplate(fpVarObjects) {
 				//create 'n' init fieldset
 				const newFieldset = document.createElement('fieldset');
 				document.querySelector('.modalBody').appendChild(newFieldset);
-				const newFieldsetContainer = document.createElement(`div`);	//fieldsetContainer needed bc gridLayout fails for fieldsetEl´s
-				newFieldset.appendChild(newFieldsetContainer);
+				const fieldsetGridContainer = document.createElement(`div`);	//fieldsetContainer needed bc gridLayout fails for fieldsetEl´s
+				newFieldset.appendChild(fieldsetGridContainer);
+				fieldsetGridContainer.classList.add(`faceplateFieldsetGridContainer`);
 				if (legendTxt) {
 					newFieldset.setAttribute(`legend`, legendTxt);
 					const legend = document.createElement(`legend`);
-					newFieldset.insertBefore(legend, newFieldsetContainer);
+					newFieldset.insertBefore(legend, fieldsetGridContainer);
 					legend.innerText = legendTxt;
 				}
 			}
@@ -1203,8 +1204,9 @@ function switchToCalender(ev) {
 	Object.entries(modalBg.verifyedFaceplateDataRaw).forEach(([requestRtosKey, requestDataString]) => {
 		let dataString = requestDataString;
 		if (requestRtosKey === calenderBtnRtosKey) {
-			const calenderModeVal = (document.querySelector(`.lockStatus`).unlocked) ? 2 : 1;
+			const calenderModeVal = (document.querySelector(`.lockStatus`).unlocked) ? 1 : 2;
 			dataString = requestDataString.replace(`0`, calenderModeVal);
+			console.log(dataString);
 		}
 
 		const rtosIdx = parseInt(requestRtosKey.match(/\d+/)) + rtosKeyOffset;
@@ -1219,77 +1221,69 @@ function switchToCalender(ev) {
 				console.warn(`v${(parseInt(idx) + 70).toString().padStart(3, `0`)}: ${responseObject.result}`);
 			}
 		})
-		await asyncTimeout(destroyFaceplateElements, 5000, `fieldset`);
-		const calenderDiv = await createCalender();
+		await asyncTimeout(destroyFaceplateElements, 5000, `fieldset`, `.calenderContainer`);
+
+		/*
+		const calenderCanvas = document.querySelector(`.calenderCanvas`);
+		calenderCanvas.classList.remove(`displayNone`);
+		document.body.removeAttribute(`cursorStyle`);
+		drawWeekCalender(calenderCanvas);
+		*/
+		document.body.removeAttribute(`cursorStyle`);
+		const modalBody = document.querySelector(`.modalBody`);
+		modalBody.appendChild(await createCalender());
 	});
 }
 
+
+
+
+/*
 async function createCalender(type = `week`) {
-	
-	
-	let binString = `0`;
-    for (let i = 0; i < 144; i++) {
-        binString += (i < 6*6 || i > 16 * 6 /*&& i < 20 * 6*/) ? `0` : '1';
-    }
-
-    const nightStartIdxs = [...binString.matchAll(/(10)/g)].map(el => ({nightStartIdx: el.index + 1}));
-    const dayStartIdxs = [...binString.matchAll(/(01)/g)].map(el => ({dayStartIdx: el.index + 1}));
-    const switchingPointIdxs = nightStartIdxs.concat(dayStartIdxs).sort((a, b) => Object.values(a) - Object.values(b));
-    if (binString.startsWith(`1`)) {
-        switchingPointIdxs.splice(0, 0, {dayStartIdx: 0});
-    }
-    /*(binString.startsWith(`0`)) ? switchingPointIdxs.splice(0, 0, {nightStartIdx: 0}) : switchingPointIdxs.splice(0, 0, {dayStartIdx: 0}) ;*/
-    
-    console.log(binString, nightStartIdxs, dayStartIdxs, switchingPointIdxs);
-
-    switchingPointIdxs.forEach((switchingPointIdx, idx) => {
-        const slider = document.createElement(`input`);
-        document.body.appendChild(slider);
-        slider.type = `range`;
-        slider.classList.add(`calenderSlider`);
-        slider.setAttribute(`idx`, idx);
-        slider.min = 0;
-        slider.max = 143;
-        slider.step = 1;
-        slider.value = Object.values(switchingPointIdx);
-        //slider.addEventListener(`input`, calenderSliderEventHandler);
-		//https://mikejolley.com/2019/08/02/building-a-cross-browser-compatible-multi-handle-range-slider/
-		//https://projects.verou.me/multirange/
-	});
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	const calenderData = await fetchJSON(kalenderUrl);
-	console.log(calenderData);
-	if (updateConnectionStatus(!!calenderData)) {
+	const calenderDataRaw = await fetchJSON(kalenderUrl);
+	console.log(calenderDataRaw);
+	if (updateConnectionStatus(!!calenderDataRaw)) {
 		//daten Aufbereiten: binaryString 10min Raster = 144Bits, separated in 2 rows => 72Bits/row
-		let data = [];
-		Object.values(calenderData).toString().match(/\d{72}/g).forEach((row, idx, arr) => {
+		let calenderData = [];
+		Object.values(calenderDataRaw).toString().match(/\d{72}/g).forEach((row, idx, arr) => {
 			if (idx % 2 !== 0) {
 				//merge 2rows to 1 dayRow
 				const binaryDayRow = `${arr.at(idx - 1)}${row}`;
-				//find all risingEdges(night->day); assuming that most likely at 00:00 is night...
-				const risingEdges = binaryDayRow.match(/(01)/);
-				const fallingEdges = binaryDayRow.match(/(10)/g);
+				
 
-				console.log(risingEdges);
+				calenderData.push(binaryDayRow);
+				
+				const nightStartIdxs = [...binaryDayRow.matchAll(/(10)/g)].map(el => ({nightStartIdx: el.index + 1}));
+				const dayStartIdxs = [...binaryDayRow.matchAll(/(01)/g)].map(el => ({dayStartIdx: el.index + 1}));
+				const switchingPointIdxs = nightStartIdxs.concat(dayStartIdxs).sort((a, b) => Object.values(a) - Object.values(b));
+				if (binaryDayRow.startsWith(`1`)) {
+					switchingPointIdxs.splice(0, 0, {dayStartIdx: 0});
+				}
+				//(binaryDayRow.startsWith(`0`)) ? switchingPointIdxs.splice(0, 0, {nightStartIdx: 0}) : switchingPointIdxs.splice(0, 0, {dayStartIdx: 0}) ;
+				
+				console.log(binaryDayRow, nightStartIdxs, dayStartIdxs, switchingPointIdxs);
 
-				data.push(binaryDayRow);
+				
+				switchingPointIdxs.forEach((switchingPointIdx, idx) => {
+					const slider = document.createElement(`input`);
+					document.body.appendChild(slider);
+					slider.type = `range`;
+					slider.classList.add(`calenderSlider`);
+					slider.setAttribute(`idx`, idx);
+					slider.min = 0;
+					slider.max = 143;
+					slider.step = 1;
+					slider.value = Object.values(switchingPointIdx);
+					//slider.addEventListener(`input`, calenderSliderEventHandler);
+					//https://mikejolley.com/2019/08/02/building-a-cross-browser-compatible-multi-handle-range-slider/
+					//https://projects.verou.me/multirange/
+				});
 			}
 		});
-		console.log(data);
-			
-
+		console.log(calenderData);
 	}
 }
+*/
 
 function BAtoInt(BAstring) {
 	//Handwert & BA Kombi: [-1] = Aus, [0] = Auto, [1] = Ein + interner Sollwert
